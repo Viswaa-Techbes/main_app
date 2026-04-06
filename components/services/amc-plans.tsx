@@ -1,0 +1,54 @@
+import { Check } from "lucide-react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { subscriptionPlans } from "@/lib/marketplace-data";
+
+export function AmcPlans() {
+  return (
+    <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <div className="max-w-2xl">
+        <Badge className="rounded-full bg-blue-100 px-4 py-1.5 text-blue-700">Subscription plans</Badge>
+        <h2 className="mt-4 text-3xl font-semibold text-slate-950">Annual maintenance plans that keep your IT predictable</h2>
+        <p className="mt-3 text-slate-600">
+          UI-only subscription pricing for AMC upsell moments across the marketplace.
+        </p>
+      </div>
+
+      <div className="mt-10 grid gap-6 lg:grid-cols-3">
+        {subscriptionPlans.map((plan) => (
+          <div
+            key={plan.id}
+            className={`rounded-[30px] border p-8 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.4)] ${
+              plan.badge
+                ? "border-emerald-200 bg-[linear-gradient(180deg,rgba(236,253,245,0.95),#ffffff)]"
+                : "border-slate-200 bg-white"
+            }`}
+          >
+            {plan.badge && (
+              <span className="inline-flex rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white">
+                {plan.badge}
+              </span>
+            )}
+            <h3 className="mt-4 text-2xl font-semibold text-slate-950">{plan.name}</h3>
+            <p className="mt-2 text-sm leading-6 text-slate-600">{plan.description}</p>
+            <p className="mt-6 text-3xl font-semibold text-slate-950">{plan.price}</p>
+            <div className="mt-6 space-y-3">
+              {plan.features.map((feature) => (
+                <div key={feature} className="flex items-start gap-3 text-sm text-slate-600">
+                  <div className="rounded-full bg-emerald-100 p-1 text-emerald-700">
+                    <Check className="h-3.5 w-3.5" />
+                  </div>
+                  {feature}
+                </div>
+              ))}
+            </div>
+            <Button className="mt-8 w-full rounded-full" variant={plan.badge ? "default" : "outline"}>
+              Choose Plan
+            </Button>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
