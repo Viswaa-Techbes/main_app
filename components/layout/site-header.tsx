@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Menu, MapPin, Search, Sparkles, X } from "lucide-react";
 import { useState } from "react";
 
+import { useAuth } from "@/features/auth/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -16,6 +18,14 @@ const navItems = [
 
 export function SiteHeader() {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+  const { isAuthenticated, logout, status, user } = useAuth();
+
+  async function handleLogout() {
+    await logout();
+    router.replace("/login");
+    router.refresh();
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/60 bg-white/75 backdrop-blur-xl">
@@ -53,9 +63,23 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
-          <Button variant="outline" className="rounded-full">
-            Log In
-          </Button>
+          {status === "authenticated" && user ? (
+            <>
+              <div className="rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
+                {user.role === "admin" ? "Admin" : "User"}
+              </div>
+              <Button variant="outline" className="rounded-full" asChild>
+                <Link href="/dashboard">{user.email}</Link>
+              </Button>
+              <Button variant="ghost" className="rounded-full text-slate-600" onClick={handleLogout}>
+                Log Out
+              </Button>
+            </>
+          ) : (
+            <Button variant="outline" className="rounded-full" asChild>
+              <Link href="/login">Log In</Link>
+            </Button>
+          )}
           <Button className="rounded-full">
             <Sparkles className="h-4 w-4" />
             Book a Service
@@ -95,9 +119,33 @@ export function SiteHeader() {
                 {item.label}
               </Link>
             ))}
-            <Button variant="outline" className="justify-center rounded-full">
-              Log In
-            </Button>
+            {isAuthenticated && user ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Signed in as {user.email}
+                </Link>
+                <Button
+                  variant="outline"
+                  className="justify-center rounded-full"
+                  onClick={async () => {
+                    setIsOpen(false);
+                    await handleLogout();
+                  }}
+                >
+                  Log Out
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" className="justify-center rounded-full" asChild>
+                <Link href="/login" onClick={() => setIsOpen(false)}>
+                  Log In
+                </Link>
+              </Button>
+            )}
             <Button className="justify-center rounded-full">Book a Service</Button>
           </div>
         </div>
