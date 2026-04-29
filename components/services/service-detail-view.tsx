@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Check, ChevronLeft, Clock3, MapPin, ShieldCheck, Star, TicketPercent } from "lucide-react";
+import { Check, ChevronLeft, Clock3, MapPin, Star, TicketPercent } from "lucide-react";
 import { useState } from "react";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -14,7 +14,6 @@ import { BookingModal } from "@/components/services/booking-modal";
 import { getRecommendedServices, MarketplaceService } from "@/lib/marketplace-data";
 
 export function ServiceDetailView({ service }: { service: MarketplaceService }) {
-  const [activeImage, setActiveImage] = useState(service.gallery[0]);
   const [reviewName, setReviewName] = useState("");
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
@@ -30,58 +29,54 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
           Back to services
         </Link>
 
-        <div className="mt-6 grid gap-8 lg:grid-cols-[1.08fr,0.92fr] xl:grid-cols-[1.2fr,0.8fr]">
-          <div className="space-y-8">
-            <div className="overflow-hidden rounded-[34px] border border-slate-200 bg-white shadow-[0_24px_60px_-36px_rgba(15,23,42,0.42)]">
-              <div className="relative h-[24rem]">
-                <Image src={activeImage} alt={service.title} fill className="object-cover" priority />
+        <div className="mt-6 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_70px_-44px_rgba(15,23,42,0.5)]">
+          <div className="grid lg:grid-cols-[0.9fr,1.1fr]">
+            <div className="flex flex-col justify-between gap-8 p-6 sm:p-8 lg:p-10">
+              <div>
+                <Badge className="rounded-full bg-emerald-100 px-4 py-1.5 text-emerald-700">{service.category}</Badge>
+                <h1 className="mt-5 text-4xl font-semibold leading-tight text-slate-950 sm:text-5xl">{service.title}</h1>
+                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">{service.description}</p>
               </div>
-              <div className="grid gap-3 p-4 sm:grid-cols-3">
-                {service.gallery.map((image) => (
-                  <button
-                    key={image}
-                    className={`relative h-28 overflow-hidden rounded-3xl border transition ${
-                      activeImage === image ? "border-emerald-500 ring-2 ring-emerald-200" : "border-slate-200"
-                    }`}
-                    onClick={() => setActiveImage(image)}
-                  >
-                    <Image src={image} alt={service.title} fill className="object-cover" />
-                  </button>
-                ))}
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-medium uppercase text-slate-400">Rating</p>
+                  <p className="mt-1 inline-flex items-center gap-1 text-lg font-semibold text-slate-950">
+                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    {service.rating}
+                  </p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-medium uppercase text-slate-400">Duration</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-950">{service.duration}</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                  <p className="text-xs font-medium uppercase text-slate-400">Starts at</p>
+                  <p className="mt-1 text-lg font-semibold text-slate-950">{service.price}</p>
+                </div>
               </div>
             </div>
 
-            <div className="rounded-[34px] border border-slate-200 bg-white p-8 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.35)]">
-              <Badge className="rounded-full bg-emerald-100 px-4 py-1.5 text-emerald-700">{service.category}</Badge>
-              <h1 className="mt-4 text-4xl font-semibold text-slate-950">{service.title}</h1>
-              <p className="mt-3 text-lg text-slate-600">{service.description}</p>
+            <div className="relative min-h-[22rem] lg:min-h-[32rem]">
+              <Image src={service.image} alt={service.title} fill className="object-cover" priority />
+            </div>
+          </div>
+        </div>
 
-              <div className="mt-6 flex flex-wrap gap-3 text-sm text-slate-500">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-2">
-                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                  {service.rating} rating
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-2">
-                  <Clock3 className="h-4 w-4 text-emerald-600" />
-                  {service.duration}
-                </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-2">
-                  <ShieldCheck className="h-4 w-4 text-blue-600" />
-                  Verified technicians
-                </span>
-              </div>
-
-              <div className="mt-8 grid gap-8 md:grid-cols-2">
+        <div className="mt-8 grid gap-8 lg:grid-cols-[1.08fr,0.92fr] xl:grid-cols-[1.2fr,0.8fr]">
+          <div className="space-y-8">
+            <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.35)] sm:p-8">
+              <div className="grid gap-8 md:grid-cols-2">
                 <ContentList title="What you get" items={service.features} />
                 <ContentList title="What is included" items={service.includes} />
               </div>
             </div>
 
-            <div className="rounded-[34px] border border-slate-200 bg-white p-8 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.35)]">
+            <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.35)] sm:p-8">
               <h2 className="text-2xl font-semibold text-slate-950">How it works</h2>
               <div className="mt-6 grid gap-4">
                 {service.steps.map((step, index) => (
-                  <div key={step} className="flex gap-4 rounded-3xl bg-slate-50 p-5">
+                  <div key={step} className="flex gap-4 rounded-2xl bg-slate-50 p-5">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white">
                       {index + 1}
                     </div>
@@ -91,7 +86,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
               </div>
             </div>
 
-            <div className="rounded-[34px] border border-slate-200 bg-white p-8 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.35)]">
+            <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.35)] sm:p-8">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-950">Reviews</h2>
@@ -107,7 +102,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
               <div className="mt-6 grid gap-6 lg:grid-cols-[1fr,0.88fr]">
                 <div className="space-y-4">
                   {reviews.map((review) => (
-                    <div key={review.id} className="rounded-3xl border border-slate-200 p-5">
+                    <div key={review.id} className="rounded-2xl border border-slate-200 p-5">
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="font-semibold text-slate-950">{review.user}</p>
@@ -126,7 +121,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                   ))}
                 </div>
 
-                <div className="rounded-3xl bg-slate-50 p-5">
+                <div className="rounded-2xl bg-slate-50 p-5">
                   <h3 className="text-lg font-semibold text-slate-950">Write a review</h3>
                   <div className="mt-4 space-y-3">
                     <Input
@@ -179,7 +174,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
               </div>
             </div>
 
-            <div className="rounded-[34px] border border-slate-200 bg-white p-8 shadow-[0_24px_60px_-36px_rgba(15,23,42,0.35)]">
+            <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.35)] sm:p-8">
               <h2 className="text-2xl font-semibold text-slate-950">FAQs</h2>
               <Accordion type="single" collapsible className="mt-4">
                 {service.faqs.map((faq, index) => (
@@ -198,7 +193,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
 
           <div>
             <div className="sticky top-24 space-y-6">
-              <Card className="rounded-[34px] border-slate-200 bg-white shadow-[0_24px_60px_-36px_rgba(15,23,42,0.35)]">
+              <Card className="rounded-[28px] border-slate-200 bg-white shadow-[0_24px_60px_-42px_rgba(15,23,42,0.35)]">
                 <CardContent className="space-y-6 p-8">
                   <div>
                     <p className="text-sm font-medium text-slate-500">Starting price</p>
@@ -227,7 +222,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                 </CardContent>
               </Card>
 
-              <Card className="rounded-[34px] border-slate-200 bg-[linear-gradient(180deg,#ecfeff,#ffffff)] shadow-[0_24px_60px_-36px_rgba(15,23,42,0.3)]">
+              <Card className="rounded-[28px] border-slate-200 bg-[linear-gradient(180deg,#ecfeff,#ffffff)] shadow-[0_24px_60px_-42px_rgba(15,23,42,0.3)]">
                 <CardContent className="p-8">
                   <h3 className="text-xl font-semibold text-slate-950">Recommended for you</h3>
                   <div className="mt-5 space-y-4">
