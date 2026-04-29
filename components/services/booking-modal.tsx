@@ -110,7 +110,7 @@ export function BookingModal({
                     <h3 className="text-lg font-semibold text-slate-950">Select service address</h3>
                     <Input
                       id="booking-address"
-                      value={flow.state.address}
+                      value={flow.state.address || ""}
                       onChange={(event) => flow.updateState({ address: event.target.value })}
                       className="h-12 rounded-2xl"
                       placeholder="Office / home address"
@@ -202,7 +202,7 @@ export function BookingModal({
                       <div>
                         <label className="text-sm font-medium text-slate-700 mb-1.5 block">Full Name</label>
                         <Input
-                          value={flow.state.customerName}
+                          value={flow.state.customerName || ""}
                           onChange={(event) => flow.updateState({ customerName: event.target.value })}
                           className="h-12 rounded-2xl"
                           placeholder="e.g. John Doe"
@@ -211,7 +211,7 @@ export function BookingModal({
                       <div>
                         <label className="text-sm font-medium text-slate-700 mb-1.5 block">Phone Number</label>
                         <Input
-                          value={flow.state.customerPhone}
+                          value={flow.state.customerPhone || ""}
                           onChange={(event) => flow.updateState({ customerPhone: event.target.value })}
                           className="h-12 rounded-2xl"
                           placeholder="e.g. 9876543210"
@@ -227,7 +227,7 @@ export function BookingModal({
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-slate-950">Review summary</h3>
                     <Input
-                      value={flow.state.coupon}
+                      value={flow.state.coupon || ""}
                       onChange={(event) => flow.updateState({ coupon: event.target.value })}
                       className="h-12 rounded-2xl"
                       placeholder="Coupon code (optional)"
