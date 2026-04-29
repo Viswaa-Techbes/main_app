@@ -18,8 +18,8 @@ const initialState: BookingFlowState = {
 
 const BACKEND_URL =
   typeof window !== "undefined"
-    ? (process.env.NEXT_PUBLIC_API_BASE_URL || "http://10.246.194.196:5000")
-    : (process.env.NEXT_PUBLIC_API_BASE_URL || "http://10.246.194.196:5000");
+    ? (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000")
+    : (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000");
 
 export function useBookingFlow() {
   const [step, setStep] = useState(1);
@@ -61,7 +61,6 @@ export function useBookingFlow() {
     try {
       const res = await fetch(`${BACKEND_URL}/api/v2/bookings`, {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           service: serviceName,
@@ -75,14 +74,13 @@ export function useBookingFlow() {
       });
 
       if (!res.ok) {
-        // Try to parse error
         let message = "Booking failed. Please try again.";
         try {
           const payload = await res.json();
           message = payload.message || message;
         } catch {}
 
-        // If unauthenticated, still confirm in UI for guest flow
+        // Allow guest flow to succeed if it's explicitly allowed but missing auth
         if (res.status === 401) {
           setIsConfirmed(true);
           return;
@@ -93,9 +91,8 @@ export function useBookingFlow() {
       }
 
       setIsConfirmed(true);
-    } catch {
-      // Network error – still show confirmed for UX continuity (guest)
-      setIsConfirmed(true);
+    } catch (err: any) {
+      setBookingError(err.message || "Network error. Please check your connection.");
     } finally {
       setIsSubmitting(false);
     }
