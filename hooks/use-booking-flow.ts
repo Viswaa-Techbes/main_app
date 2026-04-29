@@ -9,6 +9,7 @@ export interface BookingFlowState {
   coupon: string;
   customerName: string;
   customerPhone: string;
+  bookingId: string | null;
 }
 
 const initialState: BookingFlowState = {
@@ -18,6 +19,7 @@ const initialState: BookingFlowState = {
   coupon: "",
   customerName: "",
   customerPhone: "",
+  bookingId: null,
 };
 
 const BACKEND_URL =
@@ -63,6 +65,9 @@ export function useBookingFlow() {
     setBookingError(null);
 
     try {
+      // Mock Razorpay Flow
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
       const res = await fetch(`${BACKEND_URL}/api/v2/bookings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -76,6 +81,8 @@ export function useBookingFlow() {
           timeSlot: state.timeSlot,
           customerName: state.customerName,
           customerPhone: state.customerPhone,
+          status: "pending",
+          paymentStatus: "advance_paid"
         }),
       });
 
@@ -95,6 +102,9 @@ export function useBookingFlow() {
         setBookingError(message);
         return;
       }
+
+      const payload = await res.json();
+      setState(current => ({ ...current, bookingId: payload.data?.id || payload.data?._id || null }));
 
       setIsConfirmed(true);
     } catch (err: any) {

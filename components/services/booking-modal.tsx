@@ -250,10 +250,14 @@ export function BookingModal({
                           {flow.state.timeSlot || "Time"}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between border-t border-slate-100 pt-3">
-                        <span>Name</span>
-                        <span className="font-semibold text-slate-950">{flow.state.customerName}</span>
-                      </div>
+                      <div className="flex items-center justify-between text-slate-900 mt-4 pt-4 border-t border-slate-100">
+                    <span className="font-semibold text-lg">Total Amount</span>
+                    <span className="font-bold text-lg">{finalPriceText}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-indigo-600 mt-2 bg-indigo-50 p-3 rounded-xl border border-indigo-100">
+                    <span className="font-semibold">50% Advance Required (Razorpay)</span>
+                    <span className="font-bold">Rs. {finalPriceValue / 2}</span>
+                  </div>
                       <div className="flex items-center justify-between">
                         <span>Phone</span>
                         <span className="font-semibold text-slate-950">{flow.state.customerPhone}</span>
@@ -279,10 +283,7 @@ export function BookingModal({
                       </div>
                     )}
                     <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-800">
-                      Your booking will be confirmed instantly. An admin will assign a technician and notify you.
-                    </div>
-                    <div className="rounded-3xl bg-slate-50 p-5 text-sm leading-6 text-slate-600">
-                      By confirming, you agree to pricing estimates, technician assignment, and communication updates for service completion.
+                      50% advance payment is required to confirm your slot.
                     </div>
                   </div>
                 )}
@@ -314,14 +315,15 @@ export function BookingModal({
                   </Button>
                 ) : (
                   <Button
-                    className="rounded-full"
+                    size="lg"
+                    className="w-40 rounded-xl bg-slate-900 font-semibold text-white hover:bg-slate-800"
                     onClick={handleConfirm}
                     disabled={flow.isSubmitting}
                   >
                     {flow.isSubmitting ? (
-                      <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Confirming…</>
+                      <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
-                      "Confirm Booking"
+                      "Pay Advance & Confirm"
                     )}
                   </Button>
                 )}
