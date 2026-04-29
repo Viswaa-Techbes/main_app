@@ -7,6 +7,8 @@ export interface BookingFlowState {
   date: string;
   timeSlot: string;
   coupon: string;
+  customerName: string;
+  customerPhone: string;
 }
 
 const initialState: BookingFlowState = {
@@ -14,6 +16,8 @@ const initialState: BookingFlowState = {
   date: "",
   timeSlot: "",
   coupon: "",
+  customerName: "",
+  customerPhone: "",
 };
 
 const BACKEND_URL =
@@ -41,7 +45,7 @@ export function useBookingFlow() {
   }
 
   function nextStep() {
-    setStep((current) => Math.min(current + 1, 4));
+    setStep((current) => Math.min(current + 1, 5));
   }
 
   function previousStep() {
@@ -70,6 +74,8 @@ export function useBookingFlow() {
           description: "",
           date: state.date,
           timeSlot: state.timeSlot,
+          customerName: state.customerName,
+          customerPhone: state.customerPhone,
         }),
       });
 

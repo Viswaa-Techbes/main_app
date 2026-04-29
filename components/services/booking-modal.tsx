@@ -8,6 +8,7 @@ import {
   Loader2,
   MapPin,
   TicketPercent,
+  Phone,
 } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -55,6 +56,11 @@ export function BookingModal({
     onOpenChange(nextOpen);
     if (!nextOpen) flow.resetFlow();
   }
+
+  const hasCoupon = flow.state.coupon.trim().length > 0;
+  const discountAmount = hasCoupon ? Math.round(service.priceValue * 0.1) : 0; // 10% discount for any coupon
+  const finalPriceValue = service.priceValue - discountAmount;
+  const finalPriceText = `Rs. ${finalPriceValue}`;
 
   async function handleConfirm() {
     await flow.confirm({
@@ -187,8 +193,37 @@ export function BookingModal({
                   </div>
                 )}
 
-                {/* Step 3 – Review */}
+                {/* Step 3 – Contact Info */}
                 {flow.step === 3 && (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-slate-950">Your details</h3>
+                    <p className="text-sm text-slate-500 mt-1">Please provide your contact information so the technician can reach you.</p>
+                    <div className="space-y-3 mt-4">
+                      <div>
+                        <label className="text-sm font-medium text-slate-700 mb-1.5 block">Full Name</label>
+                        <Input
+                          value={flow.state.customerName}
+                          onChange={(event) => flow.updateState({ customerName: event.target.value })}
+                          className="h-12 rounded-2xl"
+                          placeholder="e.g. John Doe"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-slate-700 mb-1.5 block">Phone Number</label>
+                        <Input
+                          value={flow.state.customerPhone}
+                          onChange={(event) => flow.updateState({ customerPhone: event.target.value })}
+                          className="h-12 rounded-2xl"
+                          placeholder="e.g. 9876543210"
+                          type="tel"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4 – Review */}
+                {flow.step === 4 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-slate-950">Review summary</h3>
                     <Input
@@ -215,16 +250,27 @@ export function BookingModal({
                           {flow.state.timeSlot || "Time"}
                         </span>
                       </div>
+                      <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+                        <span>Name</span>
+                        <span className="font-semibold text-slate-950">{flow.state.customerName}</span>
+                      </div>
                       <div className="flex items-center justify-between">
+                        <span>Phone</span>
+                        <span className="font-semibold text-slate-950">{flow.state.customerPhone}</span>
+                      </div>
+                      <div className="flex items-center justify-between border-t border-slate-100 pt-3">
                         <span>Price</span>
-                        <span className="font-semibold text-slate-950">{service.price}</span>
+                        <div className="text-right">
+                          {hasCoupon && <span className="line-through text-slate-400 mr-2 text-xs">{service.price}</span>}
+                          <span className="font-semibold text-slate-950">{finalPriceText}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Step 4 – Confirm */}
-                {flow.step === 4 && (
+                {/* Step 5 – Confirm */}
+                {flow.step === 5 && (
                   <div className="space-y-4">
                     <h3 className="text-lg font-semibold text-slate-950">Confirm booking</h3>
                     {flow.bookingError && (
@@ -253,13 +299,14 @@ export function BookingModal({
                   <ChevronLeft className="h-4 w-4" />
                   Back
                 </Button>
-                {flow.step < 4 ? (
+                {flow.step < 5 ? (
                   <Button
                     className="rounded-full"
                     onClick={flow.nextStep}
                     disabled={
                       (flow.step === 1 && !flow.state.address) ||
-                      (flow.step === 2 && (!flow.state.date || !flow.state.timeSlot))
+                      (flow.step === 2 && (!flow.state.date || !flow.state.timeSlot)) ||
+                      (flow.step === 3 && (!flow.state.customerName || !flow.state.customerPhone))
                     }
                   >
                     Continue
@@ -292,8 +339,17 @@ export function BookingModal({
                   <div className="space-y-3 text-sm text-slate-600">
                     <div className="flex items-center gap-3">
                       <MapPin className="h-4 w-4 text-emerald-600 shrink-0" />
-                      {flow.state.address || "Address pending"}
+                      <span className="line-clamp-2">{flow.state.address || "Address pending"}</span>
                     </div>
+                    {(flow.state.customerName || flow.state.customerPhone) && (
+                      <div className="flex items-center gap-3">
+                        <Phone className="h-4 w-4 text-indigo-500 shrink-0" />
+                        <span>
+                          {flow.state.customerName && <span className="font-medium mr-2">{flow.state.customerName}</span>}
+                          {flow.state.customerPhone}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-3">
                       <Clock3 className="h-4 w-4 text-blue-600 shrink-0" />
                       {flow.state.date
@@ -307,8 +363,14 @@ export function BookingModal({
                     </div>
                   </div>
                   <div className="rounded-3xl bg-slate-950 p-5 text-white">
-                    <p className="text-sm text-slate-300">Estimated payable</p>
-                    <p className="mt-2 text-3xl font-semibold">{service.price}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-slate-300">Estimated payable</p>
+                      {hasCoupon && <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-400">10% Off</span>}
+                    </div>
+                    <div className="mt-2 flex items-baseline gap-2">
+                      <p className="text-3xl font-semibold">{finalPriceText}</p>
+                      {hasCoupon && <p className="text-sm text-slate-400 line-through">Rs. {service.priceValue}</p>}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -321,7 +383,7 @@ export function BookingModal({
 }
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
-  const steps = ["Address", "Schedule", "Review", "Confirm"];
+  const steps = ["Address", "Schedule", "Contact", "Review", "Confirm"];
 
   return (
     <div className="flex flex-wrap gap-3">
