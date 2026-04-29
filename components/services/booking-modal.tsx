@@ -66,6 +66,7 @@ export function BookingModal({
     await flow.confirm({
       serviceId: String(service.id),
       serviceName: service.title,
+      advanceAmount: finalPriceValue / 2,
     });
   }
 
@@ -85,15 +86,19 @@ export function BookingModal({
               <CheckCircle2 className="h-8 w-8" />
             </div>
             <h3 className="mt-5 text-2xl font-semibold text-slate-950">Booking confirmed!</h3>
-            <p className="mt-3 text-slate-600">
+            <div className="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-100 inline-block">
+              <span className="text-sm text-slate-500 block uppercase font-bold tracking-wider mb-1">Booking ID</span>
+              <span className="text-xl font-mono text-slate-900 font-bold">{flow.state.bookingId || "PENDING"}</span>
+            </div>
+            <p className="mt-5 text-slate-600">
               Your request for <strong>{service.title}</strong> has been placed for{" "}
               <strong>{flow.state.date}</strong> at <strong>{flow.state.timeSlot}</strong>.
               <br />
-              <span className="text-sm text-slate-500 mt-1 block">
-                We will assign a technician and notify you shortly.
+              <span className="text-sm text-slate-500 mt-2 block font-medium">
+                Status: Pending • A technician will be assigned shortly.
               </span>
             </p>
-            <Button className="mt-6 rounded-full" onClick={() => closeModal(false)}>
+            <Button className="mt-6 w-40 rounded-full font-semibold bg-slate-900 text-white" onClick={() => closeModal(false)}>
               Done
             </Button>
           </div>
@@ -118,6 +123,13 @@ export function BookingModal({
                     <div className="rounded-3xl bg-slate-50 p-4 text-sm text-slate-500">
                       Add a precise address to improve technician allocation and ETA accuracy.
                     </div>
+                    <h3 className="text-lg font-semibold text-slate-950 mt-6">Problem Description</h3>
+                    <textarea
+                      value={flow.state.description || ""}
+                      onChange={(event) => flow.updateState({ description: event.target.value })}
+                      className="w-full min-h-[100px] rounded-2xl border border-slate-200 p-4 text-sm"
+                      placeholder="Describe the issue (optional)"
+                    />
                   </div>
                 )}
 

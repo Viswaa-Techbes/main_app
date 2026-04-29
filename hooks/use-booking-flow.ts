@@ -9,6 +9,7 @@ export interface BookingFlowState {
   coupon: string;
   customerName: string;
   customerPhone: string;
+  description: string;
   bookingId: string | null;
 }
 
@@ -19,6 +20,7 @@ const initialState: BookingFlowState = {
   coupon: "",
   customerName: "",
   customerPhone: "",
+  description: "",
   bookingId: null,
 };
 
@@ -57,59 +59,119 @@ export function useBookingFlow() {
   async function confirm({
     serviceId,
     serviceName,
+    advanceAmount,
   }: {
     serviceId: string;
     serviceName: string;
+    advanceAmount: number;
   }) {
     setIsSubmitting(true);
     setBookingError(null);
 
     try {
-      // Mock Razorpay Flow
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // 1. Load Razorpay script
+      const loadRazorpay = () => new Promise((resolve) => {
+        if ((window as any).Razorpay) return resolve(true);
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+      });
 
-      const res = await fetch(`${BACKEND_URL}/api/v2/bookings`, {
+      const isLoaded = await loadRazorpay();
+      if (!isLoaded) throw new Error("Failed to load Razorpay. Please check your internet connection.");
+
+      // 2. Create Order
+      const orderRes = await fetch(`${BACKEND_URL}/api/v2/payment/create-order`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          service: serviceName,
-          serviceId,
-          serviceName,
-          address: state.address,
-          description: "",
-          date: state.date,
-          timeSlot: state.timeSlot,
-          customerName: state.customerName,
-          customerPhone: state.customerPhone,
-          status: "pending",
-          paymentStatus: "advance_paid"
+          amount: Math.round(advanceAmount * 100), // convert to paise
+          description: `50% Advance for ${serviceName}`,
+          receipt: `rcpt_${Date.now()}`
         }),
       });
 
-      if (!res.ok) {
-        let message = "Booking failed. Please try again.";
-        try {
-          const payload = await res.json();
-          message = payload.message || message;
-        } catch {}
-
-        // Allow guest flow to succeed if it's explicitly allowed but missing auth
-        if (res.status === 401) {
-          setIsConfirmed(true);
-          return;
-        }
-
-        setBookingError(message);
-        return;
+      const orderPayload = await orderRes.json();
+      if (!orderRes.ok || !orderPayload.success) {
+        throw new Error(orderPayload.message || "Failed to create payment order");
       }
 
-      const payload = await res.json();
-      setState(current => ({ ...current, bookingId: payload.data?.id || payload.data?._id || null }));
+      // 3. Open Razorpay Checkout
+      const options = {
+        key: orderPayload.data.keyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "rzp_test_YourKeyId",
+        amount: orderPayload.data.amount,
+        currency: "INR",
+        name: "Techbes Services",
+        description: `Advance Payment - ${serviceName}`,
+        order_id: orderPayload.data.orderId,
+        handler: async function (response: any) {
+          try {
+            await submitBookingFinal(response.razorpay_payment_id, orderPayload.data.orderId);
+          } catch (e: any) {
+            setBookingError(e.message || "Booking creation failed after payment.");
+            setIsSubmitting(false);
+          }
+        },
+        prefill: {
+          name: state.customerName,
+          contact: state.customerPhone,
+        },
+        theme: { color: "#0f172a" },
+      };
 
-      setIsConfirmed(true);
+      async function submitBookingFinal(paymentId: string, orderId: string) {
+        setIsSubmitting(true);
+        const res = await fetch(`${BACKEND_URL}/api/v2/bookings`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            service: serviceName,
+            serviceId,
+            serviceName,
+            address: state.address,
+            description: state.description,
+            date: state.date,
+            timeSlot: state.timeSlot,
+            customerName: state.customerName,
+            customerPhone: state.customerPhone,
+            status: "pending",
+            paymentStatus: "advance_paid",
+            paymentId: paymentId,
+            orderId: orderId,
+            amount: advanceAmount,
+          })
+        });
+
+        if (!res.ok) {
+          let message = "Booking failed. Please try again.";
+          try {
+            const payload = await res.json();
+            message = payload.message || message;
+          } catch {}
+
+          if (res.status === 401) {
+            setIsConfirmed(true);
+            return;
+          }
+          throw new Error(message);
+        }
+
+        const payload = await res.json();
+        setState(current => ({ ...current, bookingId: payload.data?.id || payload.data?._id || null }));
+        setIsConfirmed(true);
+        setIsSubmitting(false);
+      }
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on("payment.failed", function (response: any) {
+        setBookingError(response.error.description || "Payment failed or cancelled.");
+        setIsSubmitting(false);
+      });
+      rzp.open();
     } catch (err: any) {
       setBookingError(err.message || "Network error. Please check your connection.");
-    } finally {
       setIsSubmitting(false);
     }
   }
