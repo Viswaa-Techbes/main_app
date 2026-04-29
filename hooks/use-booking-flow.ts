@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getBackendUrl } from "@/core/api/backend-url";
 
 export interface BookingFlowState {
   address: string;
@@ -23,11 +24,6 @@ const initialState: BookingFlowState = {
   description: "",
   bookingId: null,
 };
-
-const BACKEND_URL =
-  typeof window !== "undefined"
-    ? (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000")
-    : (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000");
 
 export function useBookingFlow() {
   const [step, setStep] = useState(1);
@@ -83,7 +79,7 @@ export function useBookingFlow() {
       if (!isLoaded) throw new Error("Failed to load Razorpay. Please check your internet connection.");
 
       // 2. Create Order
-      const orderRes = await fetch(`${BACKEND_URL}/api/v2/payment/create-order`, {
+      const orderRes = await fetch(getBackendUrl("/api/v2/payment/create-order"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -123,7 +119,7 @@ export function useBookingFlow() {
 
       async function submitBookingFinal(paymentId: string, orderId: string) {
         setIsSubmitting(true);
-        const res = await fetch(`${BACKEND_URL}/api/v2/bookings`, {
+        const res = await fetch(getBackendUrl("/api/v2/bookings"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

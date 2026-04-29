@@ -38,8 +38,6 @@ function getAvailableDates(): { iso: string; label: string }[] {
   return dates;
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://10.246.194.196:5000";
-
 export function BookingModal({
   open,
   onOpenChange,
