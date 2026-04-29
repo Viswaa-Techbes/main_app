@@ -15,6 +15,9 @@ export async function GET() {
   return NextResponse.json({
     authenticated: true,
     user: {
+      id: session.sub,
+      name: session.name,
+      mobileNumber: session.mobileNumber,
       email: session.email,
       role: session.role,
     },

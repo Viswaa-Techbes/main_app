@@ -1,0 +1,180 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useState } from "react";
+import { LockKeyhole, Mail, Phone, User } from "lucide-react";
+
+import { AppError } from "@/core/errors/app-error";
+import { logger } from "@/core/logging/logger";
+import { isValidEmail, isValidMobileNumber, sanitizeEmail, sanitizeMobileNumber } from "@/core/utils/sanitize";
+import { useAuth } from "@/features/auth/context/auth-context";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
+import { InlineAlert } from "@/shared/components/feedback/inline-alert";
+import { PageStatus } from "@/shared/components/feedback/page-status";
+
+type FormErrors = {
+  name?: string;
+  mobileNumber?: string;
+  email?: string;
+  password?: string;
+  form?: string;
+};
+
+export function RegisterForm({ redirectTo = "/dashboard" }: { redirectTo?: string }) {
+  const router = useRouter();
+  const { status, register, refreshSession } = useAuth();
+  const [name, setName] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace(redirectTo);
+    }
+  }, [redirectTo, router, status]);
+
+  function validateForm() {
+    const nextErrors: FormErrors = {};
+    const cleanEmail = sanitizeEmail(email);
+
+    if (name.trim().length < 2) nextErrors.name = "Enter your full name.";
+    if (!isValidMobileNumber(sanitizeMobileNumber(mobileNumber))) {
+      nextErrors.mobileNumber = "Enter a valid 10 digit mobile number.";
+    }
+    if (cleanEmail && !isValidEmail(cleanEmail)) nextErrors.email = "Enter a valid email address.";
+    if (password.trim().length < 6) nextErrors.password = "Password must be at least 6 characters.";
+
+    return nextErrors;
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const nextErrors = validateForm();
+
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrors({});
+
+    try {
+      await register({ name, mobileNumber, email, password });
+      await refreshSession();
+      router.replace(redirectTo);
+      router.refresh();
+    } catch (error) {
+      logger.warn("Register request failed", error);
+      setErrors({
+        form: error instanceof AppError ? error.message : "Unable to create your account right now.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  if (status === "loading") {
+    return <PageStatus message="Checking your session..." />;
+  }
+
+  return (
+    <div className="relative overflow-hidden">
+      <div className="absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.18),transparent_55%)]" />
+      <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
+        <div className="grid w-full max-w-5xl gap-10 lg:grid-cols-[1fr_0.92fr] lg:items-center">
+          <div className="hidden lg:block">
+            <div className="mb-5 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700">
+              Customer signup
+            </div>
+            <h1 className="text-4xl font-semibold tracking-tight text-slate-950">
+              Create your Techbes account before your next IT service visit.
+            </h1>
+            <p className="mt-4 max-w-lg text-base leading-7 text-slate-600">
+              Save your contact details, book faster, and track technician assignments from your customer dashboard.
+            </p>
+          </div>
+
+          <Card className="border-white/80 bg-white/90 py-0 shadow-[0_32px_80px_-38px_rgba(15,23,42,0.35)] backdrop-blur">
+            <CardHeader className="gap-3 border-b border-slate-100 px-8 py-8">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                <User className="h-5 w-5" />
+              </div>
+              <div className="space-y-2">
+                <CardTitle className="text-2xl text-slate-950">Create customer account</CardTitle>
+                <CardDescription className="text-sm leading-6 text-slate-600">
+                  Register with your mobile number to manage bookings and service updates.
+                </CardDescription>
+              </div>
+            </CardHeader>
+
+            <CardContent className="px-8 py-8">
+              <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+                {errors.form ? <InlineAlert message={errors.form} /> : null}
+
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full name</Label>
+                  <Input id="name" value={name} onChange={(event) => setName(event.target.value)} className="h-12 rounded-2xl bg-slate-50/80" autoComplete="name" />
+                  {errors.name ? <p className="text-sm text-red-600">{errors.name}</p> : null}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="mobileNumber">Mobile number</Label>
+                  <div className="relative">
+                    <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Input id="mobileNumber" type="tel" inputMode="numeric" value={mobileNumber} onChange={(event) => setMobileNumber(sanitizeMobileNumber(event.target.value))} placeholder="9876543210" className="h-12 rounded-2xl bg-slate-50/80 pl-11" autoComplete="tel" />
+                  </div>
+                  {errors.mobileNumber ? <p className="text-sm text-red-600">{errors.mobileNumber}</p> : null}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email optional</Label>
+                  <div className="relative">
+                    <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" className="h-12 rounded-2xl bg-slate-50/80 pl-11" autoComplete="email" />
+                  </div>
+                  {errors.email ? <p className="text-sm text-red-600">{errors.email}</p> : null}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
+                    <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="h-12 rounded-2xl bg-slate-50/80 pl-11" autoComplete="new-password" />
+                  </div>
+                  {errors.password ? <p className="text-sm text-red-600">{errors.password}</p> : null}
+                </div>
+
+                <Button type="submit" size="lg" className="h-12 w-full rounded-2xl" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Spinner className="h-4 w-4" />
+                      Creating account...
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
+                </Button>
+
+                <p className="text-center text-sm text-slate-500">
+                  Already registered?{" "}
+                  <Link href="/login" className="font-semibold text-emerald-700 hover:text-emerald-800">
+                    Log in
+                  </Link>
+                </p>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

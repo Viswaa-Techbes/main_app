@@ -20,6 +20,7 @@ export function SiteHeader() {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const { isAuthenticated, logout, status, user } = useAuth();
+  const customerLabel = user?.name || user?.mobileNumber || user?.email || "Account";
 
   async function handleLogout() {
     await logout();
@@ -66,19 +67,24 @@ export function SiteHeader() {
           {status === "authenticated" && user ? (
             <>
               <div className="rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
-                {user.role === "admin" ? "Admin" : "User"}
+                {user.role === "admin" ? "Admin" : "Customer"}
               </div>
               <Button variant="outline" className="rounded-full" asChild>
-                <Link href="/dashboard">{user.email}</Link>
+                <Link href="/dashboard">{customerLabel}</Link>
               </Button>
               <Button variant="ghost" className="rounded-full text-slate-600" onClick={handleLogout}>
                 Log Out
               </Button>
             </>
           ) : (
-            <Button variant="outline" className="rounded-full" asChild>
-              <Link href="/login">Log In</Link>
-            </Button>
+            <>
+              <Button variant="outline" className="rounded-full" asChild>
+                <Link href="/login">Log In</Link>
+              </Button>
+              <Button className="rounded-full" asChild>
+                <Link href="/signup">Sign Up</Link>
+              </Button>
+            </>
           )}
           <Button className="rounded-full">
             <Sparkles className="h-4 w-4" />
@@ -126,7 +132,7 @@ export function SiteHeader() {
                   className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700"
                   onClick={() => setIsOpen(false)}
                 >
-                  Signed in as {user.email}
+                  Signed in as {customerLabel}
                 </Link>
                 <Button
                   variant="outline"
@@ -140,11 +146,18 @@ export function SiteHeader() {
                 </Button>
               </>
             ) : (
-              <Button variant="outline" className="justify-center rounded-full" asChild>
-                <Link href="/login" onClick={() => setIsOpen(false)}>
-                  Log In
-                </Link>
-              </Button>
+              <>
+                <Button variant="outline" className="justify-center rounded-full" asChild>
+                  <Link href="/login" onClick={() => setIsOpen(false)}>
+                    Log In
+                  </Link>
+                </Button>
+                <Button className="justify-center rounded-full" asChild>
+                  <Link href="/signup" onClick={() => setIsOpen(false)}>
+                    Sign Up
+                  </Link>
+                </Button>
+              </>
             )}
             <Button className="justify-center rounded-full">Book a Service</Button>
           </div>

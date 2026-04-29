@@ -12,7 +12,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (pathname === "/login" && token) {
+  if ((pathname === "/login" || pathname === "/signup") && token) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
@@ -20,5 +20,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/dashboard/:path*"],
+  matcher: ["/login", "/signup", "/dashboard/:path*"],
 };

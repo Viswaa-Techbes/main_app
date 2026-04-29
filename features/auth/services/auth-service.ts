@@ -1,15 +1,27 @@
 import { apiClient } from "@/core/api/api-client";
-import { sanitizeEmail, sanitizeText } from "@/core/utils/sanitize";
-import { LoginPayload, LoginResponse, SessionResponse } from "@/features/auth/types/auth";
+import { sanitizeEmail, sanitizeMobileNumber, sanitizeText } from "@/core/utils/sanitize";
+import { LoginPayload, LoginResponse, RegisterPayload, SessionResponse } from "@/features/auth/types/auth";
 
 export const authService = {
   async login(payload: LoginPayload) {
     return apiClient<LoginResponse>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({
-        email: sanitizeEmail(payload.email),
+        mobileNumber: sanitizeMobileNumber(payload.mobileNumber),
         password: sanitizeText(payload.password),
         rememberMe: payload.rememberMe,
+      }),
+    });
+  },
+
+  async register(payload: RegisterPayload) {
+    return apiClient<LoginResponse>("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({
+        name: sanitizeText(payload.name),
+        mobileNumber: sanitizeMobileNumber(payload.mobileNumber),
+        email: payload.email ? sanitizeEmail(payload.email) : "",
+        password: sanitizeText(payload.password),
       }),
     });
   },

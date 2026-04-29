@@ -18,6 +18,7 @@ const metricIcons = [CalendarDays, PackageOpen, MapPin, Wallet];
 export function DashboardOverview() {
   const { user } = useAuth();
   const { data, error, isLoading } = useDashboardData();
+  const customerLabel = user?.name || user?.mobileNumber || user?.email || "your account";
 
   if (isLoading) {
     return <PageStatus message="Loading your dashboard..." className="min-h-[70vh]" />;
@@ -51,7 +52,7 @@ export function DashboardOverview() {
             allow={["admin"]}
             fallback={
               <div className="rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm text-slate-600">
-                Signed in as <span className="font-semibold text-slate-950">{user?.email}</span>
+                Signed in as <span className="font-semibold text-slate-950">{customerLabel}</span>
               </div>
             }
           >

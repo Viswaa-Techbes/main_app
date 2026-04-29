@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { Chrome, LockKeyhole, Mail } from "lucide-react";
+import { LockKeyhole, Phone } from "lucide-react";
 
 import { AppError } from "@/core/errors/app-error";
 import { logger } from "@/core/logging/logger";
-import { isValidEmail, sanitizeEmail } from "@/core/utils/sanitize";
+import { isValidMobileNumber, sanitizeMobileNumber } from "@/core/utils/sanitize";
 import { useAuth } from "@/features/auth/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,16 +19,16 @@ import { InlineAlert } from "@/shared/components/feedback/inline-alert";
 import { PageStatus } from "@/shared/components/feedback/page-status";
 
 type FormErrors = {
-  email?: string;
+  mobileNumber?: string;
   password?: string;
   form?: string;
 };
 
-function validateLoginForm(email: string, password: string) {
+function validateLoginForm(mobileNumber: string, password: string) {
   const errors: FormErrors = {};
 
-  if (!isValidEmail(sanitizeEmail(email))) {
-    errors.email = "Enter a valid email address.";
+  if (!isValidMobileNumber(sanitizeMobileNumber(mobileNumber))) {
+    errors.mobileNumber = "Enter a valid 10 digit mobile number.";
   }
 
   if (password.trim().length < 6) {
@@ -41,7 +41,7 @@ function validateLoginForm(email: string, password: string) {
 export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }) {
   const router = useRouter();
   const { status, login, refreshSession } = useAuth();
-  const [email, setEmail] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,7 +56,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const nextErrors = validateLoginForm(email, password);
+    const nextErrors = validateLoginForm(mobileNumber, password);
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
@@ -68,7 +68,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
 
     try {
       await login({
-        email,
+        mobileNumber,
         password,
         rememberMe,
       });
@@ -103,23 +103,23 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
                 Secure dashboard access
               </div>
               <h1 className="text-4xl font-semibold tracking-tight text-slate-950">
-                Enterprise-ready access to bookings, assets, and technician updates.
+                Customer access for bookings, service visits, and technician updates.
               </h1>
               <p className="mt-4 max-w-lg text-base leading-7 text-slate-600">
-                Sessions are cookie-backed, routes are protected at the edge, and role-aware UI makes the dashboard
-                safer for both end users and operators.
+                Log in with your registered mobile number to view bookings, saved addresses, service history, and
+                upcoming technician visits.
               </p>
               <div className="mt-8 grid gap-4 sm:grid-cols-2">
                 <div className="rounded-3xl border border-white/70 bg-white/80 p-5 shadow-lg shadow-slate-200/60">
                   <p className="text-sm font-semibold text-slate-900">Protected sessions</p>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Tokens are stored in secure cookies instead of browser storage to reduce XSS exposure.
+                    Keep track of upcoming appointments, completed services, and payment status in one place.
                   </p>
                 </div>
                 <div className="rounded-3xl border border-white/70 bg-white/80 p-5 shadow-lg shadow-slate-200/60">
                   <p className="text-sm font-semibold text-slate-900">Role-aware access</p>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Admin and customer roles can now be gated independently without duplicating route logic.
+                    New customers can create an account before booking or while checking out.
                   </p>
                 </div>
               </div>
@@ -134,7 +134,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
               <div className="space-y-2">
                 <CardTitle className="text-2xl text-slate-950">Welcome back</CardTitle>
                 <CardDescription className="text-sm leading-6 text-slate-600">
-                  Use your account credentials to open the Techbes dashboard.
+                  Use your registered mobile number and password to open your customer dashboard.
                 </CardDescription>
               </div>
             </CardHeader>
@@ -144,21 +144,22 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
                 {errors.form ? <InlineAlert message={errors.form} /> : null}
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="mobileNumber">Mobile number</Label>
                   <div className="relative">
-                    <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      placeholder="name@company.com"
+                      id="mobileNumber"
+                      type="tel"
+                      inputMode="numeric"
+                      value={mobileNumber}
+                      onChange={(event) => setMobileNumber(sanitizeMobileNumber(event.target.value))}
+                      placeholder="9876543210"
                       className="h-12 rounded-2xl border-slate-200 bg-slate-50/80 pl-11"
-                      aria-invalid={Boolean(errors.email)}
-                      autoComplete="email"
+                      aria-invalid={Boolean(errors.mobileNumber)}
+                      autoComplete="tel"
                     />
                   </div>
-                  {errors.email ? <p className="text-sm text-red-600">{errors.email}</p> : null}
+                  {errors.mobileNumber ? <p className="text-sm text-red-600">{errors.mobileNumber}</p> : null}
                 </div>
 
                 <div className="space-y-2">
@@ -198,23 +199,15 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
                       Logging in...
                     </>
                   ) : (
-                    "Login"
+                    "Log In"
                   )}
                 </Button>
 
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="lg"
-                  className="h-12 w-full rounded-2xl text-slate-700"
-                >
-                  <Chrome className="h-4 w-4" />
-                  Continue with Google
-                </Button>
-
                 <p className="text-center text-sm text-slate-500">
-                  Sign in with any valid email and a password of 6 or more characters. Use an email containing
-                  `admin` to preview admin access.
+                  New to Techbes?{" "}
+                  <Link href="/signup" className="font-semibold text-emerald-700 hover:text-emerald-800">
+                    Create a customer account
+                  </Link>
                 </p>
               </form>
             </CardContent>

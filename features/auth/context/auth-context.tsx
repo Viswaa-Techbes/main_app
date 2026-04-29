@@ -13,6 +13,7 @@ type AuthContextValue = {
   user: AuthUser | null;
   isAuthenticated: boolean;
   login: typeof authService.login;
+  register: typeof authService.register;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
 };
@@ -63,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       isAuthenticated: status === "authenticated",
       login: authService.login,
+      register: authService.register,
       logout,
       refreshSession,
     }),
