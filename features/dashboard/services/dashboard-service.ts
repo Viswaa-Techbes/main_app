@@ -1,4 +1,4 @@
-import { dashboardBookings, savedAddresses } from "@/lib/marketplace-data";
+import { apiClient } from "@/core/api/api-client";
 
 export type DashboardMetric = {
   title: string;
@@ -8,30 +8,47 @@ export type DashboardMetric = {
 
 export type DashboardData = {
   metrics: DashboardMetric[];
-  bookings: typeof dashboardBookings;
-  savedAddresses: typeof savedAddresses;
-  upcomingBookings: typeof dashboardBookings;
-  bookingHistory: typeof dashboardBookings;
+  bookings: any[];
+  savedAddresses: any[];
+  upcomingBookings: any[];
+  bookingHistory: any[];
 };
 
 export const dashboardService = {
   async getDashboardData() {
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    // 1. Fetch real bookings from backend
+    const res = await apiClient.get("/api/v2/bookings");
+    const bookings = res.data || [];
 
-    const upcomingBookings = dashboardBookings.filter((booking) => booking.status === "Upcoming");
-    const bookingHistory = dashboardBookings.filter((booking) => booking.status !== "Upcoming");
+    // 2. Map to local structure
+    const mappedBookings = bookings.map((b: any) => ({
+      id: b.id || b._id,
+      serviceTitle: b.serviceName || b.title || "Field Service",
+      status: b.status,
+      address: b.address || b.location || "N/A",
+      date: b.bookingDate || b.date || "TBD",
+      time: b.timeSlot || b.time || "",
+      price: b.amount ? `Rs. ${b.amount}` : "TBD",
+      paymentStatus: b.paymentStatus,
+      orderId: b.orderId,
+    }));
+
+    const upcoming = mappedBookings.filter((b: any) => 
+      ["pending", "assigned", "started", "in_progress", "payment_pending"].includes(b.status)
+    );
+    const history = mappedBookings.filter((b: any) => b.status === "completed" || b.status === "cancelled");
 
     return {
       metrics: [
-        { title: "Upcoming services", value: String(upcomingBookings.length), tone: "emerald" },
-        { title: "Order history", value: String(bookingHistory.length), tone: "blue" },
-        { title: "Saved addresses", value: String(savedAddresses.length), tone: "emerald" },
-        { title: "Coupons saved", value: "03", tone: "blue" },
+        { title: "Active bookings", value: String(upcoming.length), tone: "emerald" },
+        { title: "Completed", value: String(history.length), tone: "blue" },
+        { title: "Saved addresses", value: "02", tone: "emerald" }, // Mocked for now
+        { title: "Points earned", value: "150", tone: "blue" },
       ],
-      bookings: dashboardBookings,
-      savedAddresses,
-      upcomingBookings,
-      bookingHistory,
+      bookings: mappedBookings,
+      savedAddresses: [], // Mocked for now
+      upcomingBookings: upcoming,
+      bookingHistory: history,
     } satisfies DashboardData;
   },
 };
