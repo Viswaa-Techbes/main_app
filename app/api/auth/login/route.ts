@@ -41,6 +41,7 @@ export async function POST(request: Request) {
   }
 
   const backendUser = payload.data?.user || payload.user;
+  const backendToken = payload.data?.token || payload.token;
   const role = backendUser?.role === "admin" ? "admin" : "user";
   const expiresInSeconds = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 8;
   const user = {
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
     mobileNumber: user.mobileNumber,
     email: user.email,
     role,
+    backendToken,
     exp: Math.floor(Date.now() / 1000) + expiresInSeconds,
   });
 

@@ -58,20 +58,23 @@ export async function POST(request: Request) {
   }
 
   const backendUser = payload.data?.user || payload.user;
+  const backendToken = payload.data?.token || payload.token;
+  const role = "user";
+  const expiresInSeconds = 60 * 60 * 8;
   const user = {
     id: backendUser?.id || backendUser?.userId,
-    name: backendUser?.name || name,
+    name: backendUser?.name || body.name || "",
     mobileNumber: backendUser?.mobileNumber || mobileNumber,
-    email: backendUser?.email || email,
-    role: "user" as const,
+    email: backendUser?.email || body.email || "",
+    role,
   };
-  const expiresInSeconds = 60 * 60 * 24 * 30;
   const token = signToken({
     sub: user.id || user.mobileNumber,
     name: user.name,
     mobileNumber: user.mobileNumber,
     email: user.email,
-    role: user.role,
+    role,
+    backendToken,
     exp: Math.floor(Date.now() / 1000) + expiresInSeconds,
   });
 

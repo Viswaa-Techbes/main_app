@@ -17,6 +17,7 @@ export type AuthTokenPayload = {
   email?: string;
   role: "admin" | "user";
   exp: number;
+  backendToken?: string;
 };
 
 function getSecret() {
