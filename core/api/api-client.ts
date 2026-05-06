@@ -19,22 +19,23 @@ export async function apiClient<T>(input: RequestInfo | URL, init?: RequestOptio
   const payload = parseAs === "text" ? await response.text() : await response.json().catch(() => null);
 
   if (!response.ok) {
+    const errorPayload = payload || {};
     const message =
       parseAs === "text"
         ? "Request failed."
-        : typeof payload?.message === "string"
-          ? payload.message
+        : typeof errorPayload.message === "string"
+          ? errorPayload.message
           : "Something went wrong.";
+
+    logger.error(`API request failed: ${response.status} ${message}`, {
+      url,
+      status: response.status,
+      payload: errorPayload,
+    });
 
     const error = new AppError(message, {
       status: response.status,
-      details: payload,
-    });
-
-    logger.error("API request failed", {
-      input: typeof input === "string" ? input : input.toString(),
-      status: response.status,
-      payload,
+      details: errorPayload,
     });
 
     throw error;

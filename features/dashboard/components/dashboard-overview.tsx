@@ -119,6 +119,15 @@ export function DashboardOverview() {
                 </Link>
               </Button>
             )}
+            <Button 
+              variant="outline" 
+              onClick={() => refresh()} 
+              disabled={isLoading}
+              className="rounded-full border-slate-200 bg-white h-12 px-6 shadow-sm hover:bg-slate-50"
+            >
+              <History className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
             <div className="rounded-3xl border border-slate-200 bg-slate-50 px-6 py-3.5 text-sm text-slate-600 flex items-center h-12">
               Signed in as <span className="font-semibold text-slate-950 ml-1">{user?.name || user?.mobileNumber}</span>
             </div>
