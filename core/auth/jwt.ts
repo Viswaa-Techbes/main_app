@@ -15,7 +15,7 @@ export type AuthTokenPayload = {
   name?: string;
   mobileNumber: string;
   email?: string;
-  role: "admin" | "user";
+  role: "admin" | "client";
   exp: number;
   backendToken?: string;
 };

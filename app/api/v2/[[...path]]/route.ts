@@ -44,11 +44,23 @@ async function handleProxy(request: NextRequest, pathSegments: string[]) {
       cache: "no-store",
     });
 
-    const data = await response.json().catch(() => ({}));
+    const contentType = response.headers.get("Content-Type") || "";
+    let data;
+    if (contentType.includes("application/json")) {
+      data = await response.json().catch(() => ({}));
+    } else {
+      const text = await response.text();
+      data = { message: "Internal Server Error", raw: text };
+      console.error(`[Proxy Non-JSON Error] ${method} ${path}:`, text);
+    }
+
+    if (!response.ok) {
+      console.error(`[Proxy Backend Error] ${method} ${path}:`, response.status, data);
+    }
 
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error(`[Proxy Error] ${method} ${path}:`, error);
+    console.error(`[Proxy Network Error] ${method} ${path}:`, error);
     return NextResponse.json({ message: "Backend service unavailable" }, { status: 502 });
   }
 }

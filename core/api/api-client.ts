@@ -28,7 +28,7 @@ export async function apiClient<T>(input: RequestInfo | URL, init?: RequestOptio
           : "Something went wrong.";
 
     logger.error(`API request failed: ${response.status} ${message}`, {
-      url,
+      url: typeof input === "string" ? input : (input as URL).toString(),
       status: response.status,
       payload: errorPayload,
     });
