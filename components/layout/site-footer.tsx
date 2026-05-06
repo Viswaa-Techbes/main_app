@@ -28,11 +28,22 @@ export function SiteFooter() {
                 {group}
               </h3>
               <div className="mt-5 flex flex-col gap-3 text-sm text-slate-300">
-                {links.map((label) => (
-                  <Link key={label} href={label === "Home" ? "/" : "/services"} className="transition hover:text-white">
-                    {label}
-                  </Link>
-                ))}
+                {links.map((label) => {
+                  const hrefMap: Record<string, string> = {
+                    "Home": "/",
+                    "Services": "/services",
+                    "Dashboard": "/dashboard",
+                    "AMC Plans": "/services?category=amc",
+                    "Careers": "/careers",
+                    "Login": "/login",
+                    "Sign Up": "/signup"
+                  };
+                  return (
+                    <Link key={label} href={hrefMap[label] || "/services"} className="transition hover:text-white">
+                      {label}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           ))}

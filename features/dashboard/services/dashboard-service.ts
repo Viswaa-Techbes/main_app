@@ -17,8 +17,8 @@ export type DashboardData = {
 export const dashboardService = {
   async getDashboardData() {
     // 1. Fetch real bookings from backend
-    const res = await apiClient.get("/api/v2/bookings");
-    const bookings = res.data || [];
+    const res = await apiClient.get<any>("/api/v2/bookings");
+    const bookings = res.data?.data || res.data || [];
 
     // 2. Map to local structure
     const mappedBookings = bookings.map((b: any) => ({
@@ -31,6 +31,7 @@ export const dashboardService = {
       price: b.amount ? `Rs. ${b.amount}` : "TBD",
       paymentStatus: b.paymentStatus,
       orderId: b.orderId,
+      assignedTechnician: b.assignedTechnician,
     }));
 
     const upcoming = mappedBookings.filter((b: any) => 

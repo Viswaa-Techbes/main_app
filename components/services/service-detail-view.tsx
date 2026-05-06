@@ -55,12 +55,47 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                   <p className="mt-1 text-lg font-semibold text-slate-950">{service.price}</p>
                 </div>
               </div>
+              <div className="mt-8 flex flex-col sm:flex-row gap-4">
+                <Button 
+                  size="lg" 
+                  className="rounded-2xl h-14 px-10 bg-blue-600 hover:bg-blue-700 font-bold text-lg flex-1 shadow-lg shadow-blue-600/20"
+                  onClick={() => setBookingOpen(true)}
+                >
+                  Book Now
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="rounded-2xl h-14 px-10 border-slate-200 font-bold text-lg flex-1"
+                >
+                  Request Quote
+                </Button>
+              </div>
             </div>
 
             <div className="relative min-h-[22rem] lg:min-h-[32rem]">
               <Image src={service.image} alt={service.title} fill className="object-cover" priority />
+              {/* Overlay for "Book Now" on mobile right after image */}
+              <div className="absolute inset-x-0 bottom-0 p-6 lg:hidden">
+                 <button 
+                  onClick={() => setBookingOpen(true)}
+                  className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-lg shadow-xl shadow-blue-600/30 transition-all active:scale-[0.98]"
+                >
+                  Book Now
+                </button>
+              </div>
             </div>
           </div>
+        </div>
+
+        {/* Floating/Sticky CTA for Desktop & Secondary CTA for Mobile */}
+        <div className="mt-4 flex flex-wrap gap-4 items-center justify-between p-6 rounded-3xl bg-white border border-slate-200 shadow-sm lg:hidden">
+            <div className="flex-1">
+               <p className="text-sm text-slate-500 font-medium">Starting from</p>
+               <p className="text-2xl font-bold text-slate-950">{service.price}</p>
+            </div>
+            <Button size="lg" className="rounded-2xl h-14 px-8 bg-orange-500 hover:bg-orange-600 font-bold" onClick={() => setBookingOpen(true)}>Book Now</Button>
+            <Button variant="outline" size="lg" className="rounded-2xl h-14 px-8 font-bold">Get Quote</Button>
         </div>
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1.08fr,0.92fr] xl:grid-cols-[1.2fr,0.8fr]">

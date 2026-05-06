@@ -12,6 +12,7 @@ import { heroSuggestions, popularServiceChips } from "@/lib/marketplace-data";
 
 export function HomeHero() {
   const [query, setQuery] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
   const suggestions = !query
     ? heroSuggestions
     : heroSuggestions.filter((item) => item.toLowerCase().includes(query.toLowerCase()));
@@ -38,17 +39,23 @@ export function HomeHero() {
               <Input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setTimeout(() => setIsFocused(false), 200)}
                 placeholder="What service do you need today?"
                 className="h-14 rounded-full border-white bg-white pl-12 pr-4 text-base shadow-[0_25px_60px_-30px_rgba(15,23,42,0.45)]"
               />
-              {suggestions.length > 0 && (
-                <div className="absolute left-0 right-0 top-[calc(100%+0.75rem)] rounded-3xl border border-slate-200 bg-white/95 p-3 shadow-2xl backdrop-blur">
-                  <div className="flex flex-wrap gap-2">
+              {isFocused && query && suggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-[calc(100%+0.75rem)] z-50 rounded-3xl border border-slate-200 bg-white/95 p-3 shadow-2xl backdrop-blur animate-in fade-in zoom-in-95 duration-200">
+                  <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Suggestions</p>
+                  <div className="mt-1 flex flex-wrap gap-2">
                     {suggestions.map((item) => (
                       <button
                         key={item}
                         className="rounded-full bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-emerald-50 hover:text-emerald-700"
-                        onClick={() => setQuery(item)}
+                        onClick={() => {
+                          setQuery(item);
+                          setIsFocused(false);
+                        }}
                       >
                         {item}
                       </button>

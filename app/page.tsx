@@ -4,6 +4,7 @@ import { CategoryGrid } from "@/components/services/category-grid";
 import { FeaturedServices } from "@/components/services/featured-services";
 import { HomeHero } from "@/components/services/home-hero";
 import { RecommendedStrip } from "@/components/services/recommended-strip";
+import { CareersStrip } from "@/components/services/careers-strip";
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
       <CategoryGrid />
       <FeaturedServices />
       <AmcPlans />
+      <CareersStrip />
       <RecommendedStrip />
     </PageShell>
   );

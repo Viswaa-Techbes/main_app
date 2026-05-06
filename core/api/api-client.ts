@@ -42,3 +42,40 @@ export async function apiClient<T>(input: RequestInfo | URL, init?: RequestOptio
 
   return payload as T;
 }
+
+// Add helper methods
+apiClient.get = async function<T>(url: string, options?: RequestOptions): Promise<{ data: T }> {
+  const data = await apiClient<T>(url, { ...options, method: "GET" });
+  return { data };
+};
+
+apiClient.post = async function<T>(url: string, body?: any, options?: RequestOptions): Promise<{ data: T }> {
+  const data = await apiClient<T>(url, {
+    ...options,
+    method: "POST",
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return { data };
+};
+
+apiClient.patch = async function<T>(url: string, body?: any, options?: RequestOptions): Promise<{ data: T }> {
+  const data = await apiClient<T>(url, {
+    ...options,
+    method: "PATCH",
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return { data };
+};
+apiClient.put = async function<T>(url: string, body?: any, options?: RequestOptions): Promise<{ data: T }> {
+  const data = await apiClient<T>(url, {
+    ...options,
+    method: "PUT",
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return { data };
+};
+
+apiClient.delete = async function<T>(url: string, options?: RequestOptions): Promise<{ data: T }> {
+  const data = await apiClient<T>(url, { ...options, method: "DELETE" });
+  return { data };
+};
