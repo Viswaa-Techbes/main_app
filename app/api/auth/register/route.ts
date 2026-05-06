@@ -59,7 +59,7 @@ export async function POST(request: Request) {
 
   const backendUser = payload.data?.user || payload.user;
   const backendToken = payload.data?.token || payload.token;
-  const role = "user";
+  const role = "client";
   const expiresInSeconds = 60 * 60 * 8;
   const user = {
     id: backendUser?.id || backendUser?.userId,
@@ -68,8 +68,13 @@ export async function POST(request: Request) {
     email: backendUser?.email || body.email || "",
     role,
   };
+
+  if (!user.id) {
+    return NextResponse.json({ message: "Registration failed: Missing user ID from backend." }, { status: 500 });
+  }
+
   const token = signToken({
-    sub: user.id || user.mobileNumber,
+    sub: user.id,
     name: user.name,
     mobileNumber: user.mobileNumber,
     email: user.email,
