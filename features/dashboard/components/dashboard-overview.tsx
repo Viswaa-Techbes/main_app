@@ -27,8 +27,8 @@ export function DashboardOverview() {
     if (trackingId) {
       const fetchLocation = async () => {
         try {
-          const res = await apiClient.get(`/api/v2/location/${trackingId}`);
-          setTechLocation(res.data);
+          const res = await apiClient.get<any>(`/api/v2/location/${trackingId}`);
+          setTechLocation(res.data?.data || res.data);
         } catch (err) {
           console.error("Tracking error:", err);
         }
