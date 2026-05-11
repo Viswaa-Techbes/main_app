@@ -3,6 +3,9 @@ import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 
 import { AppProviders } from "@/providers/app-providers";
+import "@/components/design-system/design-tokens.css";
+import ThemeSwitcher from "@/components/ui/theme-switcher";
+import CommandPalette from "@/components/ui/command-palette";
 
 import "./globals.css";
 
@@ -31,6 +34,7 @@ export const metadata: Metadata = {
 };
 
 import { PageTransition } from "@/components/layout/page-transition";
+import MobileBottomNav from "@/components/layout/mobile-bottom-nav";
 
 export default function RootLayout({
   children,
@@ -39,9 +43,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased" data-scroll-behavior="smooth">
         <AppProviders>
-          <PageTransition>{children}</PageTransition>
+          <div style={{ minHeight: '100vh' }}>
+            <ThemeSwitcher className="absolute right-6 top-6 z-40" />
+            <CommandPalette />
+            <PageTransition>{children}</PageTransition>
+            <MobileBottomNav />
+          </div>
         </AppProviders>
         <Analytics />
 

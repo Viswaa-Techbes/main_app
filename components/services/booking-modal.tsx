@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { motion } from "framer-motion";
 import { MarketplaceService } from "@/lib/marketplace-data";
 import { useBookingFlow } from "@/hooks/use-booking-flow";
 
@@ -70,40 +71,43 @@ export function BookingModal({
 
   return (
     <Dialog open={open} onOpenChange={closeModal}>
-      <DialogContent className="max-w-3xl rounded-[32px] border-white/70 bg-white p-0 shadow-2xl overflow-y-auto max-h-[95dvh]">
-        <DialogHeader className="border-b border-slate-100 px-6 py-5 text-left">
-          <DialogTitle className="text-2xl font-semibold text-slate-950">Book {service.title}</DialogTitle>
-          <DialogDescription className="text-slate-500">
-            Complete the four-step booking flow to confirm your technician slot.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-3xl rounded-[28px] border-white/6 bg-white/4 p-0 shadow-2xl overflow-y-auto max-h-[95dvh] glass-card">
+          <DialogHeader className="border-b border-white/6 px-6 py-5 text-left">
+            <DialogTitle className="text-2xl font-semibold text-white">Book {service.title}</DialogTitle>
+            <DialogDescription className="text-white/70">
+              Complete the immersive booking experience to confirm your technician slot.
+            </DialogDescription>
+          </DialogHeader>
 
         {flow.isConfirmed ? (
           <div className="p-8 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-              <CheckCircle2 className="h-8 w-8" />
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg">
+              <CheckCircle2 className="h-10 w-10" />
             </div>
-            <h3 className="mt-5 text-2xl font-semibold text-slate-950">Booking confirmed!</h3>
-            <div className="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-100 inline-block">
-              <span className="text-sm text-slate-500 block uppercase font-bold tracking-wider mb-1">Booking ID</span>
-              <span className="text-xl font-mono text-slate-900 font-bold">{flow.state.bookingId || "PENDING"}</span>
+            <h3 className="mt-5 text-2xl font-extrabold text-white">Booking confirmed!</h3>
+            <div className="mt-4 inline-block rounded-2xl bg-white/6 p-4 border border-white/6">
+              <span className="text-xs text-white/70 block uppercase font-semibold tracking-wider mb-1">Booking ID</span>
+              <span className="text-lg font-mono text-white font-bold">{flow.state.bookingId || "PENDING"}</span>
             </div>
-            <p className="mt-5 text-slate-600">
-              Your request for <strong>{service.title}</strong> has been placed for{" "}
-              <strong>{flow.state.date}</strong> at <strong>{flow.state.timeSlot}</strong>.
+            <p className="mt-5 text-white/80">
+              Your request for <strong>{service.title}</strong> has been placed for <strong>{flow.state.date}</strong> at <strong>{flow.state.timeSlot}</strong>.
               <br />
-              <span className="text-sm text-slate-500 mt-2 block font-medium">
-                Status: Pending • A technician will be assigned shortly.
-              </span>
+              <span className="text-sm text-white/70 mt-2 block font-medium">Status: Pending • A technician will be assigned shortly.</span>
             </p>
-            <Button className="mt-6 w-40 rounded-full font-semibold bg-slate-900 text-white" onClick={() => closeModal(false)}>
+            <Button className="mt-6 w-44 rounded-full font-semibold bg-gradient-to-r from-[rgba(79,70,229,0.95)] to-[rgba(124,58,237,0.95)] text-white shadow-xl" onClick={() => closeModal(false)}>
               Done
             </Button>
           </div>
         ) : (
           <div className="grid gap-0 lg:grid-cols-[1.1fr,0.9fr]">
             {/* ─── LEFT PANEL ─── */}
-            <div className="p-6">
+            <motion.div
+              key={`left-${flow.step}`}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.18 }}
+              className="p-6"
+            >
               <StepIndicator currentStep={flow.step} />
               <div className="mt-8">
 
@@ -338,11 +342,17 @@ export function BookingModal({
                   </Button>
                 )}
               </div>
-            </div>
+            </motion.div>
 
             {/* ─── RIGHT PANEL – Snapshot ─── */}
-            <div className="border-l border-slate-100 bg-slate-50/80 p-6">
-              <Card className="rounded-[28px] border-slate-200 bg-white">
+            <motion.div
+              key={`right-${flow.step}`}
+              initial={{ opacity: 0, x: 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.18 }}
+              className="border-l border-slate-100 bg-slate-50/80 p-6"
+            >
+              <Card variant="glass" className="rounded-[28px] border-white/6 bg-white/6">
                 <CardContent className="space-y-5 p-6">
                   <div>
                     <p className="text-sm font-medium text-slate-500">Booking snapshot</p>
@@ -386,7 +396,7 @@ export function BookingModal({
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </motion.div>
           </div>
         )}
       </DialogContent>
@@ -404,18 +414,17 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
         const active = currentStep === stepNumber;
         const complete = currentStep > stepNumber;
 
+        const base = "rounded-full px-4 py-2 text-sm font-medium flex items-center gap-3";
+        const cls = complete
+          ? "bg-gradient-to-r from-emerald-400 to-emerald-600 text-white shadow-md"
+          : active
+            ? "bg-gradient-to-r from-[rgba(79,70,229,0.95)] to-[rgba(124,58,237,0.95)] text-white shadow-lg"
+            : "bg-white/4 text-white/70 border border-white/6";
+
         return (
-          <div
-            key={label}
-            className={`rounded-full px-4 py-2 text-sm font-medium ${
-              complete
-                ? "bg-emerald-100 text-emerald-700"
-                : active
-                  ? "bg-slate-950 text-white"
-                  : "bg-slate-100 text-slate-500"
-            }`}
-          >
-            {stepNumber}. {label}
+          <div key={label} className={`${base} ${cls}`}>
+            <div className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/8 text-xs font-bold">{stepNumber}</div>
+            <div className="whitespace-nowrap">{label}</div>
           </div>
         );
       })}

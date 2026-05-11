@@ -10,67 +10,51 @@ const footerGroups = {
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-slate-200 bg-slate-950 text-slate-200">
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <div className="mb-10">
-          <div className="relative h-12 w-36">
-            <Image src="/logo.png" alt="Techbes" fill className="object-contain object-left" />
-          </div>
-          <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-400">
-            A premium IT services marketplace for on-demand support, enterprise installations, and long-term AMC coverage.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 md:grid-cols-4">
-          {Object.entries(footerGroups).map(([group, links]) => (
-            <div key={group}>
-              <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">
-                {group}
-              </h3>
-              <div className="mt-5 flex flex-col gap-3 text-sm text-slate-300">
-                {links.map((label) => {
-                  const hrefMap: Record<string, string> = {
-                    "Home": "/",
-                    "Services": "/services",
-                    "Dashboard": "/dashboard",
-                    "AMC Plans": "/services?category=amc",
-                    "Careers": "/careers",
-                    "Login": "/login",
-                    "Sign Up": "/signup"
-                  };
-                  return (
-                    <Link key={label} href={hrefMap[label] || "/services"} className="transition hover:text-white">
-                      {label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-
+    <footer className="border-t border-white/6 bg-gradient-to-tr from-[#07112a] via-[#071833] to-[#0b1230] text-slate-100">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mb-8 flex items-start justify-between gap-8">
           <div>
-            <h3 className="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">
-              Contact
-            </h3>
-            <div className="mt-5 flex flex-col gap-4 text-sm text-slate-300">
-              <div className="flex items-start gap-3">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
-                <span>Bengaluru, Chennai, Hyderabad, Pune</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Phone className="h-4 w-4 shrink-0 text-emerald-400" />
-                <span>+91 98765 43210</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Mail className="h-4 w-4 shrink-0 text-emerald-400" />
-                <span>hello@techbes.in</span>
-              </div>
+            <div className="relative h-10 w-40">
+              <Image src="/logo.png" alt="Techbes" fill className="object-contain object-left" />
             </div>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300">
+              A premium AI-powered field service marketplace — predictable SLAs, verified technicians, and enterprise-ready workflows.
+            </p>
+            <div className="mt-6 flex gap-3">
+              <a href="#" className="badge-blue">Trusted</a>
+              <a href="#" className="badge-orange">Enterprise</a>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+            {Object.entries(footerGroups).map(([group, links]) => (
+              <div key={group}>
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-300">{group}</h3>
+                <div className="mt-4 flex flex-col gap-3 text-sm text-slate-200">
+                  {links.map((label) => {
+                    const hrefMap: Record<string, string> = {
+                      Home: "/",
+                      Services: "/services",
+                      Dashboard: "/dashboard",
+                      "AMC Plans": "/services?category=amc",
+                      Careers: "/careers",
+                      Login: "/login",
+                      "Sign Up": "/signup",
+                    };
+                    return (
+                      <Link key={label} href={hrefMap[label] || "/services"} className="transition-colors hover:text-white">
+                        {label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
-      <div className="border-t border-slate-800 px-4 py-5 text-center text-sm text-slate-500">
-        Copyright 2026 Techbes. Built for faster booking and better field service delivery.
+      <div className="border-t border-white/4 px-4 py-5 text-center text-sm text-slate-400">
+        © {new Date().getFullYear()} Techbes — Built for enterprise-grade field ops.
       </div>
     </footer>
   );

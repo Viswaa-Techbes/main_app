@@ -9,6 +9,7 @@ import { useAuth } from "@/features/auth/context/auth-context";
 import { useDashboardData } from "@/features/dashboard/hooks/use-dashboard-data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import SkeletonPremium from "@/components/ui/skeleton-premium";
 import { PageStatus } from "@/shared/components/feedback/page-status";
 import { InlineAlert } from "@/shared/components/feedback/inline-alert";
 import { Badge } from "@/components/ui/badge";
@@ -83,7 +84,20 @@ export function DashboardOverview() {
   }
 
   if (isLoading) {
-    return <PageStatus message="Loading your dashboard..." className="min-h-[70vh]" />;
+    return (
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {[1,2,3,4].map(i => <div key={i}><SkeletonPremium className="h-28 rounded-[20px]"/></div>)}
+        </div>
+        <div className="mt-8 grid gap-8 lg:grid-cols-[1.15fr,0.85fr]">
+          <div><SkeletonPremium className="h-[360px] rounded-[28px]"/></div>
+          <div className="space-y-6">
+            <SkeletonPremium className="h-40 rounded-[28px]"/>
+            <SkeletonPremium className="h-40 rounded-[28px]"/>
+          </div>
+        </div>
+      </section>
+    )
   }
 
   if (error || !data) {
@@ -138,13 +152,25 @@ export function DashboardOverview() {
       <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         {data.metrics.map((metric: any, index: number) => {
           const Icon = metricIcons[index] || Wallet;
-          return <MetricCard key={metric.title} metric={metric} icon={<Icon className="h-5 w-5" />} />;
+          return (
+            <Card key={metric.title} variant="premium" className="p-6">
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-white/90">{metric.title}</p>
+                  <div className={metric.tone === 'emerald' ? 'rounded-2xl bg-emerald-500/20 p-2 text-emerald-50' : 'rounded-2xl bg-white/10 p-2 text-white/90'}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                </div>
+                <p className="mt-5 text-4xl font-semibold text-white/95">{metric.value}</p>
+              </CardContent>
+            </Card>
+          )
         })}
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.15fr,0.85fr]">
         <div className="space-y-6">
-          <Card className="rounded-[34px] border-slate-200 bg-white shadow-[0_24px_60px_-36px_rgba(15,23,42,0.35)]">
+          <Card variant="glass" className="rounded-[34px] border-white/6 bg-white/6">
             <CardContent className="p-8">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -243,7 +269,7 @@ export function DashboardOverview() {
         </div>
 
         <div className="space-y-8">
-          <Card className="rounded-[34px] border-slate-200 bg-white shadow-[0_24px_60px_-36px_rgba(15,23,42,0.35)]">
+          <Card variant="glass" className="rounded-[34px] border-white/6 bg-white/6">
             <CardContent className="p-8">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold text-slate-950">Service updates</h2>
@@ -267,7 +293,7 @@ export function DashboardOverview() {
             </CardContent>
           </Card>
 
-          <Card className="rounded-[34px] border-slate-200 bg-white shadow-[0_24px_60px_-36px_rgba(15,23,42,0.35)]">
+          <Card variant="premium" className="rounded-[34px]">
             <CardContent className="p-8">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold text-slate-950">Upcoming services</h2>

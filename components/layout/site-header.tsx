@@ -30,51 +30,51 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/40 bg-white/70 backdrop-blur-2xl shadow-sm">
+    <header className="sticky top-0 z-50 border-b border-white/10 navbar-gradient text-white backdrop-blur-xl shadow-xl">
       <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex min-w-0 items-center gap-4 transition-transform hover:scale-[1.02] active:scale-[0.98]">
           <div className="relative h-10 w-32 shrink-0">
             <Image src="/logo.png" alt="Techbes" fill className="object-contain object-left" priority />
           </div>
-          <div className="hidden rounded-full border border-blue-100 bg-blue-50/50 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-blue-600 md:flex">
+          <div className="hidden rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white/90 md:flex">
             Verified Marketplace
           </div>
         </Link>
 
         {/* Desktop Search */}
-        <div className="hidden flex-1 items-center justify-center lg:flex max-w-md">
+          <div className="hidden flex-1 items-center justify-center lg:flex max-w-md">
           <div className="relative w-full group">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-blue-500" />
             <Input
-              className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 pl-11 focus:bg-white transition-all shadow-none focus:shadow-lg focus:shadow-blue-500/5"
+              className="h-11 rounded-2xl border-transparent bg-white/10 text-white placeholder-white/70 pl-11 focus:bg-white/10 transition-all shadow-none focus:shadow-lg focus:shadow-blue-500/8"
               placeholder="Search CCTV, networking..."
             />
           </div>
         </div>
 
         {/* Desktop Navigation */}
-        <div className="hidden items-center gap-3 lg:flex">
-          <div className="flex items-center gap-2 rounded-2xl border border-slate-100 bg-slate-50/50 px-3 py-1.5 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 mr-2">
-            <MapPin className="h-3.5 w-3.5 text-blue-500" />
-            Bengaluru
-            <ChevronDown className="h-3 w-3" />
-          </div>
-          
-          <nav className="flex items-center gap-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-full px-4 py-2 text-sm font-semibold text-slate-600 transition-all hover:text-blue-600 hover:bg-blue-50"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
+          <div className="hidden items-center gap-3 lg:flex">
+            <div className="nav-pill mr-2">
+              <MapPin className="h-3.5 w-3.5 text-cyan-200" />
+              Bengaluru
+              <ChevronDown className="h-3 w-3" />
+            </div>
 
-          <div className="h-6 w-px bg-slate-200 mx-2" />
+            <nav className="flex items-center gap-2">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="nav-link"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
 
-          {status === "authenticated" && user ? (
+            <div className="h-6 w-px bg-white/10 mx-2" />
+
+            {status === "authenticated" && user ? (
             <div className="flex items-center gap-2">
               <Button variant="ghost" className="rounded-full h-10 px-4 flex items-center gap-2 text-slate-700 hover:bg-slate-100" asChild>
                 <Link href="/dashboard">
@@ -90,18 +90,18 @@ export function SiteHeader() {
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <Link href="/login" className="text-sm font-bold text-slate-600 hover:text-blue-600 px-3 transition-colors">
+              <Link href="/login" className="text-sm font-medium text-white/80 hover:text-white/100 px-3 transition-colors">
                 Log In
               </Link>
-              <Button className="rounded-full bg-blue-600 hover:bg-blue-700 px-6 font-bold shadow-lg shadow-blue-600/20" asChild>
+              <Button variant="glass" className="rounded-full px-4 py-1 font-semibold" asChild>
                 <Link href="/signup">Sign Up</Link>
               </Button>
             </div>
           )}
           
-          <Button className="rounded-full bg-orange-500 hover:bg-orange-600 h-11 px-6 font-bold shadow-lg shadow-orange-500/30" asChild>
+          <Button variant="premium" className="rounded-full h-11 px-6 font-bold flex items-center gap-2 glow-cta" asChild>
             <Link href="/services">
-              <Sparkles className="h-4 w-4" />
+              <Sparkles className="h-4 w-4 text-white/90" />
               Book Now
             </Link>
           </Button>

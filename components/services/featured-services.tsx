@@ -1,14 +1,9 @@
-import Image from "next/image";
 import Link from "next/link";
-import { Clock3, Star } from "lucide-react";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { services } from "@/lib/marketplace-data";
+import ServicesCarousel from "@/components/services/services-carousel";
 
 export function FeaturedServices() {
-  const featured = [...services].sort((a, b) => b.reviewCount - a.reviewCount).slice(0, 6);
-
   return (
     <section className="bg-slate-950 py-16 text-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -27,54 +22,8 @@ export function FeaturedServices() {
           </Button>
         </div>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-          {featured.map((service) => (
-            <Link
-              key={service.slug}
-              href={`/services/${service.slug}`}
-              className="group overflow-hidden rounded-[30px] border border-white/10 bg-white/5 transition duration-300 hover:-translate-y-1 hover:border-emerald-400/40 hover:bg-white/10"
-            >
-              <div className="relative h-56 overflow-hidden">
-                <Image
-                  src={service.image}
-                  alt={service.title}
-                  fill
-                  className="object-cover transition duration-500 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
-                {service.badge && (
-                  <span className="absolute left-4 top-4 rounded-full bg-emerald-400 px-3 py-1 text-xs font-semibold text-slate-950">
-                    {service.badge}
-                  </span>
-                )}
-              </div>
-              <div className="space-y-4 p-6">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-slate-200">
-                    {service.category}
-                  </span>
-                  <span className="text-sm font-semibold text-emerald-300">{service.price}</span>
-                </div>
-                <div>
-                  <h3 className="text-2xl font-semibold">{service.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">{service.tagline}</p>
-                </div>
-                <div className="flex items-center gap-4 text-sm text-slate-200">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                    {service.rating} ({service.reviewCount})
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <Clock3 className="h-4 w-4 text-emerald-300" />
-                    {service.duration}
-                  </span>
-                </div>
-                <div className="inline-flex h-11 w-full items-center justify-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-[0_18px_40px_-18px_rgba(16,185,129,0.65)]">
-                  Book Now
-                </div>
-              </div>
-            </Link>
-          ))}
+        <div className="mt-8">
+          <ServicesCarousel />
         </div>
       </div>
     </section>
