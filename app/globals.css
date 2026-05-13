@@ -310,6 +310,43 @@
     animation: premiumGradient 12s ease infinite;
   }
 
+  /* Button magnetic + shine */
+  .btn-magnetic {
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-magnetic::after {
+    content: '';
+    position: absolute;
+    left: -60%;
+    top: 0;
+    width: 60%;
+    height: 100%;
+    transform: skewX(-18deg) translateX(-120%);
+    background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.15), rgba(255,255,255,0.04));
+    transition: transform 520ms cubic-bezier(.2,.9,.2,1);
+  }
+  .btn-magnetic:hover::after {
+    transform: skewX(-18deg) translateX(180%);
+  }
+
+  /* subtle glow pulse */
+  .glow-pulse {
+    position: relative;
+  }
+  .glow-pulse::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: inherit;
+    background: radial-gradient(closest-side, rgba(37,99,235,0.08), transparent 40%);
+    filter: blur(8px);
+    opacity: 0;
+    transition: opacity 300ms;
+  }
+  .glow-pulse:hover::before { opacity: 1; }
+
+
   @keyframes premiumGradient {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -391,3 +428,79 @@
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.7; }
 }
+
+/* ── Skeleton / Shimmer / Noise ───────────────────────────────────────── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.04) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+  border-radius: 12px;
+}
+.skeleton-glass {
+  background: linear-gradient(90deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.02) 100%);
+  backdrop-filter: blur(6px) saturate(120%);
+  border: 1px solid rgba(255,255,255,0.04);
+  animation: shimmer 1.8s linear infinite;
+}
+
+.noise {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' opacity='0.03'><filter id='noiseFilter'><feTurbulence baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23noiseFilter)' opacity='0.04' /></svg>");
+  mix-blend-mode: overlay;
+}
+
+.blob {
+  position: absolute;
+  filter: blur(36px);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.snap-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+
+/* Micro interactions */
+.magnetic {
+  --mx: 0px;
+  --my: 0px;
+  --mr: 0deg;
+  transform: translate(var(--mx), var(--my)) rotate(var(--mr));
+  transition: transform 260ms cubic-bezier(.2,.9,.2,1), box-shadow 260ms;
+  will-change: transform;
+}
+.magnetic:active { transition-duration: 120ms; }
+
+.tilt {
+  transform: perspective(800px) translateZ(0);
+  transition: transform 260ms cubic-bezier(.2,.9,.2,1), box-shadow 260ms;
+  will-change: transform;
+}
+.tilt:hover { transform: perspective(800px) translateY(-6px) rotateX(4deg) rotateY(6deg); }
+
+.glow-border {
+  position: relative;
+}
+.glow-border::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(37,99,235,0.06), rgba(249,115,22,0.04));
+  filter: blur(12px);
+  opacity: 0.9;
+  z-index: -1;
+}
+
+/* Section separator */
+.section-sep {
+  height: 48px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+}
+
+

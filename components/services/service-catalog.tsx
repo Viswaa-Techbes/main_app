@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import ImageWithFade from "@/components/ui/image-fade";
 import Link from "next/link";
 import { Search, SlidersHorizontal, Star } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -54,20 +55,20 @@ export function ServiceCatalog() {
 
   return (
     <section className="mx-auto w-full max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-      <div className="rounded-[36px] border border-slate-200 bg-white p-6 shadow-[0_25px_60px_-36px_rgba(15,23,42,0.35)] sm:p-8 lg:p-10">
-        <div className="inline-flex rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-semibold text-emerald-700">
-          Service marketplace
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-lg sm:p-8 lg:p-10">
+        <div className="inline-flex items-center gap-3 rounded-full bg-muted px-4 py-1.5 text-sm font-semibold text-muted-foreground">
+          <span className="text-sm font-semibold text-primary">Service marketplace</span>
         </div>
         <div className="mt-4 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <h1 className="text-4xl font-semibold text-slate-950">Browse IT services with richer filters and faster decisions</h1>
-            <p className="mt-3 max-w-3xl text-slate-600">
+            <h1 className="text-4xl font-semibold text-foreground">Browse IT services with richer filters and faster decisions</h1>
+            <p className="mt-3 max-w-3xl text-muted-foreground">
               Filter by category, budget, duration, and quality signals to find the right service quickly.
             </p>
           </div>
           <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto lg:min-w-[28rem] lg:max-w-xl">
             <div className="relative w-full flex-1">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
@@ -85,11 +86,11 @@ export function ServiceCatalog() {
 
       <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
         <aside className={`${showFilters ? "block" : "hidden"} w-full lg:block lg:w-80 lg:shrink-0 xl:w-84`}>
-          <div className="sticky top-24 rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_-36px_rgba(15,23,42,0.3)]">
+          <div className="sticky top-24 rounded-2xl border border-border bg-card p-6 shadow-md">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-950">Filters</h2>
+              <h2 className="text-lg font-semibold text-foreground">Filters</h2>
               <button
-                className="text-sm font-medium text-emerald-700"
+                className="text-sm font-medium text-primary"
                 onClick={() => {
                   setSelectedCategory("all");
                   setMinRating(0);
@@ -113,8 +114,8 @@ export function ServiceCatalog() {
                     onClick={() => setSelectedCategory(categoryId)}
                     className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-medium transition ${
                       selectedCategory === categoryId
-                        ? "bg-slate-950 text-white"
-                        : "bg-slate-50 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "bg-muted text-muted-foreground hover:bg-primary/5"
                     }`}
                   >
                     {label}
@@ -146,8 +147,8 @@ export function ServiceCatalog() {
                   onClick={() => setMinRating(rating)}
                   className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-medium transition ${
                     minRating === rating
-                      ? "bg-blue-50 text-blue-700"
-                      : "bg-slate-50 text-slate-600 hover:bg-blue-50/60 hover:text-blue-700"
+                      ? "bg-primary/10 text-primary"
+                      : "bg-muted text-muted-foreground hover:bg-primary/5 hover:text-primary"
                   }`}
                 >
                   <span>{rating === 0 ? "Any rating" : `${rating}+ stars`}</span>
@@ -168,8 +169,8 @@ export function ServiceCatalog() {
                   onClick={() => setDurationFilter(option.value)}
                   className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-medium transition ${
                     durationFilter === option.value
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "bg-slate-50 text-slate-600 hover:bg-emerald-50/70 hover:text-emerald-700"
+                      ? "bg-primary/10 text-primary"
+                      : "bg-muted text-muted-foreground hover:bg-primary/5 hover:text-primary"
                   }`}
                 >
                   {option.label}
@@ -180,16 +181,16 @@ export function ServiceCatalog() {
         </aside>
 
         <div className="min-w-0 flex-1">
-          <div className="mb-5 flex flex-col gap-3 rounded-[28px] border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-slate-500">
-              Showing <span className="font-semibold text-slate-950">{filteredServices.length}</span> services
+          <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-border bg-card p-5 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground">
+              Showing <span className="font-semibold text-foreground">{filteredServices.length}</span> services
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-sm text-slate-500">Sort by</span>
               <select
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value as SortOption)}
-                className="h-11 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700"
+                className="h-11 rounded-full border border-border bg-card px-4 text-sm font-medium text-muted-foreground"
               >
                 <option value="popular">Most Popular</option>
                 <option value="price-low">Price Low to High</option>
@@ -199,15 +200,29 @@ export function ServiceCatalog() {
           </div>
 
           {filteredServices.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {filteredServices.map((service) => (
-                <CatalogCard key={service.slug} service={service} />
-              ))}
-            </div>
+            <>
+              {/* Mobile horizontal snap list */}
+              <div className="sm:hidden -mx-4 pl-4">
+                <div className="flex gap-4 overflow-x-auto snap-scroll snap-x py-2">
+                  {filteredServices.map((service) => (
+                    <div key={service.slug} className="snap-center min-w-[80%] sm:min-w-[45%]">
+                      <CatalogCard service={service} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Desktop / Tablet grid */}
+              <div className="hidden sm:grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredServices.map((service) => (
+                  <CatalogCard key={service.slug} service={service} />
+                ))}
+              </div>
+            </>
           ) : (
-            <div className="rounded-[32px] border border-dashed border-slate-300 bg-white px-8 py-16 text-center">
-              <h3 className="text-2xl font-semibold text-slate-950">No results found</h3>
-              <p className="mt-3 text-slate-500">Try broadening your price, rating, or duration filters to see more matches.</p>
+            <div className="rounded-2xl border border-dashed border-border bg-card px-8 py-16 text-center">
+              <h3 className="text-2xl font-semibold text-foreground">No results found</h3>
+              <p className="mt-3 text-muted-foreground">Try broadening your price, rating, or duration filters to see more matches.</p>
               <Button
                 className="mt-6 rounded-full"
                 variant="outline"
@@ -240,38 +255,36 @@ function FilterGroup({ label, children }: { label: string; children: ReactNode }
 
 function CatalogCard({ service }: { service: MarketplaceService }) {
   return (
-    <Link
-      href={`/services/${service.slug}`}
-      className="group overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.42)] transition duration-300 hover:-translate-y-1 hover:border-emerald-200"
-    >
-      <div className="relative h-56 overflow-hidden">
-        <Image src={service.image} alt={service.title} fill className="object-cover transition duration-500 group-hover:scale-105" />
-        {service.badge && (
-          <span className="absolute left-4 top-4 rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white">
-            {service.badge}
-          </span>
-        )}
-      </div>
-      <div className="space-y-4 p-6">
-        <div className="flex items-center justify-between gap-3">
-          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">{service.category}</span>
-          <span className="text-sm font-semibold text-slate-950">{service.price}</span>
+    <Link href={`/services/${service.slug}`} className="group block">
+      <article className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-lg transition-transform duration-300 hover:-translate-y-2">
+        <div className="relative h-60 overflow-hidden rounded-t-2xl">
+          <ImageWithFade src={service.image} alt={service.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
+          {service.badge && (
+            <span className="absolute left-4 top-4 rounded-full bg-[var(--primary)] px-3 py-1 text-xs font-semibold text-white shadow-md">{service.badge}</span>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent mix-blend-multiply" />
         </div>
-        <div>
-          <h3 className="text-xl font-semibold text-slate-950 transition group-hover:text-emerald-700">{service.title}</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-600">{service.tagline}</p>
+        <div className="space-y-4 p-6">
+          <div className="flex items-center justify-between gap-3">
+            <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">{service.category}</span>
+            <span className="text-sm font-semibold text-foreground">{service.price}</span>
+          </div>
+          <div>
+            <h3 className="text-xl font-semibold text-foreground transition group-hover:text-primary">{service.title}</h3>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{service.tagline}</p>
+          </div>
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+              {service.rating} ({service.reviewCount})
+            </span>
+            <span>{service.duration}</span>
+          </div>
+          <div className="mt-2">
+            <Button size="sm" variant="premium" className="w-full rounded-full">Book Now</Button>
+          </div>
         </div>
-        <div className="flex items-center justify-between text-sm text-slate-500">
-          <span className="inline-flex items-center gap-1.5">
-            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-            {service.rating} ({service.reviewCount})
-          </span>
-          <span>{service.duration}</span>
-        </div>
-        <div className="inline-flex h-11 w-full items-center justify-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-[0_18px_40px_-18px_rgba(16,185,129,0.65)]">
-          Book Now
-        </div>
-      </div>
+      </article>
     </Link>
   );
 }

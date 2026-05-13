@@ -5,23 +5,23 @@ import { Home, Grid, Clock, User } from "lucide-react";
 
 export default function MobileBottomNav() {
   return (
-    <nav className="fixed bottom-4 left-1/2 z-50 w-[92%] -translate-x-1/2 rounded-3xl bg-white/4 border border-white/6 backdrop-blur-lg p-2 shadow-lg lg:hidden">
+    <nav aria-label="Primary mobile navigation" className="fixed bottom-4 left-1/2 z-50 w-[94%] -translate-x-1/2 rounded-3xl bg-white/6 border border-white/6 backdrop-blur-xl p-2 shadow-lg lg:hidden">
       <div className="flex items-center justify-between px-2">
-        <Link href="/" className="flex flex-col items-center text-white/90 text-xs gap-1 py-2 px-3 rounded-2xl hover:bg-white/6">
-          <Home className="h-5 w-5" />
-          Home
+        <Link href="/" className="flex flex-col items-center text-white/95 text-xs gap-1 py-3 px-4 rounded-2xl hover:bg-white/8 touch-manipulation">
+          <Home className="h-6 w-6" />
+          <span className="text-[11px]">Home</span>
         </Link>
-        <Link href="/services" className="flex flex-col items-center text-white/90 text-xs gap-1 py-2 px-3 rounded-2xl hover:bg-white/6">
-          <Grid className="h-5 w-5" />
-          Services
+        <Link href="/services" className="flex flex-col items-center text-white/95 text-xs gap-1 py-3 px-4 rounded-2xl hover:bg-white/8 touch-manipulation">
+          <Grid className="h-6 w-6" />
+          <span className="text-[11px]">Services</span>
         </Link>
-        <Link href="/dashboard" className="flex flex-col items-center text-white/90 text-xs gap-1 py-2 px-3 rounded-2xl hover:bg-white/6">
-          <Clock className="h-5 w-5" />
-          Dashboard
+        <Link href="/dashboard" className="flex flex-col items-center text-white/95 text-xs gap-1 py-3 px-4 rounded-2xl hover:bg-white/8 touch-manipulation">
+          <Clock className="h-6 w-6" />
+          <span className="text-[11px]">Bookings</span>
         </Link>
-        <Link href="/profile" className="flex flex-col items-center text-white/90 text-xs gap-1 py-2 px-3 rounded-2xl hover:bg-white/6">
-          <User className="h-5 w-5" />
-          Account
+        <Link href="/profile" className="flex flex-col items-center text-white/95 text-xs gap-1 py-3 px-4 rounded-2xl hover:bg-white/8 touch-manipulation">
+          <User className="h-6 w-6" />
+          <span className="text-[11px]">Account</span>
         </Link>
       </div>
     </nav>

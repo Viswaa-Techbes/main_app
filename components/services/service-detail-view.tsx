@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import ImageWithFade from "@/components/ui/image-fade";
 import Link from "next/link";
 import { Check, ChevronLeft, Clock3, MapPin, Star, TicketPercent } from "lucide-react";
 import { useState } from "react";
@@ -29,60 +30,48 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
           Back to services
         </Link>
 
-        <div className="mt-6 overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_70px_-44px_rgba(15,23,42,0.5)]">
-          <div className="grid lg:grid-cols-[0.9fr,1.1fr]">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
+          <div className="grid lg:grid-cols-[0.95fr,1.05fr]">
             <div className="flex flex-col justify-between gap-8 p-6 sm:p-8 lg:p-10">
               <div>
-                <Badge className="rounded-full bg-emerald-100 px-4 py-1.5 text-emerald-700">{service.category}</Badge>
-                <h1 className="mt-5 text-4xl font-semibold leading-tight text-slate-950 sm:text-5xl">{service.title}</h1>
-                <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">{service.description}</p>
+                <Badge className="rounded-full bg-muted px-4 py-1.5 text-muted-foreground">{service.category}</Badge>
+                <h1 className="mt-5 text-4xl font-semibold leading-tight text-foreground sm:text-5xl">{service.title}</h1>
+                <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">{service.description}</p>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-xs font-medium uppercase text-slate-400">Rating</p>
-                  <p className="mt-1 inline-flex items-center gap-1 text-lg font-semibold text-slate-950">
+                <div className="rounded-2xl border border-border bg-muted px-4 py-3">
+                  <p className="text-xs font-medium uppercase text-muted-foreground">Rating</p>
+                  <p className="mt-1 inline-flex items-center gap-1 text-lg font-semibold text-foreground">
                     <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                     {service.rating}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-xs font-medium uppercase text-slate-400">Duration</p>
-                  <p className="mt-1 text-lg font-semibold text-slate-950">{service.duration}</p>
+                <div className="rounded-2xl border border-border bg-muted px-4 py-3">
+                  <p className="text-xs font-medium uppercase text-muted-foreground">Duration</p>
+                  <p className="mt-1 text-lg font-semibold text-foreground">{service.duration}</p>
                 </div>
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-                  <p className="text-xs font-medium uppercase text-slate-400">Starts at</p>
-                  <p className="mt-1 text-lg font-semibold text-slate-950">{service.price}</p>
+                <div className="rounded-2xl border border-border bg-muted px-4 py-3">
+                  <p className="text-xs font-medium uppercase text-muted-foreground">Starts at</p>
+                  <p className="mt-1 text-lg font-semibold text-foreground">{service.price}</p>
                 </div>
               </div>
               <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                <Button 
-                  size="lg" 
-                  className="rounded-2xl h-14 px-10 bg-blue-600 hover:bg-blue-700 font-bold text-lg flex-1 shadow-lg shadow-blue-600/20"
-                  onClick={() => setBookingOpen(true)}
-                >
+                <Button size="lg" className="rounded-2xl h-14 px-10 btn-orange font-bold text-lg flex-1 btn-magnetic glow-pulse" data-magnetic-btn onClick={() => setBookingOpen(true)}>
                   Book Now
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="rounded-2xl h-14 px-10 border-slate-200 font-bold text-lg flex-1"
-                >
+                <Button variant="outline" size="lg" className="rounded-2xl h-14 px-10 border-border font-bold text-lg flex-1 btn-magnetic" data-magnetic-btn>
                   Request Quote
                 </Button>
               </div>
             </div>
 
-            <div className="relative min-h-[22rem] lg:min-h-[32rem]">
-              <Image src={service.image} alt={service.title} fill className="object-cover" priority />
+            <div className="relative min-h-[22rem] lg:min-h-[32rem] rounded-r-2xl overflow-hidden">
+              <ImageWithFade src={service.image} alt={service.title} fill className="object-cover" priority />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent mix-blend-multiply" />
               {/* Overlay for "Book Now" on mobile right after image */}
               <div className="absolute inset-x-0 bottom-0 p-6 lg:hidden">
-                 <button 
-                  onClick={() => setBookingOpen(true)}
-                  className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-bold text-lg shadow-xl shadow-blue-600/30 transition-all active:scale-[0.98]"
-                >
-                  Book Now
-                </button>
+                 <Button onClick={() => setBookingOpen(true)} className="w-full h-14 btn-orange font-bold">Book Now</Button>
               </div>
             </div>
           </div>
@@ -100,28 +89,28 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
 
         <div className="mt-8 grid gap-8 lg:grid-cols-[1.08fr,0.92fr] xl:grid-cols-[1.2fr,0.8fr]">
           <div className="space-y-8">
-            <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.35)] sm:p-8">
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-md sm:p-8">
               <div className="grid gap-8 md:grid-cols-2">
                 <ContentList title="What you get" items={service.features} />
                 <ContentList title="What is included" items={service.includes} />
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.35)] sm:p-8">
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-md sm:p-8">
               <h2 className="text-2xl font-semibold text-slate-950">How it works</h2>
               <div className="mt-6 grid gap-4">
                 {service.steps.map((step, index) => (
-                  <div key={step} className="flex gap-4 rounded-2xl bg-slate-50 p-5">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white">
+                  <div key={step} className="flex gap-4 rounded-2xl bg-muted p-5">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground shadow-sm">
                       {index + 1}
                     </div>
-                    <p className="pt-2 text-sm leading-6 text-slate-600">{step}</p>
+                    <p className="pt-2 text-sm leading-6 text-muted-foreground">{step}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.35)] sm:p-8">
+            <div className="rounded-2xl border border-border bg-card p-6 shadow-md sm:p-8">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <h2 className="text-2xl font-semibold text-slate-950">Reviews</h2>
@@ -129,34 +118,34 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                     {service.rating} average rating based on {reviews.length} showcased reviews
                   </p>
                 </div>
-                <div className="rounded-3xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
+                <div className="rounded-3xl bg-muted px-4 py-3 text-sm font-semibold text-muted-foreground">
                   {service.rating} / 5 service quality
                 </div>
               </div>
 
               <div className="mt-6 grid gap-6 lg:grid-cols-[1fr,0.88fr]">
-                <div className="space-y-4">
+                  <div className="space-y-4">
                   {reviews.map((review) => (
-                    <div key={review.id} className="rounded-2xl border border-slate-200 p-5">
+                    <div key={review.id} className="rounded-2xl border border-border p-5 bg-card">
                       <div className="flex items-center justify-between gap-3">
                         <div>
-                          <p className="font-semibold text-slate-950">{review.user}</p>
-                          <p className="text-sm text-slate-500">{review.role}</p>
+                          <p className="font-semibold text-foreground">{review.user}</p>
+                          <p className="text-sm text-muted-foreground">{review.role}</p>
                         </div>
                         <div className="text-right">
-                          <p className="inline-flex items-center gap-1 text-sm font-semibold text-slate-950">
+                          <p className="inline-flex items-center gap-1 text-sm font-semibold text-foreground">
                             <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
                             {review.rating}
                           </p>
-                          <p className="text-xs text-slate-400">{review.date}</p>
+                          <p className="text-xs text-muted-foreground">{review.date}</p>
                         </div>
                       </div>
-                      <p className="mt-4 text-sm leading-6 text-slate-600">{review.comment}</p>
+                      <p className="mt-4 text-sm leading-6 text-muted-foreground">{review.comment}</p>
                     </div>
                   ))}
                 </div>
 
-                <div className="rounded-2xl bg-slate-50 p-5">
+                <div className="rounded-2xl bg-muted p-5">
                   <h3 className="text-lg font-semibold text-slate-950">Write a review</h3>
                   <div className="mt-4 space-y-3">
                     <Input
@@ -168,7 +157,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                     <select
                       value={reviewRating}
                       onChange={(event) => setReviewRating(Number(event.target.value))}
-                      className="h-11 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm text-slate-700"
+                      className="h-11 w-full rounded-2xl border border-border bg-card px-4 text-sm text-muted-foreground"
                     >
                       {[5, 4, 3, 2, 1].map((rating) => (
                         <option key={rating} value={rating}>
@@ -179,7 +168,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                     <textarea
                       value={reviewText}
                       onChange={(event) => setReviewText(event.target.value)}
-                      className="min-h-32 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none"
+                      className="min-h-32 w-full rounded-2xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground outline-none"
                       placeholder="Share your experience"
                     />
                     <Button
@@ -228,27 +217,27 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
 
           <div>
             <div className="sticky top-24 space-y-6">
-              <Card className="rounded-[28px] border-slate-200 bg-white shadow-[0_24px_60px_-42px_rgba(15,23,42,0.35)]">
-                <CardContent className="space-y-6 p-8">
+              <Card className="rounded-2xl border-border bg-card shadow-md">
+                <CardContent className="space-y-6 p-6">
                   <div>
-                    <p className="text-sm font-medium text-slate-500">Starting price</p>
-                    <p className="mt-2 text-4xl font-semibold text-slate-950">{service.price}</p>
+                    <p className="text-sm font-medium text-muted-foreground">Starting price</p>
+                    <p className="mt-2 text-4xl font-semibold text-foreground">{service.price}</p>
                   </div>
-                  <div className="space-y-3 text-sm text-slate-600">
-                    <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3">
-                      <Clock3 className="h-4 w-4 text-emerald-600" />
+                  <div className="space-y-3 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-3 rounded-2xl bg-muted px-4 py-3">
+                      <Clock3 className="h-4 w-4 text-primary" />
                       Estimated duration: {service.duration}
                     </div>
-                    <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3">
-                      <MapPin className="h-4 w-4 text-blue-600" />
+                    <div className="flex items-center gap-3 rounded-2xl bg-muted px-4 py-3">
+                      <MapPin className="h-4 w-4 text-secondary" />
                       Available in major metro service zones
                     </div>
-                    <div className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+                    <div className="flex items-center gap-3 rounded-2xl bg-muted px-4 py-3">
                       <TicketPercent className="h-4 w-4 text-amber-500" />
                       Coupon input available in checkout
                     </div>
                   </div>
-                  <Button className="w-full rounded-full" size="lg" onClick={() => setBookingOpen(true)}>
+                  <Button className="w-full rounded-full btn-orange" size="lg" onClick={() => setBookingOpen(true)}>
                     Book Now
                   </Button>
                   <Button variant="outline" className="w-full rounded-full" size="lg">
