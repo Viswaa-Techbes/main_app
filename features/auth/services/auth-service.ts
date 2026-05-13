@@ -38,4 +38,17 @@ export const authService = {
       method: "GET",
     });
   },
+  async sendOtp(destination: string) {
+    return apiClient<{ success: true; demoCode?: string }>("/api/auth/otp/send", {
+      method: "POST",
+      body: JSON.stringify({ destination }),
+    });
+  },
+
+  async verifyOtp(destination: string, code: string, createIfMissing = true, name?: string) {
+    return apiClient<{ success: true; user?: any }>("/api/auth/otp/verify", {
+      method: "POST",
+      body: JSON.stringify({ destination, code, createIfMissing, name }),
+    });
+  },
 };
