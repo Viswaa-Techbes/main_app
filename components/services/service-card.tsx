@@ -17,38 +17,72 @@ export function ServiceCard({ service }: { service: any }) {
       viewport={{ once: true, amount: 0.15 }}
       whileHover={hoverLift.hover}
       transition={{ type: "spring", stiffness: 260, damping: 24 }}
-      className="group relative overflow-hidden rounded-3xl border bg-card shadow-[0_18px_40px_-18px_rgba(11,76,255,0.12)] tilt glow-border"
+      className="service-card group relative overflow-hidden"
     >
       <Link href={`/services/${service.slug}`} className="block">
-        <div className="relative h-48 sm:h-52 w-full overflow-hidden">
-          <ImageWithFade src={service.image} alt={service.title} fill className="object-cover transition-transform duration-600 group-hover:scale-105" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent mix-blend-multiply" />
+        {/* Image Container */}
+        <div className="service-card-image">
+          <ImageWithFade src={service.image} alt={service.title} fill className="object-cover" />
+          
+          {/* Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          
+          {/* Badge */}
           {service.badge && (
-            <span className="absolute left-4 top-4 rounded-full bg-[var(--primary)]/95 px-3 py-1 text-sm font-semibold text-white shadow-md">{service.badge}</span>
+            <span className="badge-featured">
+              {service.badge}
+            </span>
           )}
         </div>
 
-        <div className="p-4 sm:p-5">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-foreground">{service.title}</h3>
-            <div className="text-sm font-bold text-foreground/85">{service.price}</div>
+        {/* Content */}
+        <div className="service-card-content">
+          {/* Title & Price */}
+          <div className="flex items-start justify-between mb-3 gap-2">
+            <h3 className="service-card-title flex-1">
+              {service.title}
+            </h3>
+            <div className="service-card-meta">
+              <div className="price text-right whitespace-nowrap">
+                {service.price}
+              </div>
+            </div>
           </div>
-          <p className="mt-2 text-sm text-foreground/70 line-clamp-2">{service.tagline}</p>
 
-          <div className="mt-4 flex items-center justify-between">
-            <div className="inline-flex items-center gap-3 text-sm text-foreground/80">
+          {/* Description */}
+          <p className="service-card-description">
+            {service.tagline}
+          </p>
+
+          {/* Meta Information */}
+          <div className="service-card-meta mb-5">
+            <div className="flex items-center gap-3">
               <span className="inline-flex items-center gap-1.5">
-                <Star className="h-4 w-4 text-amber-400" />
-                {service.rating}
+                <Star className="h-4 w-4 star" fill="currentColor" />
+                <span className="text-sm font-semibold text-text-primary">
+                  {service.rating}
+                </span>
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <Clock3 className="h-4 w-4 text-emerald-300" />
-                {service.duration}
+                <Clock3 className="h-4 w-4 text-secondary" />
+                <span className="text-sm text-text-secondary">
+                  {service.duration}
+                </span>
               </span>
             </div>
-
-            <Button size="sm" variant="premium" className="rounded-full px-4 py-2">Book</Button>
           </div>
+
+          {/* CTA Button */}
+          <Button 
+            size="sm" 
+            variant="premium" 
+            className="service-card-cta"
+            asChild
+          >
+            <Link href={`/services/${service.slug}`}>
+              Book Service
+            </Link>
+          </Button>
         </div>
       </Link>
     </motion.article>

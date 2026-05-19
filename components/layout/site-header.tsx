@@ -30,13 +30,13 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 navbar-gradient text-white backdrop-blur-xl shadow-xl">
+    <header className="sticky top-0 z-50 border-b border-border navbar-gradient text-foreground backdrop-blur-xl shadow-xl">
       <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex min-w-0 items-center gap-4 transition-transform hover:scale-[1.02] active:scale-[0.98]">
           <div className="relative h-10 w-32 shrink-0">
             <Image src="/logo.png" alt="Techbes" fill className="object-contain object-left" priority />
           </div>
-          <div className="hidden rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white/90 md:flex">
+          <div className="hidden rounded-full border border-border bg-background/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-foreground-muted md:flex">
             Verified Marketplace
           </div>
         </Link>
@@ -44,9 +44,9 @@ export function SiteHeader() {
         {/* Desktop Search */}
           <div className="hidden flex-1 items-center justify-center lg:flex max-w-md">
           <div className="relative w-full group">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-blue-500" />
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-muted transition-colors group-focus-within:text-primary" />
             <Input
-              className="h-11 rounded-2xl border-transparent bg-white/10 text-white placeholder-white/70 pl-11 focus:bg-white/10 transition-all shadow-none focus:shadow-lg focus:shadow-blue-500/8"
+              className="h-11 rounded-2xl border-transparent bg-background/50 text-foreground placeholder:text-muted-foreground pl-11 focus:bg-background/60 transition-all shadow-none"
               placeholder="Search CCTV, networking..."
             />
           </div>
@@ -72,11 +72,11 @@ export function SiteHeader() {
               ))}
             </nav>
 
-            <div className="h-6 w-px bg-white/10 mx-2" />
+            <div className="h-6 w-px bg-border mx-2" />
 
             {status === "authenticated" && user ? (
             <div className="flex items-center gap-2">
-              <Button variant="ghost" className="rounded-full h-10 px-4 flex items-center gap-2 text-slate-700 hover:bg-slate-100" asChild>
+              <Button variant="ghost" className="rounded-full h-10 px-4 flex items-center gap-2 text-foreground hover:bg-surface" asChild>
                 <Link href="/dashboard">
                   <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-700">
                     {customerLabel.charAt(0).toUpperCase()}
@@ -90,7 +90,7 @@ export function SiteHeader() {
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <Link href="/login" className="text-sm font-medium text-white/80 hover:text-white/100 px-3 transition-colors">
+              <Link href="/login" className="text-sm font-medium text-foreground-muted hover:text-foreground px-3 transition-colors">
                 Log In
               </Link>
               <Button variant="glass" className="rounded-full px-4 py-1 font-semibold" asChild>
@@ -122,13 +122,13 @@ export function SiteHeader() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="border-t border-slate-100 bg-white/95 backdrop-blur-xl lg:hidden"
+            className="border-t border-border bg-background/95 backdrop-blur-xl lg:hidden"
           >
             <div className="px-4 py-6 space-y-6">
               <div className="relative">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground-muted" />
                 <Input
-                  className="h-12 rounded-2xl bg-slate-50 pl-11 border-none"
+                  className="h-12 rounded-2xl bg-background pl-11 border-none text-foreground"
                   placeholder="Search CCTV, networking..."
                 />
               </div>
@@ -138,7 +138,7 @@ export function SiteHeader() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="flex items-center rounded-2xl px-4 py-4 text-base font-bold text-slate-700 transition hover:bg-slate-50 active:bg-slate-100"
+                    className="flex items-center rounded-2xl px-4 py-4 text-base font-bold text-foreground transition hover:bg-surface active:bg-surface/90"
                     onClick={() => setIsOpen(false)}
                   >
                     {item.label}

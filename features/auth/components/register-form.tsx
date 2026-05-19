@@ -88,7 +88,7 @@ export function RegisterForm({ redirectTo = "/dashboard" }: { redirectTo?: strin
 
   return (
     <div className="relative overflow-hidden">
-      <div className="absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.18),transparent_55%)]" />
+      <div className="absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-accent-light" />
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid w-full max-w-5xl gap-10 lg:grid-cols-[1fr_0.92fr] lg:items-center">
           <div className="hidden lg:block">
@@ -122,7 +122,7 @@ export function RegisterForm({ redirectTo = "/dashboard" }: { redirectTo?: strin
 
                 <div className="space-y-2">
                   <Label htmlFor="name">Full name</Label>
-                  <Input id="name" value={name} onChange={(event) => setName(event.target.value)} className="h-12 rounded-2xl bg-slate-50/80" autoComplete="name" />
+                  <Input id="name" value={name} onChange={(event) => setName(event.target.value)} className="h-12 rounded-lg bg-bg-secondary border-border-primary" autoComplete="name" />
                   {errors.name ? <p className="text-sm text-red-600">{errors.name}</p> : null}
                 </div>
 
@@ -130,7 +130,7 @@ export function RegisterForm({ redirectTo = "/dashboard" }: { redirectTo?: strin
                   <Label htmlFor="mobileNumber">Mobile number</Label>
                   <div className="relative">
                     <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <Input id="mobileNumber" type="tel" inputMode="numeric" value={mobileNumber} onChange={(event) => setMobileNumber(sanitizeMobileNumber(event.target.value))} placeholder="9876543210" className="h-12 rounded-2xl bg-slate-50/80 pl-11" autoComplete="tel" />
+                    <Input id="mobileNumber" type="tel" inputMode="numeric" value={mobileNumber} onChange={(event) => setMobileNumber(sanitizeMobileNumber(event.target.value))} placeholder="9876543210" className="h-12 rounded-lg bg-bg-secondary border-border-primary pl-11" autoComplete="tel" />
                   </div>
                   {errors.mobileNumber ? <p className="text-sm text-red-600">{errors.mobileNumber}</p> : null}
                 </div>
@@ -139,7 +139,7 @@ export function RegisterForm({ redirectTo = "/dashboard" }: { redirectTo?: strin
                   <Label htmlFor="email">Email optional</Label>
                   <div className="relative">
                     <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" className="h-12 rounded-2xl bg-slate-50/80 pl-11" autoComplete="email" />
+                    <Input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@example.com" className="h-12 rounded-lg bg-bg-secondary border-border-primary pl-11" autoComplete="email" />
                   </div>
                   {errors.email ? <p className="text-sm text-red-600">{errors.email}</p> : null}
                 </div>
@@ -148,7 +148,7 @@ export function RegisterForm({ redirectTo = "/dashboard" }: { redirectTo?: strin
                   <Label htmlFor="password">Password</Label>
                   <div className="relative">
                     <LockKeyhole className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                    <Input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="h-12 rounded-2xl bg-slate-50/80 pl-11" autoComplete="new-password" />
+                    <Input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} className="h-12 rounded-lg bg-bg-secondary border-border-primary pl-11" autoComplete="new-password" />
                   </div>
                   {errors.password ? <p className="text-sm text-red-600">{errors.password}</p> : null}
                 </div>

@@ -1,32 +1,78 @@
-/* Premium Design Tokens - additional layer on top of globals.css */
+/* Modern Premium Orange-Blue Design Tokens */
 :root {
-  --premium-deep-navy: #071032;
-  --premium-royal: #4f46e5;
-  --premium-violet: #7c3aed;
-  --premium-cyan: #06b6d4;
-  --premium-orange: #f97316;
-  --glass-opaque: rgba(255,255,255,0.06);
-  --glass-border: rgba(255,255,255,0.08);
-  --neon-accent: rgba(6,182,212,0.95);
+  /* Core brand colors */
+  --color-primary: #ff7a00; /* Vibrant Orange */
+  --color-primary-600: #ff6a00;
+  --color-primary-700: #e26600;
+  --color-secondary: #2563eb; /* Modern Royal Blue */
+  --color-secondary-600: #1f4ed8;
+
+  /* Accent gradient */
+  --gradient-accent: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+
+  /* Backgrounds & neutrals */
+  --bg-surface: #ffffff;
+  --bg-muted: #f7f6f4; /* warm neutral */
+  --bg-soft: #f3f4f6;
+  --border: #e6e6e6;
+
+  /* Text */
+  --text-900: #111827; /* dark charcoal */
+  --text-700: #374151;
+  --text-500: #6b7280;
+
+  /* Semantic */
+  --success: #10b981;
+  --error: #ef4444;
+  --warning: #f59e0b;
+
+  /* Motion / layout */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+
+  --shadow-soft: 0 6px 20px rgba(16,24,40,0.06);
+  --shadow-elevated: 0 12px 40px rgba(16,24,40,0.12);
+  --shadow-glow: 0 10px 30px rgba(255,122,0,0.12);
+
+  /* Spacing scale (use with utilities or JS) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+
+  /* Component tokens */
+  --card-bg: var(--bg-surface);
+  --card-border: var(--border);
+  --card-shadow: var(--shadow-soft);
+
+  --input-bg: #ffffff;
+  --input-border: #e9e9e9;
+
+  /* Small helpers */
+  --glass-opaque: rgba(255,255,255,0.6);
+  --glass-border: rgba(0,0,0,0.04);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --premium-deep-navy: #020617;
-    --premium-royal: #3b82f6;
-    --premium-violet: #8b5cf6;
-    --premium-cyan: #2dd4bf;
-    --premium-orange: #fb923c;
+    --bg-surface: #0b1220;
+    --bg-muted: #07101a;
+    --bg-soft: #071a2a;
+    --card-bg: rgba(255,255,255,0.03);
+    --text-900: #e6eef8;
+    --text-700: #c7d2e8;
+    --border: rgba(255,255,255,0.06);
     --glass-opaque: rgba(10,12,20,0.5);
-    --glass-border: rgba(255,255,255,0.02);
-    --neon-accent: rgba(34,211,238,0.95);
   }
 }
 
-.premium-hero {
-  background: radial-gradient(1200px 400px at 10% 10%, rgba(79,70,229,0.08), transparent 10%), radial-gradient(800px 300px at 90% 90%, rgba(249,115,22,0.06), transparent 8%);
+.brand-hero-accent {
+  background: radial-gradient(800px 280px at 12% 14%, rgba(255,122,0,0.08), transparent 12%), radial-gradient(600px 220px at 88% 86%, rgba(37,99,235,0.06), transparent 12%);
 }
 
 .glow-accent {
-  text-shadow: 0 6px 28px rgba(6,182,212,0.12), 0 2px 8px rgba(124,58,237,0.06);
+  text-shadow: 0 8px 30px rgba(255,122,0,0.08), 0 3px 12px rgba(37,99,235,0.04);
 }

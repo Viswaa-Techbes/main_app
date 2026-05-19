@@ -35,21 +35,21 @@ export default function CommandPalette() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-6">
-      <div className="mt-24 w-full max-w-2xl rounded-2xl bg-white/6 backdrop-blur-lg border border-white/6 p-4 glass-card">
-        <div className="flex items-center gap-3">
-          <Search className="h-5 w-5 text-white/90" />
-          <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search services, categories, actions... (Ctrl/Cmd+K)" className="flex-1 bg-transparent placeholder-white/80 outline-none text-white/95 p-3 rounded-xl" />
-          <button onClick={handleClose} className="p-2 rounded-md text-white/80"><X className="h-5 w-5" /></button>
-        </div>
+      <div className="mt-24 w-full max-w-2xl rounded-2xl bg-background backdrop-blur-lg border border-border p-4 glass-card">
+          <div className="flex items-center gap-3">
+            <Search className="h-5 w-5 text-foreground-muted" />
+            <input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search services, categories, actions... (Ctrl/Cmd+K)" className="flex-1 bg-transparent placeholder:text-muted-foreground outline-none text-foreground p-3 rounded-xl" />
+            <button onClick={handleClose} className="p-2 rounded-md text-foreground-muted"><X className="h-5 w-5" /></button>
+          </div>
 
         <div className="mt-3 max-h-72 overflow-auto">
-          {results.length === 0 && <div className="p-6 text-sm text-white/70">No results</div>}
+          {results.length === 0 && <div className="p-6 text-sm text-foreground-muted">No results</div>}
           {results.map((r: any) => (
-            <Link key={r.id} href={`/services/${r.slug}`} onClick={handleClose} className="flex items-center gap-3 p-3 rounded-md hover:bg-white/5">
-              <div className="w-12 h-12 rounded-xl bg-white/8 flex items-center justify-center text-white/90 font-semibold">{r.title.charAt(0)}</div>
+            <Link key={r.id} href={`/services/${r.slug}`} onClick={handleClose} className="flex items-center gap-3 p-3 rounded-md hover:bg-surface">
+              <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center text-foreground font-semibold">{r.title.charAt(0)}</div>
               <div>
-                <div className="text-white/95 font-medium">{r.title}</div>
-                <div className="text-white/60 text-sm">{r.category}</div>
+                <div className="text-foreground font-medium">{r.title}</div>
+                <div className="text-foreground-muted text-sm">{r.category}</div>
               </div>
             </Link>
           ))}

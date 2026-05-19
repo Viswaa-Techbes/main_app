@@ -92,8 +92,8 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
 
   return (
     <div className="relative overflow-hidden">
-      <div className="absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.18),transparent_55%)]" />
-      <div className="absolute inset-x-0 bottom-0 -z-10 h-96 bg-[radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.14),transparent_48%)]" />
+      <div className="absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-accent-light" />
+      <div className="absolute inset-x-0 bottom-0 -z-10 h-96" style={{ background: 'radial-gradient(circle at bottom right, rgba(255,122,0,0.08), transparent 50%)' }} />
 
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid w-full max-w-5xl gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
@@ -154,7 +154,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
                       value={mobileNumber}
                       onChange={(event) => setMobileNumber(sanitizeMobileNumber(event.target.value))}
                       placeholder="9876543210"
-                      className="h-12 rounded-2xl border-slate-200 bg-slate-50/80 pl-11"
+                      className="h-12 rounded-lg border-border-primary bg-bg-secondary pl-11"
                       aria-invalid={Boolean(errors.mobileNumber)}
                       autoComplete="tel"
                     />
@@ -170,7 +170,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="Enter your password"
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/80"
+                    className="h-12 rounded-lg border-border-primary bg-bg-secondary"
                     aria-invalid={Boolean(errors.password)}
                     autoComplete="current-password"
                   />
