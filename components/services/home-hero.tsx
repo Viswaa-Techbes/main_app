@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Search, ShieldCheck, Sparkles, Star, Users } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";

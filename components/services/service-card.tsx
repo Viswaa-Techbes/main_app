@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import ImageWithFade from "@/components/ui/image-fade";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Star, Clock3 } from "lucide-react";
 import { motion } from "framer-motion";
 import { fadeIn, hoverLift } from "@/components/animations/motion-presets";

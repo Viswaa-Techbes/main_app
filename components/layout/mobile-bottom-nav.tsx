@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Home, Grid, Clock, User } from "lucide-react";
 
 export default function MobileBottomNav() {

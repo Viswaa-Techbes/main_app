@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import ImageWithFade from "@/components/ui/image-fade";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Search, SlidersHorizontal, Star } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";

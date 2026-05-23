@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import Image from "next/image";
 import { Star, Clock, ArrowRight } from "lucide-react";
 import { services } from "@/lib/services-data";

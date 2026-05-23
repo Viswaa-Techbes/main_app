@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useState, useCallback } from "react"
-import Link from "next/link"
+import Link from "@/components/ui/link"
 import { Search, X } from "lucide-react"
 import { services } from "@/lib/services-data"
 

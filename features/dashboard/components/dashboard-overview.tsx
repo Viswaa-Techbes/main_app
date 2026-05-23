@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useState, useEffect } from "react";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { MapPin, Wallet, Clock, History, Calendar, ExternalLink, Navigation, User as UserIcon } from "lucide-react";
 import { apiClient } from "@/core/api/api-client";
 import { toast } from "sonner";

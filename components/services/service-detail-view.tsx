@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import ImageWithFade from "@/components/ui/image-fade";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { Check, ChevronLeft, Clock3, MapPin, Star, TicketPercent } from "lucide-react";
 import { useState } from "react";
 

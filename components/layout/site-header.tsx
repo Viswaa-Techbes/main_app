@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 import { useRouter } from "next/navigation";
 import { Menu, MapPin, Search, Sparkles, X, User, LogOut, ChevronDown } from "lucide-react";
 import { useState } from "react";

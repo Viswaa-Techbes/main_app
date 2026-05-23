@@ -3,7 +3,7 @@
 import { Search, Shield, Clock, Award, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/components/ui/link";
 
 export function HeroSection() {
   return (
