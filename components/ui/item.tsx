@@ -56,10 +56,18 @@ function Item({
   variant = 'default',
   size = 'default',
   asChild = false,
+  children,
   ...props
 }: React.ComponentProps<'div'> &
   VariantProps<typeof itemVariants> & { asChild?: boolean }) {
   const Comp = asChild ? Slot : 'div'
+
+  const content = asChild && React.Children.count(children) !== 1 ? (
+    <span>{children}</span>
+  ) : (
+    children
+  )
+
   return (
     <Comp
       data-slot="item"
@@ -67,7 +75,9 @@ function Item({
       data-size={size}
       className={cn(itemVariants({ variant, size, className }))}
       {...props}
-    />
+    >
+      {content}
+    </Comp>
   )
 }
 

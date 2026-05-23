@@ -26,8 +26,8 @@ export function HomeHero() {
           <div className="relative z-10 w-full lg:w-1/2">
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
               <Badge className="rounded-full px-4 py-1.5 text-foreground bg-background border border-border">Premium IT marketplace for homes and businesses</Badge>
-              <h1 className="mt-6 max-w-3xl text-bal text-4xl font-extrabold leading-tight text-foreground sm:text-5xl lg:text-6xl">Book Verified IT Experts at Your Doorstep</h1>
-              <p className="mt-4 max-w-2xl text-lg leading-8 text-foreground-muted">From CCTV installations to enterprise networking and annual maintenance contracts — expert technicians, transparent pricing, and seamless booking, now in a premium experience.</p>
+              <h1 className="mt-6 max-w-3xl ds-hero text-bal font-extrabold leading-tight">Book Verified IT Experts at Your Doorstep</h1>
+              <p className="mt-4 max-w-2xl ds-body text-foreground-muted">From CCTV installations to enterprise networking and annual maintenance contracts — expert technicians, transparent pricing, and seamless booking, now in a premium experience.</p>
 
               <div className="mt-8 grid gap-4 sm:grid-cols-[1fr,auto]">
                 <div className="relative">

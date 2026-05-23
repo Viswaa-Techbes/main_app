@@ -30,14 +30,14 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border navbar-gradient text-foreground backdrop-blur-xl shadow-xl">
+    <header className="ds-card sticky top-0 z-50 border-b border-border navbar-gradient text-foreground backdrop-blur-xl shadow-xl">
       <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-4 sm:px-6 lg:px-8">
         <Link href="/" className="transition-transform hover:scale-[1.02] active:scale-[0.98]">
           <span className="inline-flex items-center gap-4 min-w-0">
             <div className="relative h-10 w-32 shrink-0">
               <Image src="/logo.png" alt="Techbes" fill className="object-contain object-left" priority />
             </div>
-            <div className="hidden rounded-full border border-border bg-background/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-foreground-muted md:flex">
+            <div className="hidden rounded-full border border-border bg-background/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-foreground-muted md:flex ds-body">
               Verified Marketplace
             </div>
           </span>

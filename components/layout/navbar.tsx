@@ -21,7 +21,7 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-[var(--z-sticky)] bg-[var(--card)] shadow-sm" style={{boxShadow: '0 6px 20px rgba(16,24,40,0.04)'}}>
+      <header className="fixed top-0 left-0 right-0 z-[var(--z-sticky)] ds-card" style={{boxShadow: '0 6px 20px rgba(16,24,40,0.04)'}}>
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 w-full">
       {/* Logo */}
       <Link href="/" className="flex-shrink-0">

@@ -128,8 +128,7 @@ export function DashboardOverview() {
             {(user?.role === "admin" || user?.role === "manager") && (
               <Button asChild className="rounded-full bg-blue-600 hover:bg-blue-700 h-12 px-6 shadow-lg shadow-blue-600/20">
                 <Link href="/admin/tracking" className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4" />
-                  Fleet Tracker
+                  <span className="inline-flex items-center gap-2"><MapPin className="h-4 w-4" />Fleet Tracker</span>
                 </Link>
               </Button>
             )}

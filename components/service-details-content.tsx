@@ -55,7 +55,7 @@ export function ServiceDetailsContent({ service }: ServiceDetailsContentProps) {
                 href={`/services?category=${service.categoryId}`}
                 className="text-gray-400 hover:text-blue-600 transition-colors"
               >
-                {service.category}
+                <span>{service.category}</span>
               </Link>
             </li>
             <li className="text-gray-300">/</li>

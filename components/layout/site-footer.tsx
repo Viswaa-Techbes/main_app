@@ -10,19 +10,19 @@ const footerGroups = {
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-white/6 bg-gradient-to-tr from-[#07112a] via-[#071833] to-[#0b1230] text-slate-100">
+    <footer className="ds-card bg-gradient-to-tr from-[#07112a] via-[#071833] to-[#0b1230] text-slate-100">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-start justify-between gap-8">
           <div>
             <div className="relative h-10 w-40">
               <Image src="/logo.png" alt="Techbes" fill className="object-contain object-left" />
             </div>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-300">
+            <p className="mt-4 max-w-2xl ds-body text-slate-300">
               A premium AI-powered field service marketplace — predictable SLAs, verified technicians, and enterprise-ready workflows.
             </p>
             <div className="mt-6 flex gap-3">
-              <a href="#" className="badge-blue">Trusted</a>
-              <a href="#" className="badge-orange">Enterprise</a>
+              <a href="#" className="rounded-full bg-blue-600 text-white px-3 py-1 text-xs font-semibold">Trusted</a>
+              <a href="#" className="rounded-full bg-orange-500 text-white px-3 py-1 text-xs font-semibold">Enterprise</a>
             </div>
           </div>
 
