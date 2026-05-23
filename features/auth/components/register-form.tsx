@@ -103,7 +103,7 @@ export function RegisterForm({ redirectTo = "/dashboard" }: { redirectTo?: strin
             </p>
           </div>
 
-          <Card className="border-white/80 bg-white/90 py-0 shadow-[0_32px_80px_-38px_rgba(15,23,42,0.35)] backdrop-blur">
+          <Card className="border border-border bg-card py-0" style={{boxShadow: 'var(--shadow-elevated)'}}>
             <CardHeader className="gap-3 border-b border-slate-100 px-8 py-8">
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
                 <User className="h-5 w-5" />
@@ -167,7 +167,7 @@ export function RegisterForm({ redirectTo = "/dashboard" }: { redirectTo?: strin
                 <p className="text-center text-sm text-slate-500">
                   Already registered?{" "}
                   <Link href="/login" className="font-semibold text-emerald-700 hover:text-emerald-800">
-                    Log in
+                    <span>Log in</span>
                   </Link>
                 </p>
               </form>

@@ -43,7 +43,7 @@ export function SiteFooter() {
                     };
                     return (
                       <Link key={label} href={hrefMap[label] || "/services"} className="transition-colors hover:text-white">
-                        {label}
+                        <span>{label}</span>
                       </Link>
                     );
                   })}

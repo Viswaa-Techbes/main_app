@@ -61,7 +61,7 @@ export function HomeHero() {
                   )}
                 </div>
                 <Button asChild size="lg" className="h-14 rounded-full px-8 text-base shadow-lg btn-primary">
-                  <Link href="/services">Find Services</Link>
+                  <Link href="/services"><span>Find Services</span></Link>
                 </Button>
               </div>
 
@@ -72,7 +72,7 @@ export function HomeHero() {
                     href="/services"
                     className="rounded-full border border-border bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm transition hover:scale-[1.02]"
                   >
-                    {chip}
+                    <span>{chip}</span>
                   </Link>
                 ))}
               </div>

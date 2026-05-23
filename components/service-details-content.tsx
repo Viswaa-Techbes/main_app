@@ -40,13 +40,13 @@ export function ServiceDetailsContent({ service }: ServiceDetailsContentProps) {
           <ol className="flex items-center gap-2 text-sm">
             <li>
               <Link href="/" className="text-gray-400 hover:text-blue-600 transition-colors">
-                Home
+                <span>Home</span>
               </Link>
             </li>
             <li className="text-gray-300">/</li>
             <li>
               <Link href="/services" className="text-gray-400 hover:text-blue-600 transition-colors">
-                Services
+                <span>Services</span>
               </Link>
             </li>
             <li className="text-gray-300">/</li>
@@ -70,8 +70,7 @@ export function ServiceDetailsContent({ service }: ServiceDetailsContentProps) {
           href="/services"
           className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium mb-6 group"
         >
-          <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Back to Services
+          <span className="inline-flex items-center gap-1"><ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />Back to Services</span>
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

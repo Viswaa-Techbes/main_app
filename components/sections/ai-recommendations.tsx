@@ -31,7 +31,7 @@ export function AiRecommendations() {
                 <h4 className="text-lg font-semibold text-foreground">{it.title}</h4>
                 <p className="mt-1 text-sm text-foreground/70">{it.desc}</p>
                 <div className="mt-4">
-                  <Link href={it.CTA} className="text-sm font-semibold text-primary hover:underline">View recommended plan →</Link>
+                  <Link href={it.CTA} className="text-sm font-semibold text-primary hover:underline"><span>View recommended plan →</span></Link>
                 </div>
               </div>
             </div>

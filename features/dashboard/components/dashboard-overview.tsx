@@ -113,7 +113,7 @@ export function DashboardOverview() {
       {/* Razorpay Script */}
       <script src="https://checkout.razorpay.com/v1/checkout.js" async></script>
 
-      <div className="rounded-[36px] border border-slate-200 bg-white p-8 shadow-[0_25px_60px_-36px_rgba(15,23,42,0.35)]">
+      <div className="rounded-[var(--radius-xl)] border border-border bg-card p-8" style={{boxShadow: 'var(--shadow-soft)'}}>
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div className="inline-flex rounded-full bg-blue-100 px-4 py-1.5 text-sm font-semibold text-blue-700">
@@ -170,7 +170,7 @@ export function DashboardOverview() {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[1.15fr,0.85fr]">
         <div className="space-y-6">
-          <Card variant="glass" className="rounded-[34px] border-white/6 bg-white/6">
+          <Card variant="glass" className="rounded-[var(--radius-lg)] border-white/6 bg-white/6">
             <CardContent className="p-8">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
@@ -178,7 +178,7 @@ export function DashboardOverview() {
                   <p className="mt-1 text-sm text-slate-500">Live order tracking and payment status.</p>
                 </div>
                 <Button asChild variant="outline" className="rounded-full">
-                  <Link href="/services">Book another service</Link>
+                  <Link href="/services"><span>Book another service</span></Link>
                 </Button>
               </div>
 
@@ -293,7 +293,7 @@ export function DashboardOverview() {
             </CardContent>
           </Card>
 
-          <Card variant="premium" className="rounded-[34px]">
+          <Card variant="premium" className="rounded-[var(--radius-lg)]">
             <CardContent className="p-8">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-semibold text-slate-950">Upcoming services</h2>
@@ -326,7 +326,7 @@ export function DashboardOverview() {
             </CardContent>
           </Card>
 
-          <div className="rounded-[34px] bg-gradient-to-br from-blue-600 to-indigo-700 p-8 text-white shadow-xl">
+          <div className="rounded-[var(--radius-lg)] p-8 text-white" style={{background: 'var(--gradient-accent)', boxShadow: 'var(--shadow-elevated)'}}>
              <h3 className="text-xl font-semibold">Need help?</h3>
              <p className="mt-2 text-blue-100 text-sm">Our support team is available 24/7 for any service related queries.</p>
              <Button className="mt-6 w-full rounded-full bg-white text-blue-600 hover:bg-blue-50">
@@ -341,7 +341,7 @@ export function DashboardOverview() {
 
 function MetricCard({ metric, icon }: { metric: any; icon: ReactNode }) {
   return (
-    <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_-36px_rgba(15,23,42,0.35)]">
+    <div className="rounded-[var(--radius-md)] border border-border bg-card p-6" style={{boxShadow: 'var(--shadow-soft)'}}>
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-slate-500">{metric.title}</p>
         <div

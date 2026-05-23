@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
+import { Inter } from 'next/font/google';
 
 import { AppProviders } from "@/providers/app-providers";
 import "@/components/design-system/design-tokens.css";
@@ -36,6 +37,8 @@ export const metadata: Metadata = {
 import { PageTransition } from "@/components/layout/page-transition";
 import MobileBottomNav from "@/components/layout/mobile-bottom-nav";
 
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -43,7 +46,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased" data-scroll-behavior="smooth">
+      <body className={`${inter.className} font-sans antialiased`} data-scroll-behavior="smooth">
         <AppProviders>
           <div style={{ minHeight: '100vh' }}>
             <ThemeSwitcher className="absolute right-6 top-6 z-40" />

@@ -28,7 +28,7 @@ export function PopularServices() {
             </p>
           </div>
           <Link href="/services" className="hidden md:flex items-center gap-2 text-blue-600 font-semibold hover:text-orange-500 transition-colors group">
-            See all <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <span className="inline-flex items-center">See all <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
           </Link>
         </div>
 

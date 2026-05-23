@@ -619,9 +619,52 @@
 
 /* ── Legacy utility aliases for compatibility ──────────────────────────────── */
 @layer utilities {
-  /* Keep legacy button classnames */
-  .btn-orange { @apply btn-primary; }
-  .btn-blue { @apply btn-secondary; }
+  .btn-orange {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    color: white;
+    background: var(--gradient-accent);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-brand);
+    transition: all var(--transition-base);
+    border: none;
+    cursor: pointer;
+    font-size: var(--font-size-label-lg);
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(255, 122, 0, 0.2);
+    }
+    &:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-md);
+    }
+  }
+  .btn-blue {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    color: white;
+    background: var(--color-secondary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-blue);
+    transition: all var(--transition-base);
+    border: none;
+    cursor: pointer;
+    font-size: var(--font-size-label-lg);
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.2);
+    }
+    &:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-md);
+    }
+  }
 
   /* ─ NAVBAR STYLES ───────────────────────────────────────────────────────── */
   .navbar-clean {
@@ -718,7 +761,7 @@
 
   /* ─ BADGE ENHANCEMENTS ──────────────────────────────────────────────── */
   .badge-featured {
-    @apply absolute top-4 left-4 badge badge-primary;
+    @apply absolute top-4 left-4 px-2.5 py-1 rounded-full text-xs font-semibold;
     background: var(--color-primary);
     color: white;
     border: none;
@@ -982,4 +1025,4 @@
     --color-surface-hover: #243557;
     --color-surface-active: #334155;
   }
-
+}

@@ -126,7 +126,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
             </div>
           </div>
 
-          <Card className="border-white/80 bg-white/90 py-0 shadow-[0_32px_80px_-38px_rgba(15,23,42,0.35)] backdrop-blur">
+          <Card className="border border-border bg-card py-0" style={{boxShadow: 'var(--shadow-elevated)'}}>
             <CardHeader className="gap-3 border-b border-slate-100 px-8 py-8">
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
                 <LockKeyhole className="h-5 w-5" />
@@ -188,7 +188,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
                   </Label>
 
                   <Link href="#" className="text-sm font-medium text-slate-500 transition hover:text-slate-900">
-                    Forgot password?
+                    <span>Forgot password?</span>
                   </Link>
                 </div>
 
@@ -206,7 +206,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
                 <p className="text-center text-sm text-slate-500">
                   New to Techbes?{" "}
                   <Link href="/signup" className="font-semibold text-emerald-700 hover:text-emerald-800">
-                    Create a customer account
+                    <span>Create a customer account</span>
                   </Link>
                 </p>
               </form>

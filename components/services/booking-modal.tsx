@@ -72,7 +72,7 @@ export function BookingModal({
 
   return (
     <Dialog open={open} onOpenChange={closeModal}>
-      <DialogContent className="max-w-3xl rounded-[28px] border bg-card p-0 shadow-2xl overflow-y-auto max-h-[95dvh]">
+      <DialogContent className="max-w-3xl rounded-[var(--radius-lg)] border bg-card p-0 shadow-2xl overflow-y-auto max-h-[95dvh]">
             <DialogHeader className="border-b border-border px-6 py-5 text-left glass-card">
               <DialogTitle className="text-2xl font-semibold text-foreground">Book {service.title}</DialogTitle>
               <DialogDescription className="text-muted-foreground">

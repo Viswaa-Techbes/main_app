@@ -20,8 +20,9 @@ export function ServiceCard({ service }: { service: any }) {
       className="service-card group relative overflow-hidden"
     >
       <Link href={`/services/${service.slug}`} className="block">
-        {/* Image Container */}
-        <div className="service-card-image">
+        <div className="w-full">
+          {/* Image Container */}
+          <div className="service-card-image">
           <ImageWithFade src={service.image} alt={service.title} fill className="object-cover" />
           
           {/* Overlay Gradient */}
@@ -33,10 +34,10 @@ export function ServiceCard({ service }: { service: any }) {
               {service.badge}
             </span>
           )}
-        </div>
+          </div>
 
         {/* Content */}
-        <div className="service-card-content">
+          <div className="service-card-content pb-20">
           {/* Title & Price */}
           <div className="flex items-start justify-between mb-3 gap-2">
             <h3 className="service-card-title flex-1">
@@ -55,7 +56,7 @@ export function ServiceCard({ service }: { service: any }) {
           </p>
 
           {/* Meta Information */}
-          <div className="service-card-meta mb-5">
+          <div className="service-card-meta mb-0">
             <div className="flex items-center gap-3">
               <span className="inline-flex items-center gap-1.5">
                 <Star className="h-4 w-4 star" fill="currentColor" />
@@ -71,20 +72,23 @@ export function ServiceCard({ service }: { service: any }) {
               </span>
             </div>
           </div>
-
-          {/* CTA Button */}
-          <Button 
-            size="sm" 
-            variant="premium" 
-            className="service-card-cta"
-            asChild
-          >
-            <Link href={`/services/${service.slug}`}>
-              Book Service
-            </Link>
-          </Button>
+          </div>
         </div>
       </Link>
+
+      {/* CTA Button placed outside of card-wide Link to avoid nested <a> tags */}
+      <div className="absolute bottom-5 left-5 right-5 z-10">
+        <Button 
+          size="sm" 
+          variant="premium" 
+          className="service-card-cta w-full"
+          asChild
+        >
+          <Link href={`/services/${service.slug}`}>
+            <span>Book Service</span>
+          </Link>
+        </Button>
+      </div>
     </motion.article>
   );
 }

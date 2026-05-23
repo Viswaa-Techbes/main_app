@@ -26,8 +26,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
     <>
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <Link href="/services" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-950">
-          <ChevronLeft className="h-4 w-4" />
-          Back to services
+          <span className="inline-flex items-center gap-2"><ChevronLeft className="h-4 w-4" />Back to services</span>
         </Link>
 
         <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card shadow-lg">
@@ -198,7 +197,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
               </div>
             </div>
 
-            <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_24px_60px_-42px_rgba(15,23,42,0.35)] sm:p-8">
+            <div className="rounded-[var(--radius-md)] border border-border bg-card p-6 sm:p-8" style={{boxShadow: 'var(--shadow-soft)'}}>
               <h2 className="text-2xl font-semibold text-slate-950">FAQs</h2>
               <Accordion type="single" collapsible className="mt-4">
                 {service.faqs.map((faq, index) => (
@@ -246,14 +245,14 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                 </CardContent>
               </Card>
 
-              <Card className="rounded-[28px] border-slate-200 bg-[linear-gradient(180deg,#ecfeff,#ffffff)] shadow-[0_24px_60px_-42px_rgba(15,23,42,0.3)]">
-                <CardContent className="p-8">
-                  <h3 className="text-xl font-semibold text-slate-950">Recommended for you</h3>
-                  <div className="mt-5 space-y-4">
+              <Card className="rounded-2xl border border-border bg-card shadow-md">
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-semibold text-[var(--text-900)]">Recommended for you</h3>
+                  <div className="mt-4 space-y-3">
                     {recommended.map((item) => (
-                      <Link key={item.slug} href={`/services/${item.slug}`} className="block rounded-3xl border border-slate-200 bg-white p-4 transition hover:border-emerald-200 hover:bg-emerald-50/50">
-                        <p className="font-semibold text-slate-950">{item.title}</p>
-                        <p className="mt-1 text-sm text-slate-500">{item.price}</p>
+                      <Link key={item.slug} href={`/services/${item.slug}`} className="block rounded-3xl border border-border bg-card p-4 transition hover:border-[var(--color-secondary)] hover:bg-[var(--bg-soft)]">
+                        <p className="font-semibold text-[var(--text-900)]">{item.title}</p>
+                        <p className="mt-1 text-sm text-[var(--text-700)]">{item.price}</p>
                       </Link>
                     ))}
                   </div>

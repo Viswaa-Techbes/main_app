@@ -19,7 +19,7 @@ export function CategorySection() {
             </p>
           </div>
           <Link href="/services" className="hidden md:flex items-center gap-2 link text-secondary font-semibold group whitespace-nowrap ml-4">
-            View all <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            <span className="inline-flex items-center">View all <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
           </Link>
         </div>
 
@@ -32,25 +32,27 @@ export function CategorySection() {
               className="card group animate-fade-up"
               style={{ animationDelay: `${index * 60}ms` }}
             >
-              {/* Icon */}
-              <div className={`w-14 h-14 rounded-lg ${category.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                <category.icon className="w-7 h-7" />
-              </div>
+              <div className="w-full">
+                {/* Icon */}
+                <div className={`w-14 h-14 rounded-lg ${category.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <category.icon className="w-7 h-7" />
+                </div>
 
-              {/* Content */}
-              <h3 className="heading-sm text-text-primary group-hover:text-secondary transition-colors">
-                {category.title}
-              </h3>
-              <p className="mt-2 text-sm text-text-secondary line-clamp-2">
-                {category.description}
-              </p>
+                {/* Content */}
+                <h3 className="heading-sm text-text-primary group-hover:text-secondary transition-colors">
+                  {category.title}
+                </h3>
+                <p className="mt-2 text-sm text-text-secondary line-clamp-2">
+                  {category.description}
+                </p>
 
-              {/* Services count */}
-              <div className="mt-4 flex items-center justify-between pt-4 border-t border-border-light">
-                <span className="text-xs font-semibold text-secondary bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
-                  {category.services}
-                </span>
-                <ArrowRight className="w-4 h-4 text-text-tertiary group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                {/* Services count */}
+                <div className="mt-4 flex items-center justify-between pt-4 border-t border-border-light">
+                  <span className="text-xs font-semibold text-secondary bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
+                    {category.services}
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-text-tertiary group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                </div>
               </div>
             </Link>
           ))}
@@ -59,7 +61,7 @@ export function CategorySection() {
         {/* Mobile View All Button */}
         <div className="mt-8 md:hidden text-center">
           <Link href="/services" className="btn-primary inline-flex items-center gap-2 rounded-lg">
-            View all categories <ArrowRight className="w-4 h-4" />
+            <span className="inline-flex items-center">View all categories <ArrowRight className="w-4 h-4" /></span>
           </Link>
         </div>
       </div>

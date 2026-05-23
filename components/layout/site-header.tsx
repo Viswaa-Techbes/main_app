@@ -32,13 +32,15 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-border navbar-gradient text-foreground backdrop-blur-xl shadow-xl">
       <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex min-w-0 items-center gap-4 transition-transform hover:scale-[1.02] active:scale-[0.98]">
-          <div className="relative h-10 w-32 shrink-0">
-            <Image src="/logo.png" alt="Techbes" fill className="object-contain object-left" priority />
-          </div>
-          <div className="hidden rounded-full border border-border bg-background/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-foreground-muted md:flex">
-            Verified Marketplace
-          </div>
+        <Link href="/" className="transition-transform hover:scale-[1.02] active:scale-[0.98]">
+          <span className="inline-flex items-center gap-4 min-w-0">
+            <div className="relative h-10 w-32 shrink-0">
+              <Image src="/logo.png" alt="Techbes" fill className="object-contain object-left" priority />
+            </div>
+            <div className="hidden rounded-full border border-border bg-background/20 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-foreground-muted md:flex">
+              Verified Marketplace
+            </div>
+          </span>
         </Link>
 
         {/* Desktop Search */}
@@ -67,7 +69,7 @@ export function SiteHeader() {
                   href={item.href}
                   className="nav-link"
                 >
-                  {item.label}
+                  <span>{item.label}</span>
                 </Link>
               ))}
             </nav>
@@ -78,10 +80,12 @@ export function SiteHeader() {
             <div className="flex items-center gap-2">
               <Button variant="ghost" className="rounded-full h-10 px-4 flex items-center gap-2 text-foreground hover:bg-surface" asChild>
                 <Link href="/dashboard">
-                  <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-700">
-                    {customerLabel.charAt(0).toUpperCase()}
-                  </div>
-                  {customerLabel}
+                  <span className="inline-flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-700">
+                      {customerLabel.charAt(0).toUpperCase()}
+                    </div>
+                    <span>{customerLabel}</span>
+                  </span>
                 </Link>
               </Button>
               <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-rose-500 transition-colors" title="Logout">
@@ -91,18 +95,17 @@ export function SiteHeader() {
           ) : (
             <div className="flex items-center gap-3">
               <Link href="/login" className="text-sm font-medium text-foreground-muted hover:text-foreground px-3 transition-colors">
-                Log In
+                <span>Log In</span>
               </Link>
               <Button variant="glass" className="rounded-full px-4 py-1 font-semibold" asChild>
-                <Link href="/signup">Sign Up</Link>
+                <Link href="/signup"><span>Sign Up</span></Link>
               </Button>
             </div>
           )}
           
-          <Button variant="premium" className="rounded-full h-11 px-6 font-bold flex items-center gap-2 glow-cta" asChild>
+            <Button variant="premium" className="rounded-full h-11 px-6 font-bold flex items-center gap-2 glow-cta" asChild>
             <Link href="/services">
-              <Sparkles className="h-4 w-4 text-white/90" />
-              Book Now
+              <span className="inline-flex items-center gap-2"><Sparkles className="h-4 w-4 text-white/90" />Book Now</span>
             </Link>
           </Button>
         </div>
@@ -141,7 +144,7 @@ export function SiteHeader() {
                     className="flex items-center rounded-2xl px-4 py-4 text-base font-bold text-foreground transition hover:bg-surface active:bg-surface/90"
                     onClick={() => setIsOpen(false)}
                   >
-                    {item.label}
+                    <span>{item.label}</span>
                   </Link>
                 ))}
               </div>
@@ -160,7 +163,7 @@ export function SiteHeader() {
                     </div>
                   </div>
                   <Button variant="outline" className="w-full h-12 rounded-2xl font-bold" asChild>
-                    <Link href="/dashboard" onClick={() => setIsOpen(false)}>My Dashboard</Link>
+                    <Link href="/dashboard" onClick={() => setIsOpen(false)}><span>My Dashboard</span></Link>
                   </Button>
                   <Button variant="ghost" className="w-full h-12 rounded-2xl font-bold text-rose-600 hover:bg-rose-50" onClick={handleLogout}>
                     Log Out
@@ -169,17 +172,17 @@ export function SiteHeader() {
               ) : (
                 <div className="grid grid-cols-2 gap-4">
                   <Button variant="outline" className="h-12 rounded-2xl font-bold" asChild>
-                    <Link href="/login" onClick={() => setIsOpen(false)}>Log In</Link>
+                    <Link href="/login" onClick={() => setIsOpen(false)}><span>Log In</span></Link>
                   </Button>
                   <Button className="h-12 rounded-2xl font-bold bg-blue-600" asChild>
-                    <Link href="/signup" onClick={() => setIsOpen(false)}>Sign Up</Link>
+                    <Link href="/signup" onClick={() => setIsOpen(false)}><span>Sign Up</span></Link>
                   </Button>
                 </div>
               )}
               
               <Button className="w-full h-14 rounded-2xl font-black bg-orange-500 shadow-xl shadow-orange-500/20" asChild>
                 <Link href="/services" onClick={() => setIsOpen(false)}>
-                  Book a Service
+                  <span>Book a Service</span>
                 </Link>
               </Button>
             </div>

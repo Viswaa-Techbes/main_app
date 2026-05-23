@@ -1,29 +1,29 @@
-/* Modern Premium Orange-Blue Design Tokens */
+/* Premium Design Tokens */
 :root {
   /* Core brand colors */
-  --color-primary: #ff7a00; /* Vibrant Orange */
+  --color-primary: #ff7a00;
   --color-primary-600: #ff6a00;
   --color-primary-700: #e26600;
-  --color-secondary: #2563eb; /* Modern Royal Blue */
+  --color-secondary: #2563eb;
   --color-secondary-600: #1f4ed8;
 
-  /* Accent gradient */
-  --gradient-accent: linear-gradient(90deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+  /* Minimal subtle gradient for accents */
+  --gradient-accent: linear-gradient(90deg, rgba(255,122,0,0.06) 0%, rgba(37,99,235,0.04) 100%);
 
   /* Backgrounds & neutrals */
   --bg-surface: #ffffff;
-  --bg-muted: #f7f6f4; /* warm neutral */
+  --bg-muted: #f8fafc;
   --bg-soft: #f3f4f6;
-  --border: #e6e6e6;
+  --border: #e5e7eb;
 
   /* Text */
-  --text-900: #111827; /* dark charcoal */
+  --text-900: #111827;
   --text-700: #374151;
   --text-500: #6b7280;
 
   /* Semantic */
-  --success: #10b981;
-  --error: #ef4444;
+  --success: #16a34a;
+  --error: #dc2626;
   --warning: #f59e0b;
 
   /* Motion / layout */
@@ -32,16 +32,26 @@
   --radius-lg: 20px;
   --radius-xl: 24px;
 
-  --shadow-soft: 0 6px 20px rgba(16,24,40,0.06);
-  --shadow-elevated: 0 12px 40px rgba(16,24,40,0.12);
-  --shadow-glow: 0 10px 30px rgba(255,122,0,0.12);
+  --shadow-soft: 0 8px 24px rgba(16,24,40,0.06);
+  --shadow-elevated: 0 14px 48px rgba(16,24,40,0.12);
 
-  /* Spacing scale (use with utilities or JS) */
+  /* Spacing scale */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
   --space-4: 16px;
   --space-5: 24px;
+
+  /* Typography scale */
+  --font-hero-size: 60px; /* 56-64 range */
+  --font-hero-weight: 700;
+  --font-heading-size: 36px;
+  --font-heading-weight: 600;
+  --font-card-title-size: 22px;
+  --font-body-size: 16px;
+  --font-label-size: 13px;
+  --line-height-tight: 1.1;
+  --line-height-normal: 1.45;
 
   /* Component tokens */
   --card-bg: var(--bg-surface);
@@ -70,9 +80,49 @@
 }
 
 .brand-hero-accent {
-  background: radial-gradient(800px 280px at 12% 14%, rgba(255,122,0,0.08), transparent 12%), radial-gradient(600px 220px at 88% 86%, rgba(37,99,235,0.06), transparent 12%);
+  background: radial-gradient(800px 280px at 12% 14%, rgba(255,122,0,0.06), transparent 12%), radial-gradient(600px 220px at 88% 86%, rgba(37,99,235,0.04), transparent 12%);
 }
 
-.glow-accent {
-  text-shadow: 0 8px 30px rgba(255,122,0,0.08), 0 3px 12px rgba(37,99,235,0.04);
+/* Subtle text emphasis helper */
+.text-accent-soft {
+  text-shadow: 0 6px 18px rgba(16,24,40,0.03);
+}
+
+/* Basic utility classes for tokens (used by components) */
+.ds-hero {
+  font-size: var(--font-hero-size);
+  font-weight: var(--font-hero-weight);
+  line-height: var(--line-height-tight);
+  color: var(--text-900);
+}
+.ds-heading {
+  font-size: var(--font-heading-size);
+  font-weight: var(--font-heading-weight);
+  color: var(--text-900);
+}
+.ds-body {
+  font-size: var(--font-body-size);
+  line-height: var(--line-height-normal);
+  color: var(--text-700);
+}
+.ds-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  border-radius: var(--radius-md);
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  box-shadow: 0 6px 18px rgba(255,122,0,0.08);
+}
+
+.btn-secondary {
+  background: var(--color-secondary);
+  color: #fff;
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
 }
