@@ -5,7 +5,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-md)] text-sm font-semibold transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.99]",
+  "ds-body inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-md)] text-sm font-semibold transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive active:scale-[0.99]",
   {
     variants: {
       variant: {
@@ -62,12 +62,24 @@ function Button({
         </svg>
       ) : null}
       {/* Ensure Slot receives a single element child when asChild is true */}
+      {/* If the direct child is itself a React element with multiple children, clone it and wrap its children */}
       {/* @ts-ignore */}
-      {asChild && React.Children.count(props.children) !== 1 ? (
-        <span>{props.children}</span>
-      ) : (
-        props.children
-      )}
+      {(() => {
+        const ch = (props as any).children;
+        if (asChild && React.isValidElement(ch)) {
+          const inner = (ch.props as any).children;
+          if (React.Children.count(inner) !== 1) {
+            return React.cloneElement(ch, { ...(ch.props || {}), children: <span>{inner}</span> });
+          }
+          return ch;
+        }
+
+        if (asChild && React.Children.count(ch) !== 1) {
+          return <span>{ch}</span>;
+        }
+
+        return ch;
+      })()}
     </Comp>
   )
 }

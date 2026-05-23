@@ -45,11 +45,13 @@ export default function CommandPalette() {
         <div className="mt-3 max-h-72 overflow-auto">
           {results.length === 0 && <div className="p-6 text-sm text-foreground-muted">No results</div>}
           {results.map((r: any) => (
-            <Link key={r.id} href={`/services/${r.slug}`} onClick={handleClose} className="flex items-center gap-3 p-3 rounded-md hover:bg-surface">
-              <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center text-foreground font-semibold">{r.title.charAt(0)}</div>
-              <div>
-                <div className="text-foreground font-medium">{r.title}</div>
-                <div className="text-foreground-muted text-sm">{r.category}</div>
+            <Link key={r.id} href={`/services/${r.slug}`} onClick={handleClose} className="block">
+              <div className="flex items-center gap-3 p-3 rounded-md hover:bg-surface">
+                <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center text-foreground font-semibold">{r.title.charAt(0)}</div>
+                <div>
+                  <div className="text-foreground font-medium">{r.title}</div>
+                  <div className="text-foreground-muted text-sm">{r.category}</div>
+                </div>
               </div>
             </Link>
           ))}

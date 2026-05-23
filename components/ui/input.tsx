@@ -3,7 +3,7 @@ import * as React from 'react'
 import { cn } from '@/lib/utils'
 
 function Input({ className, type, variant = 'default', ...props }: React.ComponentProps<'input'> & { variant?: 'default' | 'glass' | 'premium' }) {
-  const base = 'file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground h-10 w-full min-w-0 rounded-[var(--radius-sm)] px-3 py-2 text-base transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm'
+  const base = 'ds-body file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground h-10 w-full min-w-0 rounded-[var(--radius-sm)] px-3 py-2 text-base transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm'
 
   const variantClass = variant === 'glass'
     ? 'bg-white/6 border-white/6 text-white placeholder-white/70'

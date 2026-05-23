@@ -1,7 +1,7 @@
 import { PageShell } from "@/components/layout/page-shell";
 import { AmcPlans } from "@/components/services/amc-plans";
 import { CategoryGrid } from "@/components/services/category-grid";
-import { FeaturedServices } from "@/components/services/featured-services";
+// import { FeaturedServices } from "@/components/services/featured-services";
 import Hero from "@/components/marketing/hero";
 import { RecommendedStrip } from "@/components/services/recommended-strip";
 import { CareersStrip } from "@/components/services/careers-strip";
@@ -14,15 +14,7 @@ export default function Home() {
   return (
     <PageShell>
       <Hero />
-      <AiRecommendations />
-      <CategoryGrid />
-      <FeaturedServices />
-      <TrustSection />
-      <AmcPlans />
-      <RecommendedStrip />
-      <TestimonialsHome />
-      <Testimonials />
-      <CareersStrip />
+      {/* Temporarily render only Hero to isolate runtime error */}
     </PageShell>
   );
 }
