@@ -3,13 +3,14 @@
 import { ReactNode } from "react";
 
 import { useAuth } from "@/features/auth/context/auth-context";
+import { UserRole } from "@/features/auth/types/auth";
 
 export function RoleGuard({
   allow,
   children,
   fallback = null,
 }: {
-  allow: Array<"admin" | "user">;
+  allow: UserRole[];
   children: ReactNode;
   fallback?: ReactNode;
 }) {

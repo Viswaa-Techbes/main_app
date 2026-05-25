@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { signToken } from "@/core/auth/jwt";
 import { AUTH_COOKIE_KEY } from "@/core/auth/session";
+import { getBackendApiUrl } from "@/core/api/config";
 import { sanitizeEmail, sanitizeText, isValidEmail } from "@/core/utils/sanitize";
 
 type LoginBody = {
@@ -24,20 +25,44 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Password must be at least 6 characters long." }, { status: 400 });
   }
 
-  const role = email.includes("admin") ? "admin" : "user";
+  const backendResponse = await fetch(getBackendApiUrl("/api/auth/login"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+
+  const payload = await backendResponse.json().catch(() => null);
+
+  if (!backendResponse.ok) {
+    return NextResponse.json(
+      { message: payload?.message || "Unable to log in." },
+      { status: backendResponse.status },
+    );
+  }
+
+  const backendUser = payload?.data?.user || payload?.user;
+  const backendToken = payload?.data?.token || payload?.token;
+  const role = backendUser?.role === "admin" ? "admin" : "user";
   const expiresInSeconds = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 8;
   const token = signToken({
-    sub: email,
-    email,
+    sub: backendUser?.id || backendUser?.userId || email,
+    name: backendUser?.name,
+    email: backendUser?.email || email,
+    phone: backendUser?.phone || backendUser?.mobileNumber,
     role,
+    backendToken,
     exp: Math.floor(Date.now() / 1000) + expiresInSeconds,
   });
 
   const response = NextResponse.json({
     user: {
-      email,
-      role,
+      id: backendUser?.id || backendUser?.userId,
+      name: backendUser?.name,
+      email: backendUser?.email || email,
+      phone: backendUser?.phone || backendUser?.mobileNumber,
+      role: backendUser?.role || role,
     },
+    token: backendToken,
   });
 
   response.cookies.set({

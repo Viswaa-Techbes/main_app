@@ -12,8 +12,11 @@ function fromBase64Url(input: string) {
 
 export type AuthTokenPayload = {
   sub: string;
+  name?: string;
   email: string;
+  phone?: string;
   role: "admin" | "user";
+  backendToken?: string;
   exp: number;
 };
 

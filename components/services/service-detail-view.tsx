@@ -16,6 +16,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +25,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BookingModal } from "@/components/services/booking-modal";
 import { getRecommendedServices, MarketplaceService } from "@/lib/marketplace-data";
+import { useAuth } from "@/features/auth/context/auth-context";
 
 export function ServiceDetailView({ service }: { service: MarketplaceService }) {
   const [reviewName, setReviewName] = useState("");
@@ -31,7 +33,21 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
   const [reviewRating, setReviewRating] = useState(5);
   const [reviews, setReviews] = useState(service.reviews);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
   const recommended = getRecommendedServices(service.id);
+
+  function openBooking() {
+    if (!isAuthenticated) {
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem("techbes_pending_service", String(service.id));
+      }
+      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+      return;
+    }
+    setBookingOpen(true);
+  }
 
   return (
     <>
@@ -86,7 +102,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                   </div>
 
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-                    <Button className="w-full sm:w-auto rounded-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 text-lg" onClick={() => setBookingOpen(true)}>
+                    <Button className="w-full sm:w-auto rounded-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 text-lg" onClick={openBooking}>
                       Book Now
                     </Button>
                     <Button variant="outline" className="w-full sm:w-auto rounded-full py-3">
@@ -192,7 +208,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                 </div>
 
                 <div className="mt-6 flex flex-col gap-3">
-                  <Button className="w-full rounded-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 text-lg" onClick={() => setBookingOpen(true)}>
+                  <Button className="w-full rounded-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 text-lg" onClick={openBooking}>
                     Book Now
                   </Button>
                   <Button variant="outline" className="w-full rounded-full py-3">

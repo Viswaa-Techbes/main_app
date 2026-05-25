@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { API_BASE_URL, AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
 
 export interface BookingFlowState {
   address: string;
@@ -20,10 +21,10 @@ const initialState: BookingFlowState = {
   customerPhone: "",
 };
 
-const BACKEND_URL =
-  typeof window !== "undefined"
-    ? (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000")
-    : (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000");
+function getAuthToken() {
+  if (typeof window === "undefined") return "";
+  return window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || "";
+}
 
 export function useBookingFlow() {
   const [step, setStep] = useState(1);
@@ -65,9 +66,13 @@ export function useBookingFlow() {
     setBookingError(null);
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/bookings/create`, {
+      const token = getAuthToken();
+      const res = await fetch(`${API_BASE_URL}/api/bookings/create`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           service: serviceName,
           serviceId,
@@ -89,10 +94,10 @@ export function useBookingFlow() {
           message = payload.message || message;
         } catch {}
 
-        // Allow guest flow to succeed if it's explicitly allowed but missing auth
         if (res.status === 401) {
-          setIsConfirmed(true);
-          return;
+          const authError = new Error(message || "Please login to continue booking.") as Error & { status?: number };
+          authError.status = 401;
+          throw authError;
         }
 
         setBookingError(message);
@@ -104,6 +109,9 @@ export function useBookingFlow() {
       return payload.data;
     } catch (err: any) {
       setBookingError(err.message || "Network error. Please check your connection.");
+      if (err?.status === 401) {
+        throw err;
+      }
     } finally {
       setIsSubmitting(false);
     }

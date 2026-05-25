@@ -10,6 +10,7 @@ import {
   TicketPercent,
   Phone,
 } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MarketplaceService } from "@/lib/marketplace-data";
 import { useBookingFlow } from "@/hooks/use-booking-flow";
+import { API_BASE_URL, AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
+import { useAuth } from "@/features/auth/context/auth-context";
 
 /** Returns today + next 3 days as formatted strings */
 function getAvailableDates(): { iso: string; label: string }[] {
@@ -38,8 +41,6 @@ function getAvailableDates(): { iso: string; label: string }[] {
   return dates;
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://10.246.194.196:5000";
-
 export function BookingModal({
   open,
   onOpenChange,
@@ -50,6 +51,9 @@ export function BookingModal({
   service: MarketplaceService;
 }) {
   const flow = useBookingFlow();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { isAuthenticated } = useAuth();
   const availableDates = getAvailableDates();
 
   function closeModal(nextOpen: boolean) {
@@ -64,14 +68,37 @@ export function BookingModal({
   const remainingAmount = Math.max(totalAmount - advanceAmount, 0);
   const finalPriceText = `Rs. ${totalAmount}`;
 
+  function redirectToLogin() {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(
+        "techbes_booking_draft",
+        JSON.stringify({ serviceId: service.id, state: flow.state, step: flow.step }),
+      );
+    }
+    router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
+  }
+
   async function handlePaymentFlow() {
+    if (!isAuthenticated) {
+      redirectToLogin();
+      return;
+    }
+
     // 1) Create booking on server (stores amounts and returns job id)
-    const booking = await flow.confirm({
-      serviceId: String(service.id),
-      serviceName: service.title,
-      // attach pricing for backend
-      totalAmount,
-    } as any);
+    let booking;
+    try {
+      booking = await flow.confirm({
+        serviceId: String(service.id),
+        serviceName: service.title,
+        // attach pricing for backend
+        totalAmount,
+      } as any);
+    } catch (err: any) {
+      if (err?.status === 401) {
+        redirectToLogin();
+      }
+      return;
+    }
 
     if (!booking || !booking._id) {
       return;
@@ -79,10 +106,15 @@ export function BookingModal({
 
     try {
       // 2) Create Razorpay order for advance amount
-      const createRes = await fetch(`${BACKEND_URL}/api/payments/create-order`, {
+      const token = typeof window !== "undefined" ? window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) : "";
+      const createRes = await fetch(`${API_BASE_URL}/api/payments/create-order`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
+          jobId: booking._id,
           amount: advanceAmount * 100, // paise
           description: `Advance for booking ${booking._id}`,
           receipt: `job_${booking._id}`,
@@ -91,6 +123,10 @@ export function BookingModal({
 
       if (!createRes.ok) {
         const payload = await createRes.json().catch(() => ({}));
+        if (createRes.status === 401) {
+          redirectToLogin();
+          return;
+        }
         throw new Error(payload.message || 'Unable to create payment order');
       }
 
@@ -109,9 +145,12 @@ export function BookingModal({
         order_id: order.orderId,
         handler: async function (response: any) {
           // Verify payment on server
-          const verifyRes = await fetch(`${BACKEND_URL}/api/payments/verify-payment`, {
+          const verifyRes = await fetch(`${API_BASE_URL}/api/payments/verify-payment`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
             body: JSON.stringify({
               jobId: booking._id,
               razorpay_order_id: response.razorpay_order_id,
@@ -123,6 +162,10 @@ export function BookingModal({
 
           if (!verifyRes.ok) {
             const payload = await verifyRes.json().catch(() => ({}));
+            if (verifyRes.status === 401) {
+              redirectToLogin();
+              return;
+            }
             alert(payload.message || 'Payment verification failed.');
             return;
           }

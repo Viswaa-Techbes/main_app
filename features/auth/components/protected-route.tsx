@@ -4,11 +4,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 
 import { useAuth } from "@/features/auth/context/auth-context";
+import { UserRole } from "@/features/auth/types/auth";
 import { PageStatus } from "@/shared/components/feedback/page-status";
 
 type ProtectedRouteProps = {
   children: ReactNode;
-  allowedRoles?: Array<"admin" | "user">;
+  allowedRoles?: UserRole[];
 };
 
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
