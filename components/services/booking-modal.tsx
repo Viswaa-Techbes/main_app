@@ -163,8 +163,8 @@ export function BookingModal({
 
   return (
     <Dialog open={open} onOpenChange={closeModal}>
-      <DialogContent className="max-w-3xl rounded-[32px] border-white/70 bg-white p-0 shadow-2xl overflow-y-auto max-h-[95dvh]">
-        <DialogHeader className="border-b border-slate-100 px-6 py-5 text-left">
+      <DialogContent className="flex max-h-[92dvh] max-w-3xl flex-col overflow-hidden rounded-[32px] border-white/70 bg-white p-0 shadow-2xl">
+        <DialogHeader className="shrink-0 border-b border-slate-100 px-6 py-5 pr-14 text-left">
           <DialogTitle className="text-2xl font-semibold text-slate-950">Book {service.title}</DialogTitle>
           <DialogDescription className="text-slate-500">
             Complete the four-step booking flow to confirm your technician slot.
@@ -172,7 +172,7 @@ export function BookingModal({
         </DialogHeader>
 
         {flow.isConfirmed ? (
-          <div className="p-8 text-center">
+          <div className="min-h-0 overflow-y-auto p-8 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
               <CheckCircle2 className="h-8 w-8" />
             </div>
@@ -190,11 +190,16 @@ export function BookingModal({
             </Button>
           </div>
         ) : (
-          <div className="grid gap-0 lg:grid-cols-[1.1fr,0.9fr]">
+          <div className="flex min-h-0 flex-1 flex-col">
             {/* ─── LEFT PANEL ─── */}
-            <div className="p-6">
+            <div className="shrink-0 border-b border-slate-100 px-6 py-4">
               <StepIndicator currentStep={flow.step} />
-              <div className="mt-8">
+            </div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <div className="grid gap-0 lg:grid-cols-[1.1fr,0.9fr]">
+                <div className="p-6">
+                  <div>
 
                 {/* Step 1 – Address */}
                 {flow.step === 1 && (
@@ -381,10 +386,10 @@ export function BookingModal({
               </div>
 
               {/* Navigation */}
-              <div className="mt-8 flex items-center justify-between gap-3 border-t border-slate-100 pt-5">
+              <div className="modal-footer sticky bottom-0 z-20 -mx-6 mt-6 flex shrink-0 items-center justify-between gap-3 border-t border-slate-100 bg-white px-6 py-5">
                 <Button
                   variant="outline"
-                  className="rounded-full"
+                  className="relative z-30 rounded-full"
                   onClick={flow.previousStep}
                   disabled={flow.step === 1}
                 >
@@ -393,11 +398,11 @@ export function BookingModal({
                 </Button>
                 {flow.step < 5 ? (
                   <Button
-                    className="rounded-full"
+                    className="relative z-30 rounded-full"
                     onClick={flow.nextStep}
                     disabled={
-                      (flow.step === 1 && (!flow.state.date || !flow.state.timeSlot)) ||
-                      (flow.step === 2 && !flow.state.address) ||
+                      (flow.step === 1 && !flow.state.address) ||
+                      (flow.step === 2 && (!flow.state.date || !flow.state.timeSlot)) ||
                       (flow.step === 3 && (!flow.state.customerName || !flow.state.customerPhone))
                     }
                   >
@@ -406,7 +411,7 @@ export function BookingModal({
                   </Button>
                 ) : (
                   <Button
-                    className="rounded-full"
+                    className="relative z-30 rounded-full"
                     onClick={handlePaymentFlow}
                     disabled={flow.isSubmitting}
                   >
@@ -421,7 +426,7 @@ export function BookingModal({
             </div>
 
             {/* ─── RIGHT PANEL – Snapshot ─── */}
-            <div className="border-l border-slate-100 bg-slate-50/80 p-6">
+            <div className="min-h-0 overflow-y-auto border-t border-slate-100 bg-slate-50/80 p-6 lg:border-l lg:border-t-0">
               <Card className="rounded-[28px] border-slate-200 bg-white">
                 <CardContent className="space-y-5 p-6">
                   <div>
@@ -471,6 +476,8 @@ export function BookingModal({
                 </CardContent>
               </Card>
             </div>
+              </div>
+            </div>
           </div>
         )}
       </DialogContent>
@@ -479,7 +486,7 @@ export function BookingModal({
 }
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
-  const steps = ["Schedule", "Address", "Contact", "Review", "Payment"];
+  const steps = ["Address", "Schedule", "Contact", "Review", "Payment"];
 
   return (
     <div className="flex flex-wrap gap-3">
