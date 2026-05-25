@@ -17,20 +17,14 @@ import { InlineAlert } from "@/shared/components/feedback/inline-alert";
 import { PageStatus } from "@/shared/components/feedback/page-status";
 
 type Mode = "login" | "signup";
-type SignupStep = "details" | "otp";
-
 export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }) {
   const router = useRouter();
-  const { status, login, register, sendOtp, verifyOtp, refreshSession } = useAuth();
+  const { status, login, register, refreshSession } = useAuth();
   const [mode, setMode] = useState<Mode>("login");
-  const [signupStep, setSignupStep] = useState<SignupStep>("details");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
-  const [verificationToken, setVerificationToken] = useState("");
-  const [resendIn, setResendIn] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -38,12 +32,6 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
   useEffect(() => {
     if (status === "authenticated") router.replace(redirectTo);
   }, [redirectTo, router, status]);
-
-  useEffect(() => {
-    if (resendIn <= 0) return;
-    const timer = window.setTimeout(() => setResendIn((current) => Math.max(current - 1, 0)), 1000);
-    return () => window.clearTimeout(timer);
-  }, [resendIn]);
 
   function validateDetails() {
     if (!isValidEmail(sanitizeEmail(email))) return "Enter a valid email address.";
@@ -73,8 +61,8 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
     }
   }
 
-  async function handleSendOtp(event?: FormEvent<HTMLFormElement>) {
-    event?.preventDefault();
+  async function handleDirectSignup(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     const validation = validateDetails();
     if (validation) return setError(validation);
 
@@ -82,34 +70,12 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
     setError("");
     setMessage("");
     try {
-      await sendOtp(email);
-      setSignupStep("otp");
-      setResendIn(60);
-      setMessage("Verification code sent to your email.");
-    } catch (err) {
-      setError(err instanceof AppError ? err.message : "Unable to send OTP.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  async function handleVerifyAndRegister(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!/^\d{6}$/.test(otp.trim())) return setError("Enter the 6-digit verification code.");
-
-    setIsSubmitting(true);
-    setError("");
-    try {
-      const verified = verificationToken
-        ? { data: { emailVerificationToken: verificationToken } }
-        : await verifyOtp(email, otp);
-      const token = verified.data.emailVerificationToken;
-      setVerificationToken(token);
-      await register({ name, email, password, phone, emailVerificationToken: token });
+      await register({ name, email, password, phone, emailVerificationToken: "skipped" });
       await refreshSession();
       router.replace(redirectTo);
       router.refresh();
     } catch (err) {
+      logger.warn("Signup request failed", err);
       setError(err instanceof AppError ? err.message : "Unable to create account.");
     } finally {
       setIsSubmitting(false);
@@ -130,7 +96,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
           <div className="space-y-1">
             <CardTitle className="text-xl text-slate-950">{mode === "login" ? "Welcome back" : "Create your account"}</CardTitle>
             <CardDescription className="text-sm leading-6 text-slate-600">
-              {mode === "login" ? "Sign in to continue booking" : "Verify your email before booking"}
+              {mode === "login" ? "Sign in to continue booking" : "Fill details below to create your account"}
             </CardDescription>
           </div>
           <div className="grid grid-cols-2 gap-2 rounded-lg bg-slate-100 p-1">
@@ -153,32 +119,13 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
               <AuthInput id="login-password" label="Password" value={password} onChange={setPassword} type="password" autoComplete="current-password" />
               <SubmitButton loading={isSubmitting} label="Login" loadingLabel="Logging in..." />
             </form>
-          ) : signupStep === "details" ? (
-            <form className="space-y-4" onSubmit={handleSendOtp} noValidate>
+          ) : (
+            <form className="space-y-4" onSubmit={handleDirectSignup} noValidate>
               <AuthInput icon={UserRound} id="signup-name" label="Full name" value={name} onChange={setName} autoComplete="name" />
               <AuthInput icon={Mail} id="signup-email" label="Email" value={email} onChange={setEmail} type="email" autoComplete="email" />
               <AuthInput icon={Phone} id="signup-phone" label="Phone" value={phone} onChange={setPhone} type="tel" autoComplete="tel" />
               <AuthInput id="signup-password" label="Password" value={password} onChange={setPassword} type="password" autoComplete="new-password" />
-              <SubmitButton loading={isSubmitting} label="Send OTP" loadingLabel="Sending OTP..." />
-            </form>
-          ) : (
-            <form className="space-y-4" onSubmit={handleVerifyAndRegister} noValidate>
-              <div>
-                <Label htmlFor="otp">Email OTP</Label>
-                <Input
-                  id="otp"
-                  value={otp}
-                  onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
-                  className="mt-1 h-12 rounded-lg text-center text-xl tracking-[0.5em]"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  placeholder="000000"
-                />
-              </div>
-              <SubmitButton loading={isSubmitting} label="Verify & Create Account" loadingLabel="Creating account..." />
-              <Button type="button" variant="outline" className="h-11 w-full rounded-lg" disabled={isSubmitting || resendIn > 0} onClick={() => handleSendOtp()}>
-                {resendIn > 0 ? `Resend OTP in ${resendIn}s` : "Resend OTP"}
-              </Button>
+              <SubmitButton loading={isSubmitting} label="Signup" loadingLabel="Signing up..." />
             </form>
           )}
         </CardContent>
