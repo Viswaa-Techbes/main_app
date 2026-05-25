@@ -15,8 +15,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { motion } from "framer-motion";
-import { fadeIn, modalPreset } from "@/components/animations/motion-presets";
 import { MarketplaceService } from "@/lib/marketplace-data";
 import { useBookingFlow } from "@/hooks/use-booking-flow";
 
@@ -39,6 +37,8 @@ function getAvailableDates(): { iso: string; label: string }[] {
 
   return dates;
 }
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://10.246.194.196:5000";
 
 export function BookingModal({
   open,
@@ -66,50 +66,48 @@ export function BookingModal({
     await flow.confirm({
       serviceId: String(service.id),
       serviceName: service.title,
-      advanceAmount: finalPriceValue / 2,
     });
   }
 
   return (
     <Dialog open={open} onOpenChange={closeModal}>
-      <DialogContent className="max-w-3xl rounded-[var(--radius-lg)] border bg-card p-0 shadow-2xl overflow-y-auto max-h-[95dvh]">
-            <DialogHeader className="border-b border-border px-6 py-5 text-left glass-card">
-              <DialogTitle className="text-2xl font-semibold text-foreground">Book {service.title}</DialogTitle>
-              <DialogDescription className="text-muted-foreground">
-                Complete the immersive booking experience to confirm your technician slot.
-              </DialogDescription>
-            </DialogHeader>
+      <DialogContent className="max-w-3xl rounded-[32px] border-white/70 bg-white p-0 shadow-2xl overflow-y-auto max-h-[95dvh]">
+        <DialogHeader className="border-b border-slate-100 px-6 py-5 text-left">
+          <DialogTitle className="text-2xl font-semibold text-slate-950">Book {service.title}</DialogTitle>
+          <DialogDescription className="text-slate-500">
+            Complete the four-step booking flow to confirm your technician slot.
+          </DialogDescription>
+        </DialogHeader>
 
         {flow.isConfirmed ? (
           <div className="p-8 text-center">
-            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-lg">
-              <CheckCircle2 className="h-10 w-10" />
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+              <CheckCircle2 className="h-8 w-8" />
             </div>
-            <h3 className="mt-5 text-2xl font-extrabold text-foreground">Booking confirmed!</h3>
-            <div className="mt-4 inline-block rounded-2xl bg-muted p-4 border border-border">
-              <span className="text-xs text-muted-foreground block uppercase font-semibold tracking-wider mb-1">Booking ID</span>
-              <span className="text-lg font-mono text-foreground font-bold">{flow.state.bookingId || "PENDING"}</span>
-            </div>
-            <p className="mt-5 text-muted-foreground">
-              Your request for <strong>{service.title}</strong> has been placed for <strong>{flow.state.date}</strong> at <strong>{flow.state.timeSlot}</strong>.
+            <h3 className="mt-5 text-2xl font-semibold text-slate-950">Booking confirmed!</h3>
+            <p className="mt-3 text-slate-600">
+              Your request for <strong>{service.title}</strong> has been placed for{" "}
+              <strong>{flow.state.date}</strong> at <strong>{flow.state.timeSlot}</strong>.
               <br />
-              <span className="text-sm text-muted-foreground mt-2 block font-medium">Status: Pending • A technician will be assigned shortly.</span>
+              <span className="text-sm text-slate-500 mt-1 block">
+                We will assign a technician and notify you shortly.
+              </span>
             </p>
-            <Button className="mt-6 w-44 rounded-full font-semibold btn-blue" onClick={() => closeModal(false)}>
+            <Button className="mt-6 rounded-full" onClick={() => closeModal(false)}>
               Done
             </Button>
           </div>
         ) : (
           <div className="grid gap-0 lg:grid-cols-[1.1fr,0.9fr]">
             {/* ─── LEFT PANEL ─── */}
-            <motion.div key={`left-${flow.step}`} variants={fadeIn} initial="hidden" animate="visible" className="p-6">
+            <div className="p-6">
               <StepIndicator currentStep={flow.step} />
               <div className="mt-8">
 
                 {/* Step 1 – Address */}
                 {flow.step === 1 && (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-foreground">Select service address</h3>
+                    <h3 className="text-lg font-semibold text-slate-950">Select service address</h3>
                     <Input
                       id="booking-address"
                       value={flow.state.address || ""}
@@ -117,16 +115,9 @@ export function BookingModal({
                       className="h-12 rounded-2xl"
                       placeholder="Office / home address"
                     />
-                    <div className="rounded-3xl bg-muted p-4 text-sm text-muted-foreground">
+                    <div className="rounded-3xl bg-slate-50 p-4 text-sm text-slate-500">
                       Add a precise address to improve technician allocation and ETA accuracy.
                     </div>
-                    <h3 className="text-lg font-semibold text-foreground mt-6">Problem Description</h3>
-                    <textarea
-                      value={flow.state.description || ""}
-                      onChange={(event) => flow.updateState({ description: event.target.value })}
-                      className="w-full min-h-[100px] rounded-2xl border border-border p-4 text-sm"
-                      placeholder="Describe the issue (optional)"
-                    />
                   </div>
                 )}
 
@@ -134,8 +125,8 @@ export function BookingModal({
                 {flow.step === 2 && (
                   <div className="space-y-6">
                     <div>
-                      <h3 className="text-lg font-semibold text-foreground">Choose date</h3>
-                      <p className="text-sm text-muted-foreground mt-1">Only slots for the next 4 days are available.</p>
+                      <h3 className="text-lg font-semibold text-slate-950">Choose date</h3>
+                      <p className="text-sm text-slate-500 mt-1">Only slots for the next 4 days are available.</p>
                       {/* Responsive date grid – 2 cols on sm, 1 col on mobile */}
                       <div
                         style={{
@@ -159,8 +150,8 @@ export function BookingModal({
                             style={{ width: "100%", padding: "12px", borderRadius: 10 }}
                             className={`rounded-3xl border px-4 py-4 text-left text-sm font-medium transition ${
                               flow.state.date === iso
-                                ? "border-primary bg-primary/10 text-primary"
-                                : "border-border bg-card text-foreground hover:border-primary/30 hover:bg-primary/5"
+                                ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                                : "border-slate-200 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50/50"
                             }`}
                             onClick={() => flow.updateState({ date: iso })}
                           >
@@ -188,8 +179,8 @@ export function BookingModal({
                             style={{ width: "100%", padding: "12px", borderRadius: 10 }}
                             className={`rounded-3xl border px-4 py-4 text-left text-sm font-medium transition ${
                               flow.state.timeSlot === slot
-                                ? "border-secondary bg-secondary/10 text-secondary"
-                                : "border-border bg-card text-foreground hover:border-secondary/30 hover:bg-secondary/5"
+                                ? "border-blue-500 bg-blue-50 text-blue-700"
+                                : "border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50/50"
                             }`}
                             onClick={() => flow.updateState({ timeSlot: slot })}
                           >
@@ -205,11 +196,11 @@ export function BookingModal({
                 {/* Step 3 – Contact Info */}
                 {flow.step === 3 && (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-foreground">Your details</h3>
-                    <p className="text-sm text-muted-foreground mt-1">Please provide your contact information so the technician can reach you.</p>
+                    <h3 className="text-lg font-semibold text-slate-950">Your details</h3>
+                    <p className="text-sm text-slate-500 mt-1">Please provide your contact information so the technician can reach you.</p>
                     <div className="space-y-3 mt-4">
                       <div>
-                        <label className="text-sm font-medium text-muted-foreground mb-1.5 block">Full Name</label>
+                        <label className="text-sm font-medium text-slate-700 mb-1.5 block">Full Name</label>
                         <Input
                           value={flow.state.customerName || ""}
                           onChange={(event) => flow.updateState({ customerName: event.target.value })}
@@ -218,7 +209,7 @@ export function BookingModal({
                         />
                       </div>
                       <div>
-                        <label className="text-sm font-medium text-muted-foreground mb-1.5 block">Phone Number</label>
+                        <label className="text-sm font-medium text-slate-700 mb-1.5 block">Phone Number</label>
                         <Input
                           value={flow.state.customerPhone || ""}
                           onChange={(event) => flow.updateState({ customerPhone: event.target.value })}
@@ -234,17 +225,17 @@ export function BookingModal({
                 {/* Step 4 – Review */}
                 {flow.step === 4 && (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-foreground">Review summary</h3>
+                    <h3 className="text-lg font-semibold text-slate-950">Review summary</h3>
                     <Input
                       value={flow.state.coupon || ""}
                       onChange={(event) => flow.updateState({ coupon: event.target.value })}
                       className="h-12 rounded-2xl"
                       placeholder="Coupon code (optional)"
                     />
-                    <div className="space-y-3 rounded-3xl border border-border bg-muted p-5 text-sm text-muted-foreground">
+                    <div className="space-y-3 rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
                       <div className="flex items-center justify-between">
                         <span>Service</span>
-                        <span className="font-semibold text-foreground">{service.title}</span>
+                        <span className="font-semibold text-slate-950">{service.title}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span>Address</span>
@@ -259,23 +250,19 @@ export function BookingModal({
                           {flow.state.timeSlot || "Time"}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between text-foreground mt-4 pt-4 border-t border-border">
-                    <span className="font-semibold text-lg">Total Amount</span>
-                    <span className="font-bold text-lg">{finalPriceText}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-primary mt-2 bg-primary/10 p-3 rounded-xl border border-border">
-                    <span className="font-semibold">50% Advance Required (Razorpay)</span>
-                    <span className="font-bold">Rs. {finalPriceValue / 2}</span>
-                  </div>
+                      <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+                        <span>Name</span>
+                        <span className="font-semibold text-slate-950">{flow.state.customerName}</span>
+                      </div>
                       <div className="flex items-center justify-between">
                         <span>Phone</span>
-                        <span className="font-semibold text-foreground">{flow.state.customerPhone}</span>
+                        <span className="font-semibold text-slate-950">{flow.state.customerPhone}</span>
                       </div>
                       <div className="flex items-center justify-between border-t border-slate-100 pt-3">
                         <span>Price</span>
                         <div className="text-right">
-                          {hasCoupon && <span className="line-through text-muted-foreground mr-2 text-xs">{service.price}</span>}
-                          <span className="font-semibold text-foreground">{finalPriceText}</span>
+                          {hasCoupon && <span className="line-through text-slate-400 mr-2 text-xs">{service.price}</span>}
+                          <span className="font-semibold text-slate-950">{finalPriceText}</span>
                         </div>
                       </div>
                     </div>
@@ -285,21 +272,24 @@ export function BookingModal({
                 {/* Step 5 – Confirm */}
                 {flow.step === 5 && (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-foreground">Confirm booking</h3>
+                    <h3 className="text-lg font-semibold text-slate-950">Confirm booking</h3>
                     {flow.bookingError && (
                       <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
                         {flow.bookingError}
                       </div>
                     )}
                     <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-800">
-                      50% advance payment is required to confirm your slot.
+                      Your booking will be confirmed instantly. An admin will assign a technician and notify you.
+                    </div>
+                    <div className="rounded-3xl bg-slate-50 p-5 text-sm leading-6 text-slate-600">
+                      By confirming, you agree to pricing estimates, technician assignment, and communication updates for service completion.
                     </div>
                   </div>
                 )}
               </div>
 
               {/* Navigation */}
-              <div className="mt-8 flex items-center justify-between gap-3 border-t border-border pt-5 sm:mt-8">
+              <div className="mt-8 flex items-center justify-between gap-3 border-t border-slate-100 pt-5">
                 <Button
                   variant="outline"
                   className="rounded-full"
@@ -309,65 +299,44 @@ export function BookingModal({
                   <ChevronLeft className="h-4 w-4" />
                   Back
                 </Button>
-                {/* Mobile: sticky bottom CTA */}
-                <div className="w-full sm:w-auto">
-                  {flow.step < 5 ? (
-                    <Button
-                      className="rounded-full w-full sm:w-auto"
-                      onClick={flow.nextStep}
-                      disabled={
-                        (flow.step === 1 && !flow.state.address) ||
-                        (flow.step === 2 && (!flow.state.date || !flow.state.timeSlot)) ||
-                        (flow.step === 3 && (!flow.state.customerName || !flow.state.customerPhone))
-                      }
-                    >
-                      Continue
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  ) : (
-                    <Button
-                      size="lg"
-                      className="w-full sm:w-40 rounded-xl bg-slate-900 font-semibold text-white hover:bg-slate-800"
-                      onClick={handleConfirm}
-                      disabled={flow.isSubmitting}
-                    >
-                      {flow.isSubmitting ? (
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                      ) : (
-                        "Pay Advance & Confirm"
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </div>
-              {/* Sticky navigation for small screens */}
-              <div className="sm:hidden fixed left-0 right-0 bottom-0 z-50 bg-card/95 backdrop-blur-md border-t border-border p-3"> 
-                <div className="max-w-3xl mx-auto flex items-center gap-3">
-                  <Button variant="outline" className="rounded-full w-1/3" onClick={flow.previousStep} disabled={flow.step === 1}>
-                    Back
+                {flow.step < 5 ? (
+                  <Button
+                    className="rounded-full"
+                    onClick={flow.nextStep}
+                    disabled={
+                      (flow.step === 1 && !flow.state.address) ||
+                      (flow.step === 2 && (!flow.state.date || !flow.state.timeSlot)) ||
+                      (flow.step === 3 && (!flow.state.customerName || !flow.state.customerPhone))
+                    }
+                  >
+                    Continue
+                    <ChevronRight className="h-4 w-4" />
                   </Button>
-                  {flow.step < 5 ? (
-                    <Button className="rounded-full w-2/3" onClick={flow.nextStep}>
-                      Continue
-                    </Button>
-                  ) : (
-                    <Button className="rounded-full w-2/3" onClick={handleConfirm}>
-                      {flow.isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : "Pay & Confirm"}
-                    </Button>
-                  )}
-                </div>
+                ) : (
+                  <Button
+                    className="rounded-full"
+                    onClick={handleConfirm}
+                    disabled={flow.isSubmitting}
+                  >
+                    {flow.isSubmitting ? (
+                      <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Confirming…</>
+                    ) : (
+                      "Confirm Booking"
+                    )}
+                  </Button>
+                )}
               </div>
-            </motion.div>
+            </div>
 
             {/* ─── RIGHT PANEL – Snapshot ─── */}
-            <motion.div key={`right-${flow.step}`} variants={fadeIn} initial="hidden" animate="visible" className="border-l border-border bg-muted/80 p-6">
-                <Card variant="glass" className="rounded-[28px] bg-card shadow-lg">
-                  <CardContent className="space-y-5 p-6">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Booking snapshot</p>
-                      <h3 className="mt-2 text-xl font-semibold text-foreground">{service.title}</h3>
-                    </div>
-                    <div className="space-y-3 text-sm text-muted-foreground">
+            <div className="border-l border-slate-100 bg-slate-50/80 p-6">
+              <Card className="rounded-[28px] border-slate-200 bg-white">
+                <CardContent className="space-y-5 p-6">
+                  <div>
+                    <p className="text-sm font-medium text-slate-500">Booking snapshot</p>
+                    <h3 className="mt-2 text-xl font-semibold text-slate-950">{service.title}</h3>
+                  </div>
+                  <div className="space-y-3 text-sm text-slate-600">
                     <div className="flex items-center gap-3">
                       <MapPin className="h-4 w-4 text-emerald-600 shrink-0" />
                       <span className="line-clamp-2">{flow.state.address || "Address pending"}</span>
@@ -393,19 +362,19 @@ export function BookingModal({
                       {flow.state.coupon ? `Coupon: ${flow.state.coupon}` : "No coupon added"}
                     </div>
                   </div>
-                  <div className="rounded-3xl bg-gradient-to-br from-primary/10 to-secondary/6 p-5">
+                  <div className="rounded-3xl bg-slate-950 p-5 text-white">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm text-muted-foreground">Estimated payable</p>
+                      <p className="text-sm text-slate-300">Estimated payable</p>
                       {hasCoupon && <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-400">10% Off</span>}
                     </div>
                     <div className="mt-2 flex items-baseline gap-2">
-                      <p className="text-3xl font-semibold text-foreground">{finalPriceText}</p>
-                      {hasCoupon && <p className="text-sm text-muted-foreground line-through">Rs. {service.priceValue}</p>}
+                      <p className="text-3xl font-semibold">{finalPriceText}</p>
+                      {hasCoupon && <p className="text-sm text-slate-400 line-through">Rs. {service.priceValue}</p>}
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
+            </div>
           </div>
         )}
       </DialogContent>
@@ -423,17 +392,18 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
         const active = currentStep === stepNumber;
         const complete = currentStep > stepNumber;
 
-        const base = "rounded-full px-4 py-2 text-sm font-medium flex items-center gap-3";
-        const cls = complete
-          ? "bg-gradient-to-r from-emerald-400 to-emerald-600 text-white shadow-md"
-          : active
-            ? "step-active"
-            : "step-inactive";
-
         return (
-          <div key={label} className={`${base} ${cls}`}>
-            <div className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">{stepNumber}</div>
-            <div className="whitespace-nowrap">{label}</div>
+          <div
+            key={label}
+            className={`rounded-full px-4 py-2 text-sm font-medium ${
+              complete
+                ? "bg-emerald-100 text-emerald-700"
+                : active
+                  ? "bg-slate-950 text-white"
+                  : "bg-slate-100 text-slate-500"
+            }`}
+          >
+            {stepNumber}. {label}
           </div>
         );
       })}

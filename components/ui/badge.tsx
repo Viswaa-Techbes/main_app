@@ -29,32 +29,17 @@ function Badge({
   className,
   variant,
   asChild = false,
-  children,
   ...props
 }: React.ComponentProps<'span'> &
   VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
   const Comp = asChild ? Slot : 'span'
-
-  // If using Slot and the passed child is itself an element with multiple children,
-  // clone it and wrap its children so Radix Slot receives a single element child.
-  let content: any = children
-  if (asChild && React.isValidElement(children)) {
-    const inner = (children as any).props?.children
-    if (React.Children.count(inner) !== 1) {
-      content = React.cloneElement(children as any, { ...((children as any).props || {}), children: <span>{inner}</span> })
-    }
-  } else if (asChild && React.Children.count(children) !== 1) {
-    content = <span>{children}</span>
-  }
 
   return (
     <Comp
       data-slot="badge"
       className={cn(badgeVariants({ variant }), className)}
       {...props}
-    >
-      {content}
-    </Comp>
+    />
   )
 }
 

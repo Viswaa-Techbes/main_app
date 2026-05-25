@@ -1,10 +1,7 @@
 export type UserRole = "admin" | "user";
 
 export type AuthUser = {
-  id?: string;
-  name?: string;
-  mobileNumber: string;
-  email?: string;
+  email: string;
   role: UserRole;
 };
 
@@ -18,14 +15,7 @@ export type LoginResponse = {
 };
 
 export type LoginPayload = {
-  mobileNumber: string;
+  email: string;
   password: string;
   rememberMe: boolean;
-};
-
-export type RegisterPayload = {
-  name: string;
-  mobileNumber: string;
-  email?: string;
-  password: string;
 };

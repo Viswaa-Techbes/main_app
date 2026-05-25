@@ -2,19 +2,14 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
-function Card({ className, variant = 'default', ...props }: React.ComponentProps<'div'> & { variant?: 'default' | 'glass' | 'premium' }) {
-  const base = 'text-card-foreground flex flex-col gap-6 rounded-[var(--radius-md)] border py-6'
-  const variantClass = variant === 'glass'
-    ? 'glass-card border-white/6 bg-white/6'
-    : variant === 'premium'
-    ? 'border-transparent' /* premium uses subtle accent gradient from tokens */
-    : 'bg-card'
-
+function Card({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="card"
-      className={cn(base, variantClass, className)}
-      style={variant === 'premium' ? { background: 'var(--gradient-accent)', boxShadow: 'var(--shadow-elevated)' } : undefined}
+      className={cn(
+        'bg-card text-card-foreground flex flex-col gap-6 rounded-[24px] border py-6 shadow-[0_20px_50px_-35px_rgba(15,23,42,0.35)]',
+        className,
+      )}
       {...props}
     />
   )

@@ -1,5 +1,4 @@
-import Link from "@/components/ui/link";
-import { MapPin, Phone, Mail, ArrowRight } from "lucide-react";
+import { MapPin, Phone, Mail } from "lucide-react";
 
 const footerLinks = {
   services: [
@@ -30,65 +29,47 @@ const footerLinks = {
 
 export function Footer() {
   return (
-    <footer className="bg-surface text-foreground">
-      {/* CTA Bar */}
-      <div className="border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div>
-            <h3 className="text-xl md:text-2xl font-extrabold tracking-tight">
-              Ready to get started with <span className="text-gradient-primary">TechBes</span>?
-            </h3>
-            <p className="text-sm text-foreground-muted mt-1">Book your first service today — it takes less than 2 minutes.</p>
-          </div>
-          <Link href="/services">
-            <button className="btn-primary px-7 py-3 rounded-full text-sm inline-flex items-center gap-2 whitespace-nowrap">
-              Book a Service <ArrowRight className="w-4 h-4" />
-            </button>
-          </Link>
-        </div>
-      </div>
-
+    <footer className="bg-card border-t border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md"
-                style={{ background: 'var(--gradient-accent)' }}>
-                <span className="text-white font-extrabold text-lg">TB</span>
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-lg">TS</span>
               </div>
-              <span className="text-xl font-bold text-foreground tracking-tight">
-                Tech<span className="text-gradient-primary">Bes</span>
+              <span className="text-xl font-bold text-foreground">
+                TechServe<span className="text-primary">Pro</span>
               </span>
             </div>
-            <p className="mt-4 text-sm text-foreground-muted leading-relaxed">
-              Professional IT services at your doorstep. Quality guaranteed with transparent pricing.
+            <p className="mt-4 text-sm text-muted-foreground">
+              Professional IT services at your doorstep. Quality guaranteed.
             </p>
-
+            
             {/* Contact Info */}
             <div className="mt-6 space-y-3">
-              <div className="flex items-center gap-3 text-sm text-foreground-muted hover:text-foreground transition-colors">
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4 text-primary" />
-                <span>Bangalore, Karnataka, India</span>
+                <span>Mumbai, Maharashtra, India</span>
               </div>
-              <div className="flex items-center gap-3 text-sm text-foreground-muted hover:text-foreground transition-colors">
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Phone className="w-4 h-4 text-primary" />
                 <span>+91 98765 43210</span>
               </div>
-              <div className="flex items-center gap-3 text-sm text-foreground-muted hover:text-foreground transition-colors">
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Mail className="w-4 h-4 text-primary" />
-                <span>support@techbes.com</span>
+                <span>support@techservepro.com</span>
               </div>
             </div>
           </div>
 
           {/* Services */}
           <div>
-            <h3 className="font-bold text-foreground mb-4 text-sm uppercase tracking-wider">Services</h3>
+            <h3 className="font-semibold text-foreground mb-4">Services</h3>
             <ul className="space-y-3">
               {footerLinks.services.map((link) => (
                 <li key={link}>
-                  <a href="#" className="text-sm text-foreground-muted hover:text-gradient-primary transition-colors">
+                  <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                     {link}
                   </a>
                 </li>
@@ -98,11 +79,11 @@ export function Footer() {
 
           {/* Company */}
           <div>
-            <h3 className="font-bold text-foreground mb-4 text-sm uppercase tracking-wider">Company</h3>
+            <h3 className="font-semibold text-foreground mb-4">Company</h3>
             <ul className="space-y-3">
               {footerLinks.company.map((link) => (
                 <li key={link}>
-                  <a href="#" className="text-sm text-foreground-muted hover:text-secondary transition-colors">
+                  <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                     {link}
                   </a>
                 </li>
@@ -112,11 +93,11 @@ export function Footer() {
 
           {/* Support */}
           <div>
-            <h3 className="font-bold text-foreground mb-4 text-sm uppercase tracking-wider">Support</h3>
+            <h3 className="font-semibold text-foreground mb-4">Support</h3>
             <ul className="space-y-3">
               {footerLinks.support.map((link) => (
                 <li key={link}>
-                  <a href="#" className="text-sm text-foreground-muted hover:text-secondary transition-colors">
+                  <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                     {link}
                   </a>
                 </li>
@@ -126,18 +107,18 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-foreground-muted">
-            © 2026 TechBes. All rights reserved.
+        <div className="mt-12 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-sm text-muted-foreground">
+            © 2026 TechServe Pro. All rights reserved.
           </p>
           <div className="flex items-center gap-6">
-            <a href="#" className="text-sm text-foreground-muted hover:text-gradient-primary transition-colors">
+            <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Terms
             </a>
-            <a href="#" className="text-sm text-foreground-muted hover:text-gradient-primary transition-colors">
+            <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Privacy
             </a>
-            <a href="#" className="text-sm text-foreground-muted hover:text-gradient-primary transition-colors">
+            <a href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Cookies
             </a>
           </div>

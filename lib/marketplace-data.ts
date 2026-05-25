@@ -518,38 +518,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   },
 ];
 
-export const dashboardBookings: DashboardBooking[] = [
-  {
-    id: "BK-1042",
-    serviceSlug: "office-network-deployment",
-    serviceTitle: "Office Network Deployment",
-    status: "Upcoming",
-    address: "14th Floor, Tech Park, Indiranagar, Bengaluru",
-    date: "08 Apr 2026",
-    time: "11:30 AM",
-    price: "Rs. 6,499",
-  },
-  {
-    id: "BK-1028",
-    serviceSlug: "smart-cctv-installation",
-    serviceTitle: "Smart CCTV Installation",
-    status: "Completed",
-    address: "18 Market Road, Chennai",
-    date: "29 Mar 2026",
-    time: "02:00 PM",
-    price: "Rs. 9,899",
-  },
-  {
-    id: "BK-0998",
-    serviceSlug: "managed-firewall-setup",
-    serviceTitle: "Managed Firewall Setup",
-    status: "Cancelled",
-    address: "Sector 62, Noida",
-    date: "16 Mar 2026",
-    time: "03:30 PM",
-    price: "Rs. 12,999",
-  },
-];
+export const dashboardBookings: DashboardBooking[] = [];
 
 export const savedAddresses: AddressBookItem[] = [
   {

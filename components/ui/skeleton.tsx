@@ -1,15 +1,13 @@
-"use client";
+import { cn } from '@/lib/utils'
 
-import React from "react";
-
-export function Skeleton({ className = "", height = 12, radius = 12 }: { className?: string; height?: number | string; radius?: number }) {
-  const style: React.CSSProperties = {
-    height: typeof height === "number" ? `${height}px` : height,
-    borderRadius: `${radius}px`,
-  };
-
-  return <div className={`skeleton ${className}`} style={style} aria-hidden />;
+function Skeleton({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="skeleton"
+      className={cn('animate-pulse rounded-xl bg-[linear-gradient(90deg,rgba(226,232,240,0.8),rgba(241,245,249,1),rgba(226,232,240,0.8))]', className)}
+      {...props}
+    />
+  )
 }
 
-export default Skeleton;
-// single implementation above (client-side skeleton with shimmer)
+export { Skeleton }

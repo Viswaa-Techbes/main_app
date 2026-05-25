@@ -1,13 +1,13 @@
 "use client";
 
-import Link from "@/components/ui/link";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { LockKeyhole, Phone } from "lucide-react";
+import { Chrome, LockKeyhole, Mail } from "lucide-react";
 
 import { AppError } from "@/core/errors/app-error";
 import { logger } from "@/core/logging/logger";
-import { isValidMobileNumber, sanitizeMobileNumber } from "@/core/utils/sanitize";
+import { isValidEmail, sanitizeEmail } from "@/core/utils/sanitize";
 import { useAuth } from "@/features/auth/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,16 +19,16 @@ import { InlineAlert } from "@/shared/components/feedback/inline-alert";
 import { PageStatus } from "@/shared/components/feedback/page-status";
 
 type FormErrors = {
-  mobileNumber?: string;
+  email?: string;
   password?: string;
   form?: string;
 };
 
-function validateLoginForm(mobileNumber: string, password: string) {
+function validateLoginForm(email: string, password: string) {
   const errors: FormErrors = {};
 
-  if (!isValidMobileNumber(sanitizeMobileNumber(mobileNumber))) {
-    errors.mobileNumber = "Enter a valid 10 digit mobile number.";
+  if (!isValidEmail(sanitizeEmail(email))) {
+    errors.email = "Enter a valid email address.";
   }
 
   if (password.trim().length < 6) {
@@ -41,7 +41,7 @@ function validateLoginForm(mobileNumber: string, password: string) {
 export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }) {
   const router = useRouter();
   const { status, login, refreshSession } = useAuth();
-  const [mobileNumber, setMobileNumber] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,7 +56,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const nextErrors = validateLoginForm(mobileNumber, password);
+    const nextErrors = validateLoginForm(email, password);
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
@@ -68,7 +68,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
 
     try {
       await login({
-        mobileNumber,
+        email,
         password,
         rememberMe,
       });
@@ -92,8 +92,8 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
 
   return (
     <div className="relative overflow-hidden">
-      <div className="absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-accent-light" />
-      <div className="absolute inset-x-0 bottom-0 -z-10 h-96" style={{ background: 'radial-gradient(circle at bottom right, rgba(255,122,0,0.08), transparent 50%)' }} />
+      <div className="absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.18),transparent_55%)]" />
+      <div className="absolute inset-x-0 bottom-0 -z-10 h-96 bg-[radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.14),transparent_48%)]" />
 
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid w-full max-w-5xl gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
@@ -103,30 +103,30 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
                 Secure dashboard access
               </div>
               <h1 className="text-4xl font-semibold tracking-tight text-slate-950">
-                Customer access for bookings, service visits, and technician updates.
+                Enterprise-ready access to bookings, assets, and technician updates.
               </h1>
               <p className="mt-4 max-w-lg text-base leading-7 text-slate-600">
-                Log in with your registered mobile number to view bookings, saved addresses, service history, and
-                upcoming technician visits.
+                Sessions are cookie-backed, routes are protected at the edge, and role-aware UI makes the dashboard
+                safer for both end users and operators.
               </p>
               <div className="mt-8 grid gap-4 sm:grid-cols-2">
                 <div className="rounded-3xl border border-white/70 bg-white/80 p-5 shadow-lg shadow-slate-200/60">
                   <p className="text-sm font-semibold text-slate-900">Protected sessions</p>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Keep track of upcoming appointments, completed services, and payment status in one place.
+                    Tokens are stored in secure cookies instead of browser storage to reduce XSS exposure.
                   </p>
                 </div>
                 <div className="rounded-3xl border border-white/70 bg-white/80 p-5 shadow-lg shadow-slate-200/60">
                   <p className="text-sm font-semibold text-slate-900">Role-aware access</p>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
-                    New customers can create an account before booking or while checking out.
+                    Admin and customer roles can now be gated independently without duplicating route logic.
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          <Card className="border border-border bg-card py-0" style={{boxShadow: 'var(--shadow-elevated)'}}>
+          <Card className="border-white/80 bg-white/90 py-0 shadow-[0_32px_80px_-38px_rgba(15,23,42,0.35)] backdrop-blur">
             <CardHeader className="gap-3 border-b border-slate-100 px-8 py-8">
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
                 <LockKeyhole className="h-5 w-5" />
@@ -134,7 +134,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
               <div className="space-y-2">
                 <CardTitle className="text-2xl text-slate-950">Welcome back</CardTitle>
                 <CardDescription className="text-sm leading-6 text-slate-600">
-                  Use your registered mobile number and password to open your customer dashboard.
+                  Use your account credentials to open the Techbes dashboard.
                 </CardDescription>
               </div>
             </CardHeader>
@@ -144,22 +144,21 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
                 {errors.form ? <InlineAlert message={errors.form} /> : null}
 
                 <div className="space-y-2">
-                  <Label htmlFor="mobileNumber">Mobile number</Label>
+                  <Label htmlFor="email">Email</Label>
                   <div className="relative">
-                    <Phone className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                    <Mail className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                     <Input
-                      id="mobileNumber"
-                      type="tel"
-                      inputMode="numeric"
-                      value={mobileNumber}
-                      onChange={(event) => setMobileNumber(sanitizeMobileNumber(event.target.value))}
-                      placeholder="9876543210"
-                      className="h-12 rounded-lg border-border-primary bg-bg-secondary pl-11"
-                      aria-invalid={Boolean(errors.mobileNumber)}
-                      autoComplete="tel"
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      placeholder="name@company.com"
+                      className="h-12 rounded-2xl border-slate-200 bg-slate-50/80 pl-11"
+                      aria-invalid={Boolean(errors.email)}
+                      autoComplete="email"
                     />
                   </div>
-                  {errors.mobileNumber ? <p className="text-sm text-red-600">{errors.mobileNumber}</p> : null}
+                  {errors.email ? <p className="text-sm text-red-600">{errors.email}</p> : null}
                 </div>
 
                 <div className="space-y-2">
@@ -170,7 +169,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="Enter your password"
-                    className="h-12 rounded-lg border-border-primary bg-bg-secondary"
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/80"
                     aria-invalid={Boolean(errors.password)}
                     autoComplete="current-password"
                   />
@@ -188,7 +187,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
                   </Label>
 
                   <Link href="#" className="text-sm font-medium text-slate-500 transition hover:text-slate-900">
-                    <span>Forgot password?</span>
+                    Forgot password?
                   </Link>
                 </div>
 
@@ -199,15 +198,23 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
                       Logging in...
                     </>
                   ) : (
-                    "Log In"
+                    "Login"
                   )}
                 </Button>
 
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  className="h-12 w-full rounded-2xl text-slate-700"
+                >
+                  <Chrome className="h-4 w-4" />
+                  Continue with Google
+                </Button>
+
                 <p className="text-center text-sm text-slate-500">
-                  New to Techbes?{" "}
-                  <Link href="/signup" className="font-semibold text-emerald-700 hover:text-emerald-800">
-                    <span>Create a customer account</span>
-                  </Link>
+                  Sign in with any valid email and a password of 6 or more characters. Use an email containing
+                  `admin` to preview admin access.
                 </p>
               </form>
             </CardContent>

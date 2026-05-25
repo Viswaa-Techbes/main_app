@@ -19,23 +19,22 @@ export async function apiClient<T>(input: RequestInfo | URL, init?: RequestOptio
   const payload = parseAs === "text" ? await response.text() : await response.json().catch(() => null);
 
   if (!response.ok) {
-    const errorPayload = payload || {};
     const message =
       parseAs === "text"
         ? "Request failed."
-        : typeof errorPayload.message === "string"
-          ? errorPayload.message
+        : typeof payload?.message === "string"
+          ? payload.message
           : "Something went wrong.";
-
-    logger.error(`API request failed: ${response.status} ${message}`, {
-      url: typeof input === "string" ? input : (input as URL).toString(),
-      status: response.status,
-      payload: errorPayload,
-    });
 
     const error = new AppError(message, {
       status: response.status,
-      details: errorPayload,
+      details: payload,
+    });
+
+    logger.error("API request failed", {
+      input: typeof input === "string" ? input : input.toString(),
+      status: response.status,
+      payload,
     });
 
     throw error;
@@ -43,40 +42,3 @@ export async function apiClient<T>(input: RequestInfo | URL, init?: RequestOptio
 
   return payload as T;
 }
-
-// Add helper methods
-apiClient.get = async function<T>(url: string, options?: RequestOptions): Promise<{ data: T }> {
-  const data = await apiClient<T>(url, { ...options, method: "GET" });
-  return { data };
-};
-
-apiClient.post = async function<T>(url: string, body?: any, options?: RequestOptions): Promise<{ data: T }> {
-  const data = await apiClient<T>(url, {
-    ...options,
-    method: "POST",
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  return { data };
-};
-
-apiClient.patch = async function<T>(url: string, body?: any, options?: RequestOptions): Promise<{ data: T }> {
-  const data = await apiClient<T>(url, {
-    ...options,
-    method: "PATCH",
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  return { data };
-};
-apiClient.put = async function<T>(url: string, body?: any, options?: RequestOptions): Promise<{ data: T }> {
-  const data = await apiClient<T>(url, {
-    ...options,
-    method: "PUT",
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  return { data };
-};
-
-apiClient.delete = async function<T>(url: string, options?: RequestOptions): Promise<{ data: T }> {
-  const data = await apiClient<T>(url, { ...options, method: "DELETE" });
-  return { data };
-};
