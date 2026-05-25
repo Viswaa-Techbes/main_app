@@ -31,11 +31,19 @@ export async function apiClient<T>(input: RequestInfo | URL, init?: RequestOptio
       details: payload,
     });
 
-    logger.error("API request failed", {
-      input: typeof input === "string" ? input : input.toString(),
-      status: response.status,
-      payload,
-    });
+    if (response.status >= 500) {
+      logger.error("API request failed", {
+        input: typeof input === "string" ? input : input.toString(),
+        status: response.status,
+        payload,
+      });
+    } else {
+      logger.warn("API request failed", {
+        input: typeof input === "string" ? input : input.toString(),
+        status: response.status,
+        payload,
+      });
+    }
 
     throw error;
   }
