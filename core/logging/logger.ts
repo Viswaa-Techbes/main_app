@@ -4,7 +4,12 @@ function write(level: LogLevel, message: string, meta?: unknown) {
   const payload = meta ? [message, meta] : [message];
 
   if (level === "error") {
-    console.error("[techbes]", ...payload);
+    const isDevClient = typeof window !== "undefined" && process.env.NODE_ENV === "development";
+    if (isDevClient) {
+      console.warn("[techbes] [ERROR]", ...payload);
+    } else {
+      console.error("[techbes]", ...payload);
+    }
     return;
   }
 
