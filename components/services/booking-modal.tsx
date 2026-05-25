@@ -59,13 +59,105 @@ export function BookingModal({
 
   const hasCoupon = flow.state.coupon.trim().length > 0;
   const discountAmount = hasCoupon ? Math.round(service.priceValue * 0.1) : 0; // 10% discount for any coupon
-  const finalPriceValue = service.priceValue - discountAmount;
-  const finalPriceText = `Rs. ${finalPriceValue}`;
+  const totalAmount = service.priceValue - discountAmount;
+  const advanceAmount = Math.round(totalAmount / 2);
+  const remainingAmount = Math.max(totalAmount - advanceAmount, 0);
+  const finalPriceText = `Rs. ${totalAmount}`;
 
-  async function handleConfirm() {
-    await flow.confirm({
+  async function handlePaymentFlow() {
+    // 1) Create booking on server (stores amounts and returns job id)
+    const booking = await flow.confirm({
       serviceId: String(service.id),
       serviceName: service.title,
+      // attach pricing for backend
+      totalAmount,
+    } as any);
+
+    if (!booking || !booking._id) {
+      return;
+    }
+
+    try {
+      // 2) Create Razorpay order for advance amount
+      const createRes = await fetch(`${BACKEND_URL}/api/payments/create-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: advanceAmount * 100, // paise
+          description: `Advance for booking ${booking._id}`,
+          receipt: `job_${booking._id}`,
+        }),
+      });
+
+      if (!createRes.ok) {
+        const payload = await createRes.json().catch(() => ({}));
+        throw new Error(payload.message || 'Unable to create payment order');
+      }
+
+      const orderPayload = await createRes.json();
+      const order = orderPayload.data;
+
+      // 3) Load Razorpay checkout
+      await loadRazorpay();
+
+      const options: any = {
+        key: order.keyId,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Techbes',
+        description: order.description,
+        order_id: order.orderId,
+        handler: async function (response: any) {
+          // Verify payment on server
+          const verifyRes = await fetch(`${BACKEND_URL}/api/payments/verify-payment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              jobId: booking._id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              amount: order.amount,
+            }),
+          });
+
+          if (!verifyRes.ok) {
+            const payload = await verifyRes.json().catch(() => ({}));
+            alert(payload.message || 'Payment verification failed.');
+            return;
+          }
+
+          // Success
+          flow.resetFlow();
+          onOpenChange(false);
+          // Optionally navigate to bookings or show success — keeping simple
+          alert('Payment successful. Booking confirmed!');
+        },
+        prefill: {
+          name: flow.state.customerName,
+          contact: flow.state.customerPhone,
+        },
+        theme: { color: '#0ea5a4' },
+      };
+
+      // @ts-ignore
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err: any) {
+      console.error('Payment flow failed', err);
+      alert(err.message || 'Payment failed.');
+    }
+  }
+
+  function loadRazorpay() {
+    return new Promise<void>((resolve, reject) => {
+      if (typeof window === 'undefined') return reject(new Error('No window'));
+      if ((window as any).Razorpay) return resolve();
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load Razorpay SDK'));
+      document.body.appendChild(script);
     });
   }
 
@@ -304,8 +396,8 @@ export function BookingModal({
                     className="rounded-full"
                     onClick={flow.nextStep}
                     disabled={
-                      (flow.step === 1 && !flow.state.address) ||
-                      (flow.step === 2 && (!flow.state.date || !flow.state.timeSlot)) ||
+                      (flow.step === 1 && (!flow.state.date || !flow.state.timeSlot)) ||
+                      (flow.step === 2 && !flow.state.address) ||
                       (flow.step === 3 && (!flow.state.customerName || !flow.state.customerPhone))
                     }
                   >
@@ -315,13 +407,13 @@ export function BookingModal({
                 ) : (
                   <Button
                     className="rounded-full"
-                    onClick={handleConfirm}
+                    onClick={handlePaymentFlow}
                     disabled={flow.isSubmitting}
                   >
                     {flow.isSubmitting ? (
-                      <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Confirming…</>
+                      <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Processing…</>
                     ) : (
-                      "Confirm Booking"
+                      "Pay 50% Advance"
                     )}
                   </Button>
                 )}
@@ -362,14 +454,18 @@ export function BookingModal({
                       {flow.state.coupon ? `Coupon: ${flow.state.coupon}` : "No coupon added"}
                     </div>
                   </div>
-                  <div className="rounded-3xl bg-slate-950 p-5 text-white">
+                  <div className="rounded-3xl bg-white p-4 border border-slate-100">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm text-slate-300">Estimated payable</p>
-                      {hasCoupon && <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-400">10% Off</span>}
+                      <p className="text-sm text-slate-500">Total Amount</p>
+                      <p className="font-semibold text-slate-900">Rs. {totalAmount}</p>
                     </div>
-                    <div className="mt-2 flex items-baseline gap-2">
-                      <p className="text-3xl font-semibold">{finalPriceText}</p>
-                      {hasCoupon && <p className="text-sm text-slate-400 line-through">Rs. {service.priceValue}</p>}
+                    <div className="mt-2 flex items-center justify-between">
+                      <p className="text-sm text-slate-500">Advance (50%)</p>
+                      <p className="font-semibold text-emerald-700">Rs. {advanceAmount}</p>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between border-t border-slate-100 pt-3">
+                      <p className="text-sm text-slate-500">Remaining</p>
+                      <p className="font-semibold text-slate-900">Rs. {remainingAmount}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -383,7 +479,7 @@ export function BookingModal({
 }
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
-  const steps = ["Address", "Schedule", "Contact", "Review", "Confirm"];
+  const steps = ["Schedule", "Address", "Contact", "Review", "Payment"];
 
   return (
     <div className="flex flex-wrap gap-3">

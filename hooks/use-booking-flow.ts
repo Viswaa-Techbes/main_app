@@ -55,15 +55,17 @@ export function useBookingFlow() {
   async function confirm({
     serviceId,
     serviceName,
+    totalAmount,
   }: {
     serviceId: string;
     serviceName: string;
+    totalAmount?: number;
   }) {
     setIsSubmitting(true);
     setBookingError(null);
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/v2/bookings`, {
+      const res = await fetch(`${BACKEND_URL}/api/bookings/create`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -76,6 +78,7 @@ export function useBookingFlow() {
           timeSlot: state.timeSlot,
           customerName: state.customerName,
           customerPhone: state.customerPhone,
+          totalAmount: totalAmount ?? (state as any).totalAmount ?? (state as any).priceValue,
         }),
       });
 
@@ -96,7 +99,9 @@ export function useBookingFlow() {
         return;
       }
 
-      setIsConfirmed(true);
+      const payload = await res.json();
+      // Return booking data for the caller to continue to payment
+      return payload.data;
     } catch (err: any) {
       setBookingError(err.message || "Network error. Please check your connection.");
     } finally {
