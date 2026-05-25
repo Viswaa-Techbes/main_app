@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
+import { backendUnavailableResponse, proxyBackendPost } from "@/core/api/backend-fetch";
 import { signToken } from "@/core/auth/jwt";
 import { AUTH_COOKIE_KEY } from "@/core/auth/session";
-import { getBackendApiUrl } from "@/core/api/config";
 import { sanitizeEmail, sanitizeText, isValidEmail } from "@/core/utils/sanitize";
 
 type LoginBody = {
@@ -25,13 +25,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Password must be at least 6 characters long." }, { status: 400 });
   }
 
-  const backendResponse = await fetch(getBackendApiUrl("/api/auth/login"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
+  const { response: backendResponse, payload } = await proxyBackendPost("/api/auth/login", { email, password });
 
-  const payload = await backendResponse.json().catch(() => null);
+  if (!backendResponse) {
+    return backendUnavailableResponse(payload);
+  }
 
   if (!backendResponse.ok) {
     return NextResponse.json(

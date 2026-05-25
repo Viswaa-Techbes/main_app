@@ -1,17 +1,16 @@
 import { NextResponse } from "next/server";
 
-import { getBackendApiUrl } from "@/core/api/config";
+import { backendUnavailableResponse, proxyBackendPost } from "@/core/api/backend-fetch";
 import { signToken } from "@/core/auth/jwt";
 import { AUTH_COOKIE_KEY } from "@/core/auth/session";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  const response = await fetch(getBackendApiUrl("/api/auth/register"), {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  const payload = await response.json().catch(() => null);
+  const { response, payload } = await proxyBackendPost("/api/auth/register", body);
+
+  if (!response) {
+    return backendUnavailableResponse(payload);
+  }
 
   if (!response.ok) {
     return NextResponse.json(payload || { message: "Registration failed" }, { status: response.status });
