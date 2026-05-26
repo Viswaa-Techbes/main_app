@@ -1,4 +1,5 @@
-import { dashboardBookings, savedAddresses } from "@/lib/marketplace-data";
+import { apiClient } from "@/core/api/api-client";
+import { DashboardBooking, savedAddresses } from "@/lib/marketplace-data";
 
 export type DashboardMetric = {
   title: string;
@@ -8,18 +9,41 @@ export type DashboardMetric = {
 
 export type DashboardData = {
   metrics: DashboardMetric[];
-  bookings: typeof dashboardBookings;
+  bookings: DashboardBooking[];
   savedAddresses: typeof savedAddresses;
-  upcomingBookings: typeof dashboardBookings;
-  bookingHistory: typeof dashboardBookings;
+  upcomingBookings: DashboardBooking[];
+  bookingHistory: DashboardBooking[];
 };
 
 export const dashboardService = {
-  async getDashboardData() {
-    await new Promise((resolve) => setTimeout(resolve, 150));
+  async getDashboardData(): Promise<DashboardData> {
+    const payload = await apiClient<{ data?: any[] }>("/api/bookings", {
+      method: "GET",
+    });
+    const jobs = payload.data || [];
 
-    const upcomingBookings = dashboardBookings.filter((booking) => booking.status === "Upcoming");
-    const bookingHistory = dashboardBookings.filter((booking) => booking.status !== "Upcoming");
+    const bookings: DashboardBooking[] = jobs.map((job: any) => {
+      let status: "Upcoming" | "Completed" | "Cancelled" = "Upcoming";
+      if (job.status === "completed" || job.status === "payment_done") {
+        status = "Completed";
+      } else if (job.status === "cancelled") {
+        status = "Cancelled";
+      }
+
+      return {
+        id: job._id || String(job.id),
+        serviceSlug: job.serviceId || "test-service",
+        serviceTitle: job.serviceName || job.title || "Service Request",
+        status,
+        address: job.location || "No address provided",
+        date: job.bookingDate || job.scheduledTime || "ASAP",
+        time: job.timeSlot || "",
+        price: job.price ? `Rs. ${job.price.toLocaleString("en-IN")}` : "Rs. 0",
+      };
+    });
+
+    const upcomingBookings = bookings.filter((booking) => booking.status === "Upcoming");
+    const bookingHistory = bookings.filter((booking) => booking.status !== "Upcoming");
 
     return {
       metrics: [
@@ -28,10 +52,10 @@ export const dashboardService = {
         { title: "Saved addresses", value: String(savedAddresses.length), tone: "emerald" },
         { title: "Coupons saved", value: "03", tone: "blue" },
       ],
-      bookings: dashboardBookings,
+      bookings,
       savedAddresses,
       upcomingBookings,
       bookingHistory,
-    } satisfies DashboardData;
+    };
   },
 };

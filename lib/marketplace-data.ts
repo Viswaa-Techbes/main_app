@@ -476,6 +476,48 @@ export const services: MarketplaceService[] = [
     recommendedFor: ["Remote teams", "Students", "Small offices"],
     timeSlots: ["09:30 AM", "11:00 AM", "02:30 PM", "06:00 PM"],
   },
+  {
+    id: 7,
+    slug: "rupee-one-test-service",
+    title: "₹1 Payment Test Service",
+    categoryId: "hardware",
+    category: "Hardware Repair",
+    tagline: "Test Razorpay integration with exactly ₹1 advance payment.",
+    description:
+      "This is a dummy service designed to test the end-to-end booking and Razorpay payment flow. The total price is ₹2, which results in a 50% advance payment of exactly ₹1.",
+    price: "Rs. 2 (₹1 Advance)",
+    priceValue: 2,
+    rating: 5.0,
+    reviewCount: 1,
+    duration: "10 mins",
+    durationMinutes: 10,
+    image:
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&h=900&fit=crop",
+    gallery: [
+      "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&h=900&fit=crop",
+    ],
+    badge: "Testing Only",
+    features: [
+      "End-to-end integration test",
+      "Razorpay payment of exactly ₹1",
+      "Real-time database recording",
+      "Technician notification simulation",
+    ],
+    includes: [
+      "Full test flow verification",
+      "Zero impact on real operations",
+    ],
+    steps: [
+      "Select this service.",
+      "Proceed to book and select address & time.",
+      "Complete the payment of ₹1 through Razorpay.",
+      "Check the Booking in Dashboard.",
+    ],
+    faqs: defaultFaqs,
+    reviews: reviewSet("₹1 Payment Test Service"),
+    recommendedFor: ["Developers", "Admins", "QA Team"],
+    timeSlots: ["09:00 AM", "11:00 AM", "01:00 PM", "03:00 PM", "05:00 PM"],
+  },
 ];
 
 export const subscriptionPlans: SubscriptionPlan[] = [

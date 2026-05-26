@@ -134,7 +134,15 @@ export function BookingModal({
       const order = orderPayload.data;
 
       // 3) Load Razorpay checkout
-      await loadRazorpay();
+      try {
+        await loadRazorpay();
+      } catch (loadErr) {
+        console.error("Dynamic Razorpay SDK loading failed", loadErr);
+      }
+
+      if (!(window as any).Razorpay) {
+        throw new Error("Razorpay Checkout SDK is not loaded. Please verify your internet connection or disable any ad blockers.");
+      }
 
       const options: any = {
         key: order.keyId,
@@ -173,7 +181,8 @@ export function BookingModal({
           // Success
           flow.resetFlow();
           onOpenChange(false);
-          // Optionally navigate to bookings or show success — keeping simple
+          // Redirect to dashboard
+          router.push("/dashboard");
           alert('Payment successful. Booking confirmed!');
         },
         prefill: {
