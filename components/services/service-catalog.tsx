@@ -193,7 +193,7 @@ export function ServiceCatalog() {
           {filteredServices.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {filteredServices.map((service) => (
-                <CatalogCard key={service.slug} service={service} />
+                <CatalogCard key={service.slug} service={service} selectedCategory={selectedCategory} />
               ))}
             </div>
           ) : (
@@ -230,10 +230,10 @@ function FilterGroup({ label, children }: { label: string; children: ReactNode }
   );
 }
 
-function CatalogCard({ service }: { service: MarketplaceService }) {
+function CatalogCard({ service, selectedCategory }: { service: MarketplaceService; selectedCategory?: string }) {
   return (
     <Link
-      href={`/services/${service.slug}`}
+      href={`/services/${service.slug}${selectedCategory && selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''}`}
       className="group overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.42)] transition duration-300 hover:-translate-y-1 hover:border-emerald-200"
     >
       <div className="relative h-56 overflow-hidden">

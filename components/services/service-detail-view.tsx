@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Calendar, Check, CheckCircle, ChevronLeft, Clock3, FileText, MapPin, Star, TicketPercent, Toolbox, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { FormEvent, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +29,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
   const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const recommended = getRecommendedServices(service.id);
   const cctvService = service.configurableType === "cctv"
     ? {
@@ -90,7 +91,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
   return (
     <>
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <Link href="/services" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-950">
+        <Link href={`/services${searchParams?.get("category") ? `?category=${searchParams.get("category")}` : ""}`} className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition hover:text-slate-950">
           <ChevronLeft className="h-4 w-4" />
           Back to services
         </Link>
