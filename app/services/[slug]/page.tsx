@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { PageShell } from "@/components/layout/page-shell";
 import { ServiceDetailView } from "@/components/services/service-detail-view";
 import { getServiceBySlug, services } from "@/lib/marketplace-data";
+import { cctvApi, managedServiceToMarketplaceService } from "@/lib/cctv-api";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -16,6 +17,15 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
   const service = getServiceBySlug(slug);
+  if (!service) {
+    try {
+      const managed = await cctvApi.subcategory(slug);
+      return {
+        title: `${managed.name} | Techbes Marketplace`,
+        description: managed.shortDescription || managed.overview,
+      };
+    } catch {}
+  }
   
   if (!service) {
     return {
@@ -31,7 +41,14 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function ServiceDetailsPage({ params }: PageProps) {
   const { slug } = await params;
-  const service = getServiceBySlug(slug);
+  let service = getServiceBySlug(slug) as any;
+
+  if (!service) {
+    try {
+      const managed = await cctvApi.subcategory(slug);
+      service = managedServiceToMarketplaceService(managed, 0);
+    } catch {}
+  }
 
   if (!service) {
     notFound();

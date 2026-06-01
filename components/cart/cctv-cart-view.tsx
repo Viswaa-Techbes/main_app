@@ -29,13 +29,13 @@ export function CctvCartView() {
           <h1 className="text-3xl font-semibold text-slate-950">Cart</h1>
           <p className="mt-2 text-sm text-slate-600">Review CCTV service selections before checkout.</p>
         </div>
-        <Link href="/cctv" className="text-sm font-semibold text-emerald-700">Add more services</Link>
+        <Link href="/services?category=cctv" className="text-sm font-semibold text-emerald-700">Add more services</Link>
       </div>
 
       {!items.length ? (
         <div className="rounded-lg border border-slate-200 bg-white p-8 text-center">
           <p className="text-slate-600">Your cart is empty.</p>
-          <Button className="mt-4 bg-emerald-600 text-white" asChild><Link href="/cctv">Browse CCTV Services</Link></Button>
+          <Button className="mt-4 bg-emerald-600 text-white" asChild><Link href="/services?category=cctv">Browse CCTV Services</Link></Button>
         </div>
       ) : (
         <div className="grid gap-5 lg:grid-cols-[1fr,320px]">

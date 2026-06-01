@@ -57,6 +57,7 @@ export interface MarketplaceService {
   reviews: Review[];
   recommendedFor: string[];
   timeSlots: string[];
+  configurableType?: "cctv";
 }
 
 export interface DashboardBooking {
@@ -91,7 +92,7 @@ export const categories: ServiceCategory[] = [
     id: "cctv",
     title: "CCTV Installation",
     description: "Smart surveillance, remote monitoring, and office security.",
-    servicesLabel: "12 services",
+    servicesLabel: "20 services",
     icon: Camera,
     gradient: "from-cyan-500 via-sky-500 to-blue-600",
   },
@@ -171,6 +172,33 @@ const defaultFaqs: FaqItem[] = [
   },
 ];
 
+const cctvServiceNames = [
+  "Home CCTV Installation",
+  "Office CCTV Installation",
+  "Apartment CCTV Installation",
+  "Shop CCTV Installation",
+  "Warehouse CCTV Installation",
+  "Factory CCTV Installation",
+  "Indoor Camera Installation",
+  "Outdoor Camera Installation",
+  "Wireless CCTV Installation",
+  "IP Camera Installation",
+  "Dome Camera Installation",
+  "Bullet Camera Installation",
+  "PTZ Camera Installation",
+  "DVR Installation",
+  "NVR Installation",
+  "CCTV Repair",
+  "CCTV Maintenance",
+  "AMC Service",
+  "Mobile Monitoring Setup",
+  "CCTV Cabling",
+];
+
+function slugify(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
 function reviewSet(serviceName: string): Review[] {
   return [
     {
@@ -201,52 +229,58 @@ function reviewSet(serviceName: string): Review[] {
 }
 
 export const services: MarketplaceService[] = [
-  {
-    id: 1,
-    slug: "smart-cctv-installation",
-    title: "Smart CCTV Installation",
+  ...cctvServiceNames.map((title, index): MarketplaceService => ({
+    id: 1000 + index,
+    slug: slugify(title),
+    title,
     categoryId: "cctv",
     category: "CCTV Installation",
-    tagline: "HD cameras, NVR setup, remote mobile access.",
+    tagline: "Configurable CCTV service with camera, cabling, and add-on pricing.",
     description:
-      "Protect homes, retail stores, and offices with a complete surveillance setup that includes camera placement planning, cable routing, recorder setup, and remote access configuration.",
-    price: "From Rs. 8,999",
-    priceValue: 8999,
-    rating: 4.9,
-    reviewCount: 2304,
-    duration: "2-4 hrs",
-    durationMinutes: 240,
-    image:
-      "https://images.unsplash.com/photo-1558002038-1055907df827?w=1200&h=900&fit=crop",
+      `${title} includes site review, camera placement guidance, installation, cable routing, recorder or mobile monitoring setup where applicable, and handover testing.`,
+    price: "From Rs. 499",
+    priceValue: 499,
+    rating: 4.8,
+    reviewCount: 2304 - index * 37,
+    duration: index < 6 ? "2-6 hrs" : "1-3 hrs",
+    durationMinutes: index < 6 ? 360 : 180,
+    image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=1200&h=900&fit=crop",
     gallery: [
       "https://images.unsplash.com/photo-1558002038-1055907df827?w=1200&h=900&fit=crop",
       "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=900&fit=crop",
       "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?w=1200&h=900&fit=crop",
     ],
-    badge: "Most Booked",
+    badge: index === 0 ? "Most Booked" : "Configurable",
     features: [
-      "Camera placement planning based on blind spots",
-      "NVR/DVR setup with mobile app pairing",
-      "Night vision and motion alerts configured",
-      "Cable management with neat concealment",
+      "Camera type, count, and placement planning",
+      "Indoor or outdoor installation selection",
+      "Wire length and accessory add-ons",
+      "Live price calculation before checkout",
     ],
     includes: [
-      "Free pre-installation survey",
-      "Basic training for the owner or admin",
+      "Site inspection and installation guidance",
+      "Camera mounting and alignment",
+      "Basic DVR/NVR or mobile viewing setup",
       "Workmanship warranty",
-      "Performance testing before handover",
     ],
     steps: [
-      "Share your site type and camera count requirements.",
-      "Pick a preferred visit slot and confirm the booking.",
-      "Technician completes installation, setup, and demo.",
-      "Receive service summary and support details after completion.",
+      "Select camera type, camera count, area, wire length, and add-ons.",
+      "Review live price estimate on the service page.",
+      "Add the configured service to cart and checkout.",
+      "Admin assigns a technician for the preferred visit slot.",
     ],
-    faqs: defaultFaqs,
-    reviews: reviewSet("Smart CCTV Installation"),
-    recommendedFor: ["Retail outlets", "Offices", "Warehouses"],
+    faqs: [
+      ...defaultFaqs,
+      {
+        question: "Is wire charged separately?",
+        answer: "Yes. Wire cost is calculated from the required meter length using the configured per-meter rate.",
+      },
+    ],
+    reviews: reviewSet(title),
+    recommendedFor: ["Homes", "Offices", "Retail shops", "Apartments", "Warehouses"],
     timeSlots: ["09:00 AM", "11:30 AM", "02:00 PM", "04:30 PM"],
-  },
+    configurableType: "cctv",
+  })),
   {
     id: 2,
     slug: "office-network-deployment",

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, Star } from "lucide-react";
 import { ReactNode, useState } from "react";
 
@@ -12,8 +13,9 @@ import { categories, MarketplaceService, services } from "@/lib/marketplace-data
 type SortOption = "popular" | "price-low" | "top-rated";
 
 export function ServiceCatalog() {
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
   const [minRating, setMinRating] = useState(0);
   const [maxPrice, setMaxPrice] = useState(30000);
   const [durationFilter, setDurationFilter] = useState("all");

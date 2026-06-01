@@ -12,7 +12,7 @@ export default async function BookingSuccessPage({ searchParams }: { searchParam
         {params.bookingId && <p className="mt-3 rounded-md bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">Booking ID: {params.bookingId}</p>}
         <div className="mt-6 flex justify-center gap-3">
           <Link href="/dashboard" className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">My Bookings</Link>
-          <Link href="/cctv" className="rounded-md border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Book Another</Link>
+          <Link href="/services" className="rounded-md border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700">Book Another</Link>
         </div>
       </div>
     </main>

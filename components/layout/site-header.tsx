@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 
 const navItems = [
   { label: "Services", href: "/services" },
-  { label: "CCTV", href: "/cctv" },
   { label: "My Bookings", href: "/dashboard" },
   { label: "Support", href: "/support" },
 ];
