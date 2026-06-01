@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Menu, MapPin, Search, Sparkles, X } from "lucide-react";
+import { Menu, MapPin, Search, ShoppingCart, X } from "lucide-react";
 import { useState } from "react";
 
 import { useAuth } from "@/features/auth/context/auth-context";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 
 const navItems = [
   { label: "Services", href: "/services" },
+  { label: "CCTV", href: "/cctv" },
   { label: "My Bookings", href: "/dashboard" },
   { label: "Support", href: "/support" },
 ];
@@ -63,6 +64,9 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          <Link href="/cart" className="rounded-full border border-slate-200 bg-white p-2 text-slate-700 transition hover:bg-slate-50" aria-label="Cart">
+            <ShoppingCart className="h-4 w-4" />
+          </Link>
           <div className="ml-4 flex items-center gap-3">
             {status === "authenticated" && user ? (
               <>
