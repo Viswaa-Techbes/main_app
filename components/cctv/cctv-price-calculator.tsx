@@ -33,7 +33,11 @@ export function CctvPriceCalculator({ service, onRequestQuote }: { service: Cctv
     Promise.all([cctvApi.cameraTypes(), cctvApi.addons()])
       .then(([types, addonList]) => {
         setCameraTypes(types.length ? types : fallbackCameraTypes);
-        setAddons(addonList.length ? addonList : fallbackAddons);
+        let availableAddons = addonList.length ? addonList : fallbackAddons;
+        if ((service as any)?.supportedAddons && (service as any).supportedAddons.length) {
+          availableAddons = availableAddons.filter((a) => (service as any).supportedAddons.includes(a.name));
+        }
+        setAddons(availableAddons);
         setCameraTypeId((types[0] || fallbackCameraTypes[0])?._id || "");
         setOptionsError("");
       })
@@ -205,7 +209,11 @@ export function CctvBookingConfigModal({
       .then(([types, addonList]) => {
         const nextTypes = types.length ? types : fallbackCameraTypes;
         setCameraTypes(nextTypes);
-        setAddons(addonList.length ? addonList : fallbackAddons);
+        let availableAddons = addonList.length ? addonList : fallbackAddons;
+        if ((service as any)?.supportedAddons && (service as any).supportedAddons.length) {
+          availableAddons = availableAddons.filter((a) => (service as any).supportedAddons.includes(a.name));
+        }
+        setAddons(availableAddons);
         setCameraTypeId(nextTypes[0]?._id || "");
         setOptionsError("");
       })

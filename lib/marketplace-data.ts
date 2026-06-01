@@ -58,6 +58,11 @@ export interface MarketplaceService {
   recommendedFor: string[];
   timeSlots: string[];
   configurableType?: "cctv";
+  overview?: string;
+  excludedServices?: string[];
+  supportedProducts?: string[];
+  supportedAddons?: string[];
+  supportedSpareParts?: string[];
 }
 
 export interface DashboardBooking {
@@ -244,11 +249,29 @@ export const services: MarketplaceService[] = [
     reviewCount: 2304 - index * 37,
     duration: index < 6 ? "2-6 hrs" : "1-3 hrs",
     durationMinutes: index < 6 ? 360 : 180,
-    image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=1200&h=900&fit=crop",
+    image: index === 0
+      ? "https://images.unsplash.com/photo-1505691723518-36a9a0b5f6b5?w=1200&h=900&fit=crop" // home exterior
+      : index === 1
+      ? "https://images.unsplash.com/photo-1520975910813-5f2d9f2c4f0d?w=1200&h=900&fit=crop" // office
+      : index === 2
+      ? "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&h=900&fit=crop" // apartment
+      : index === 3
+      ? "https://images.unsplash.com/photo-1581091655789-7b32d7f9c9b6?w=1200&h=900&fit=crop" // shop
+      : index === 4
+      ? "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?w=1200&h=900&fit=crop" // warehouse
+      : index === 12
+      ? "https://images.unsplash.com/photo-1590550360185-0b5b1e4b6f9b?w=1200&h=900&fit=crop" // ptz
+      : index === 8
+      ? "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?w=1200&h=900&fit=crop" // wireless
+      : "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=900&fit=crop",
     gallery: [
-      "https://images.unsplash.com/photo-1558002038-1055907df827?w=1200&h=900&fit=crop",
-      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=900&fit=crop",
+      index === 0
+        ? "https://images.unsplash.com/photo-1505691723518-36a9a0b5f6b5?w=1200&h=900&fit=crop"
+        : index === 1
+        ? "https://images.unsplash.com/photo-1520975910813-5f2d9f2c4f0d?w=1200&h=900&fit=crop"
+        : "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=900&fit=crop",
       "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?w=1200&h=900&fit=crop",
+      "https://images.unsplash.com/photo-1520975910813-5f2d9f2c4f0d?w=1200&h=900&fit=crop",
     ],
     badge: index === 0 ? "Most Booked" : "Configurable",
     features: [
@@ -263,6 +286,25 @@ export const services: MarketplaceService[] = [
       "Basic DVR/NVR or mobile viewing setup",
       "Workmanship warranty",
     ],
+    overview: `${title} - tailored CCTV service with options for camera types, placement, and recording hardware. We recommend reviewing supported products and addons for compatibility before booking.`,
+    excludedServices: ["Third-party device warranty", "Structural modifications"],
+    supportedProducts:
+      index === 0
+        ? ["Dome Camera", "Bullet Camera", "DVR", "SMPS", "Cable Roll", "Junction Box"]
+        : index === 1
+        ? ["IP Camera", "NVR", "PoE Switch", "Network Rack", "Cat6 Cable"]
+        : index === 12
+        ? ["PTZ Camera", "PTZ Controller", "NVR", "Joystic Controller", "PoE Switch"]
+        : ["Camera", "DVR/NVR", "Cables", "Power Adapter"],
+    supportedAddons:
+      index === 0
+        ? ["Dome Camera", "Bullet Camera", "DVR", "SMPS", "Cable Roll", "Junction Box"]
+        : index === 1
+        ? ["IP Camera", "NVR", "PoE Switch", "Network Rack", "Cat6 Cable"]
+        : index === 12
+        ? ["PTZ Camera", "PTZ Controller", "NVR", "Joystick Controller"]
+        : ["Extra Cable", "Connector Kit", "Memory Card"],
+    supportedSpareParts: ["Connector Kit", "Power Adapter", "SMPS", "Hard Disk"],
     steps: [
       "Select camera type, camera count, area, wire length, and add-ons.",
       "Review live price estimate on the service page.",

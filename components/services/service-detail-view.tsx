@@ -49,6 +49,9 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
         faqs: service.faqs,
         pricingStartsFrom: service.priceValue,
         image: service.image,
+        supportedAddons: (service as any).supportedAddons || [],
+        supportedProducts: (service as any).supportedProducts || [],
+        supportedSpareParts: (service as any).supportedSpareParts || [],
       }
     : null;
 
@@ -125,6 +128,28 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                 <FeatureGrid features={[...service.features, ...service.includes]} />
               </div>
             </Section>
+
+            {((service as any).supportedProducts || (service as any).supportedAddons || (service as any).supportedSpareParts) && (
+              <Section title="Available Addons & Products">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {(service as any).supportedProducts?.map((p: string) => (
+                    <div key={p} className="rounded-xl border border-slate-100 bg-white p-3 text-sm">
+                      <div className="text-sm font-medium text-slate-900">{p}</div>
+                    </div>
+                  ))}
+                  {(service as any).supportedAddons?.map((a: string) => (
+                    <div key={a} className="rounded-xl border border-slate-100 bg-white p-3 text-sm">
+                      <div className="text-sm font-medium text-slate-900">{a}</div>
+                    </div>
+                  ))}
+                  {(service as any).supportedSpareParts?.map((s: string) => (
+                    <div key={s} className="rounded-xl border border-slate-100 bg-white p-3 text-sm">
+                      <div className="text-sm font-medium text-slate-900">{s}</div>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            )}
 
             <Section title="FAQ">
               <Accordion type="single" collapsible>
