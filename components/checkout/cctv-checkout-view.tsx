@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cctvApi } from "@/lib/cctv-api";
@@ -27,6 +27,64 @@ export function CctvCheckoutView() {
   });
 
   useEffect(() => setItems(getCctvCart()), []);
+  const search = useSearchParams();
+  const paymentId = search?.get ? search.get('paymentId') : null;
+
+  // If paymentId provided (retry/admin), fetch payment details and open Razorpay
+  useEffect(() => {
+    async function openExistingPayment(pid: string) {
+      try {
+        const token = typeof window !== 'undefined' ? window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) : null;
+        const res = await fetch(`/api/v2/payment/${pid}`, { headers: { Authorization: `Bearer ${token}` } });
+        const json = await res.json();
+        if (!json.success) throw new Error(json.message || 'Failed to load payment');
+        const { payment, keyId } = json.data;
+
+        // Load Razorpay
+        await new Promise<void>((resolve, reject) => {
+          if (typeof window === 'undefined') return reject(new Error('Window not available'));
+          if ((window as any).Razorpay) return resolve();
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.onload = () => resolve();
+          script.onerror = () => reject(new Error('Failed to load Razorpay SDK'));
+          document.head.appendChild(script);
+        });
+
+        const options = {
+          key: keyId,
+          amount: payment.amount,
+          currency: payment.currency || 'INR',
+          name: 'Booking Payment',
+          description: 'Retry Payment',
+          order_id: payment.razorpayOrderId,
+          handler: async (resp: any) => {
+            try {
+              const verify = await cctvApi.verifyPayment({
+                razorpay_order_id: resp.razorpay_order_id,
+                razorpay_payment_id: resp.razorpay_payment_id,
+                razorpay_signature: resp.razorpay_signature,
+              });
+              clearCctvCart();
+              const job = verify.job || verify.data?.job || verify.data;
+              router.push(`/booking-success?bookingId=${job._id || job.id || ''}`);
+            } catch (err: any) {
+              setError(err?.message || 'Payment verification failed');
+            }
+          },
+        } as any;
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+      } catch (err: any) {
+        setError(err?.message || 'Failed to open existing payment');
+      }
+    }
+
+    if (paymentId) {
+      openExistingPayment(paymentId);
+    }
+  }, [paymentId]);
   const first = items[0];
   const total = items.reduce((sum, item) => sum + (item.price?.priceBreakdown?.grandTotal || 0), 0);
 
