@@ -5,349 +5,312 @@ import { CalendarCheck, FileText, ShoppingCart, Zap } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { calculateFallbackCctvPrice, cctvApi, CctvAddon, CctvCameraType, CctvPriceResult, CctvSubcategory, fallbackAddons, fallbackCameraTypes } from "@/lib/cctv-api";
 import { addCctvCartItem } from "@/lib/cctv-cart";
+import { cctvApi, CctvAddon, CctvSubcategory, fallbackAddons } from "@/lib/cctv-api";
 
 function money(value?: number) {
   return `Rs. ${Math.round(value || 0).toLocaleString("en-IN")}`;
 }
 
-export function CctvPriceCalculator({ service, onRequestQuote }: { service: CctvSubcategory; onRequestQuote?: () => void }) {
+export function CctvBookingConfigModal({ open, onOpenChange, service, onRequestQuote }: { open: boolean; onOpenChange: (v: boolean) => void; service: CctvSubcategory; onRequestQuote?: () => void; }) {
   const router = useRouter();
-  const [cameraTypes, setCameraTypes] = useState<CctvCameraType[]>([]);
   const [addons, setAddons] = useState<CctvAddon[]>([]);
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [optionsError, setOptionsError] = useState("");
-  const [cameraTypeId, setCameraTypeId] = useState("");
-  const [cameraCount, setCameraCount] = useState(1);
-  const [installationArea, setInstallationArea] = useState<"indoor" | "outdoor">("indoor");
-  const [wireLength, setWireLength] = useState(10);
-  const [addonIds, setAddonIds] = useState<string[]>([]);
-  const [price, setPrice] = useState<CctvPriceResult | null>(null);
-  const [loading, setLoading] = useState(false);
+
+  const [step, setStep] = useState(1);
+  const serviceTypes = [
+    "Wired Camera Installation",
+    "Wireless Camera Installation",
+    "Dome Camera Installation",
+    "Bullet Camera Installation",
+    "PTZ Camera Installation",
+    "DVR Installation",
+    "NVR Installation",
+    "CCTV Repair",
+    "CCTV Maintenance",
+  ];
+  const [serviceType, setServiceType] = useState<string>(serviceTypes[0]);
+
+  const MATERIALS = [
+    { id: "cable_3p1", name: "3+1 Cable", unit: "meter", defaultPrice: 18 },
+    { id: "cat6", name: "CAT6 Cable", unit: "meter", defaultPrice: 40 },
+    { id: "cat6_premium", name: "CAT6 Premium", unit: "meter", defaultPrice: 35 },
+    { id: "labour", name: "Installation Labour", unit: "meter", defaultPrice: 15 },
+    { id: "box_5x5", name: "Camera Box 5x5", unit: "each", defaultPrice: 60 },
+    { id: "dvr", name: "DVR", unit: "each", defaultPrice: 0 },
+    { id: "nvr", name: "NVR", unit: "each", defaultPrice: 0 },
+    { id: "hdd", name: "Hard Disk", unit: "each", defaultPrice: 0 },
+    { id: "smps", name: "SMPS", unit: "each", defaultPrice: 0 },
+    { id: "connector_set", name: "Connector Set", unit: "each", defaultPrice: 0 },
+    { id: "junction_box", name: "Junction Box", unit: "each", defaultPrice: 0 },
+    { id: "wifi_camera", name: "WiFi Camera", unit: "each", defaultPrice: 0 },
+    { id: "memory_card", name: "Memory Card", unit: "each", defaultPrice: 0 },
+    { id: "router", name: "Router", unit: "each", defaultPrice: 0 },
+    { id: "mounting_kit", name: "Mounting Kit", unit: "each", defaultPrice: 0 },
+    { id: "ptz_camera", name: "PTZ Camera", unit: "each", defaultPrice: 0 },
+    { id: "ptz_controller", name: "PTZ Controller", unit: "each", defaultPrice: 0 },
+    { id: "poe_switch", name: "PoE Switch", unit: "each", defaultPrice: 0 },
+    { id: "network_rack", name: "Network Rack", unit: "each", defaultPrice: 0 },
+    { id: "adapter", name: "Adapter", unit: "each", defaultPrice: 0 },
+    { id: "connector_kit", name: "Connector Kit", unit: "each", defaultPrice: 0 },
+  ];
+
+  const [selectedMaterials, setSelectedMaterials] = useState<Record<string, number>>({});
+  const [mapLink, setMapLink] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [notes, setNotes] = useState("");
+  const [priceBreakdown, setPriceBreakdown] = useState<{ serviceCost: number; materialCost: number; labourCost: number; grandTotal: number }>({ serviceCost: 0, materialCost: 0, labourCost: 0, grandTotal: 0 });
+  const [miniCartOpen, setMiniCartOpen] = useState(false);
+
   const categoryId = typeof service.categoryId === "string" && service.categoryId.length === 24 ? service.categoryId : typeof service.categoryId === "object" ? service.categoryId?._id : undefined;
   const subcategoryId = service._id && service._id.length === 24 ? service._id : undefined;
 
   useEffect(() => {
+    if (!open) return;
     setOptionsLoading(true);
-    Promise.all([cctvApi.cameraTypes(), cctvApi.addons()])
-      .then(([types, addonList]) => {
-        setCameraTypes(types.length ? types : fallbackCameraTypes);
-        let availableAddons = addonList.length ? addonList : fallbackAddons;
-        if ((service as any)?.supportedAddons && (service as any).supportedAddons.length) {
-          availableAddons = availableAddons.filter((a) => (service as any).supportedAddons.includes(a.name));
+    cctvApi.materials()
+      .then((list) => {
+        let available = list.length ? list : fallbackAddons;
+        // If subcategory exposes supportedMaterialIds, filter by those ids
+        if ((service as any)?.supportedMaterialIds && (service as any).supportedMaterialIds.length) {
+          available = available.filter((a) => (service as any).supportedMaterialIds.includes(a._id));
+        } else if ((service as any)?.supportedAddons && (service as any).supportedAddons.length) {
+          // fallback to legacy supportedAddons name-match
+          available = available.filter((a) => (service as any).supportedAddons.includes(a.name));
         }
-        setAddons(availableAddons);
-        setCameraTypeId((types[0] || fallbackCameraTypes[0])?._id || "");
+        setAddons(available);
         setOptionsError("");
       })
       .catch(() => {
-        setCameraTypes(fallbackCameraTypes);
         setAddons(fallbackAddons);
-        setCameraTypeId(fallbackCameraTypes[0]._id);
-        setOptionsError("Unable to load live camera types. Showing default pricing options.");
+        setOptionsError("Unable to load live material prices, using defaults.");
       })
       .finally(() => setOptionsLoading(false));
-  }, []);
+  }, [open, service]);
 
-  const input = useMemo(() => ({
-    categoryId,
-    subcategoryId,
-    cameraTypeId,
-    cameraCount,
-    installationArea,
-    wireLength,
-    addonIds,
-  }), [addonIds, cameraCount, cameraTypeId, categoryId, installationArea, subcategoryId, wireLength]);
-
-  useEffect(() => {
-    if (!cameraTypeId) return;
-    let ignore = false;
-    setLoading(true);
-    cctvApi.calculate(input)
-      .then((result) => { if (!ignore) setPrice(result); })
-      .catch(() => { if (!ignore) setPrice(calculateFallbackCctvPrice(input, cameraTypes, addons)); })
-      .finally(() => { if (!ignore) setLoading(false); });
-    return () => { ignore = true; };
-  }, [input, cameraTypeId]);
-
-  function toggleAddon(id: string) {
-    setAddonIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+  function priceForMaterial(matId: string) {
+    const mat = MATERIALS.find((m) => m.id === matId);
+    if (!mat) return 0;
+    const candidate = addons.find((a) => a.name && a.name.toLowerCase().includes(mat.name.toLowerCase()));
+    if (candidate && typeof candidate.price === "number" && candidate.price > 0) return candidate.price;
+    return mat.defaultPrice || 0;
   }
 
-  function addToCart() {
-    if (!price) return;
-    addCctvCartItem({
-      serviceSlug: service.slug,
-      serviceName: service.name,
-      categoryId,
-      subcategoryId: service._id,
-      input,
-      price,
+  useEffect(() => {
+    let materialCost = 0;
+    let labourCost = 0;
+    Object.entries(selectedMaterials).forEach(([id, qty]) => {
+      const price = priceForMaterial(id);
+      if (id === "labour") labourCost += price * qty; else materialCost += price * qty;
+    });
+    const serviceCostMap: Record<string, number> = {
+      "Wired Camera Installation": 499,
+      "Wireless Camera Installation": 599,
+      "Dome Camera Installation": 549,
+      "Bullet Camera Installation": 529,
+      "PTZ Camera Installation": 1299,
+      "DVR Installation": 799,
+      "NVR Installation": 899,
+      "CCTV Repair": 399,
+      "CCTV Maintenance": 299,
+    };
+    const serviceCost = serviceCostMap[serviceType] || 499;
+    const grandTotal = serviceCost + materialCost + labourCost;
+    setPriceBreakdown({ serviceCost, materialCost, labourCost, grandTotal });
+  }, [selectedMaterials, serviceType, addons]);
+
+  function toggleMaterial(id: string) {
+    setSelectedMaterials((s) => {
+      const copy = { ...s };
+      if (copy[id]) delete copy[id]; else copy[id] = 1;
+      return copy;
     });
   }
 
-  function bookNow() {
-    addToCart();
-    router.push("/checkout");
+  function setMaterialQty(id: string, qty: number) {
+    setSelectedMaterials((s) => ({ ...s, [id]: Math.max(0, Math.floor(qty || 0)) }));
   }
 
-  const breakdown = price?.priceBreakdown;
+  function goNext() { if (step < 5) setStep(step + 1); }
+  function goPrev() { if (step > 1) setStep(step - 1); }
 
-  return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-950">Pricing Calculator</h2>
-          <p className="text-sm text-slate-500">Live estimate updates as you change CCTV requirements.</p>
-        </div>
-        <Zap className="h-5 w-5 text-emerald-600" />
-      </div>
-
-      <div className="mt-5 grid gap-4">
-        {optionsLoading && <p className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500">Loading camera types...</p>}
-        {optionsError && <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">{optionsError}</p>}
-        <label className="grid gap-1 text-sm font-medium text-slate-700">
-          Camera type
-          <select className="h-10 rounded-md border border-slate-300 px-3" value={cameraTypeId} onChange={(e) => setCameraTypeId(e.target.value)} disabled={optionsLoading || !cameraTypes.length}>
-            {!cameraTypes.length && <option value="">Unable to load camera types</option>}
-            {cameraTypes.map((type) => <option key={type._id} value={type._id}>{type.name} - {money(type.installationPrice)}</option>)}
-          </select>
-        </label>
-        <div className="grid grid-cols-2 gap-3">
-          <label className="grid gap-1 text-sm font-medium text-slate-700">
-            Cameras
-            <input className="h-10 rounded-md border border-slate-300 px-3" type="number" min={1} value={cameraCount} onChange={(e) => setCameraCount(Number(e.target.value) || 1)} />
-          </label>
-          <label className="grid gap-1 text-sm font-medium text-slate-700">
-            Wire length (m)
-            <input className="h-10 rounded-md border border-slate-300 px-3" type="number" min={0} value={wireLength} onChange={(e) => setWireLength(Number(e.target.value) || 0)} />
-          </label>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          {(["indoor", "outdoor"] as const).map((area) => (
-            <button key={area} type="button" onClick={() => setInstallationArea(area)} className={`h-10 rounded-md border text-sm font-semibold capitalize ${installationArea === area ? "border-emerald-600 bg-emerald-50 text-emerald-700" : "border-slate-200 text-slate-600"}`}>
-              {area}
-            </button>
-          ))}
-        </div>
-        <div>
-          <p className="text-sm font-medium text-slate-700">Add-ons</p>
-          <div className="mt-2 grid gap-2 sm:grid-cols-2">
-            {addons.map((addon) => (
-              <label key={addon._id} className="flex items-center justify-between gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm">
-                <span><input className="mr-2" type="checkbox" checked={addonIds.includes(addon._id)} onChange={() => toggleAddon(addon._id)} />{addon.name}</span>
-                <span className="font-semibold">{money(addon.price)}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-5 rounded-md bg-slate-50 p-4">
-        {loading ? <p className="text-sm text-slate-500">Calculating...</p> : (
-          <div className="space-y-2 text-sm">
-            <Line label="Base charge" value={breakdown?.baseCharge} />
-            <Line label="Camera total" value={breakdown?.cameraTotal} />
-            <Line label="Area charge" value={breakdown?.areaCharge} />
-            <Line label="Wire total" value={breakdown?.wireTotal} />
-            <Line label="Add-ons" value={breakdown?.addonsTotal} />
-            <Line label="Discount" value={-(breakdown?.discountTotal || 0)} />
-            <Line label="Tax" value={breakdown?.taxTotal} />
-            <div className="flex items-center justify-between border-t border-slate-200 pt-3 text-base font-bold text-slate-950">
-              <span>Grand total</span>
-              <span>{money(breakdown?.grandTotal)}</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <Button className="mt-4 w-full bg-emerald-600 text-white hover:bg-emerald-700" onClick={addToCart} disabled={!price}>
-        <ShoppingCart className="h-4 w-4" /> Add To Cart
-      </Button>
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
-        <Button className="bg-slate-950 text-white hover:bg-slate-800" onClick={bookNow} disabled={!price}>
-          <CalendarCheck className="h-4 w-4" /> Book Now
-        </Button>
-        <Button variant="outline" onClick={onRequestQuote}>
-          <FileText className="h-4 w-4" /> Request Quote
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-export function CctvBookingConfigModal({
-  open,
-  onOpenChange,
-  service,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  service: CctvSubcategory;
-}) {
-  const router = useRouter();
-  const [cameraTypes, setCameraTypes] = useState<CctvCameraType[]>([]);
-  const [addons, setAddons] = useState<CctvAddon[]>([]);
-  const [cameraTypeId, setCameraTypeId] = useState("");
-  const [cameraCount, setCameraCount] = useState(1);
-  const [installationArea, setInstallationArea] = useState<"indoor" | "outdoor">("indoor");
-  const [wireLength, setWireLength] = useState(10);
-  const [addonIds, setAddonIds] = useState<string[]>([]);
-  const [price, setPrice] = useState<CctvPriceResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [optionsLoading, setOptionsLoading] = useState(true);
-  const [optionsError, setOptionsError] = useState("");
-  const [miniCartOpen, setMiniCartOpen] = useState(false);
-  const categoryId = typeof service.categoryId === "string" && service.categoryId.length === 24 ? service.categoryId : typeof service.categoryId === "object" ? service.categoryId?._id : undefined;
-  const subcategoryId = service._id && service._id.length === 24 ? service._id : undefined;
-
-  useEffect(() => {
-    if (!open || cameraTypes.length) return;
-    setOptionsLoading(true);
-    Promise.all([cctvApi.cameraTypes(), cctvApi.addons()])
-      .then(([types, addonList]) => {
-        const nextTypes = types.length ? types : fallbackCameraTypes;
-        setCameraTypes(nextTypes);
-        let availableAddons = addonList.length ? addonList : fallbackAddons;
-        if ((service as any)?.supportedAddons && (service as any).supportedAddons.length) {
-          availableAddons = availableAddons.filter((a) => (service as any).supportedAddons.includes(a.name));
-        }
-        setAddons(availableAddons);
-        setCameraTypeId(nextTypes[0]?._id || "");
-        setOptionsError("");
-      })
-      .catch(() => {
-        setCameraTypes(fallbackCameraTypes);
-        setAddons(fallbackAddons);
-        setCameraTypeId(fallbackCameraTypes[0]._id);
-        setOptionsError("Unable to load live camera types. Showing default pricing options.");
-      })
-      .finally(() => setOptionsLoading(false));
-  }, [open, cameraTypes.length]);
-
-  const input = useMemo(() => ({
-    categoryId,
-    subcategoryId,
-    cameraTypeId,
-    cameraCount,
-    installationArea,
-    wireLength,
-    addonIds,
-  }), [addonIds, cameraCount, cameraTypeId, categoryId, installationArea, subcategoryId, wireLength]);
-
-  useEffect(() => {
-    if (!open || !cameraTypeId) return;
-    let ignore = false;
-    setLoading(true);
-    cctvApi.calculate(input)
-      .then((result) => { if (!ignore) setPrice(result); })
-      .catch(() => { if (!ignore) setPrice(calculateFallbackCctvPrice(input, cameraTypes, addons)); })
-      .finally(() => { if (!ignore) setLoading(false); });
-    return () => { ignore = true; };
-  }, [addons, cameraTypes, cameraTypeId, input, open]);
-
-  function toggleAddon(id: string) {
-    setAddonIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+  function buildMaterialsArray() {
+    // convert selectedMaterials map to array with addon mapping and unit prices
+    return Object.entries(selectedMaterials).map(([matId, qty]) => {
+      const matDef = formattedMaterials.find((m) => m.id === matId) || { id: matId, name: matId, unit: 'each', price: 0 };
+      const matchedAddon = addons.find((a) => a.name && matDef.name && a.name.toLowerCase().includes(matDef.name.toLowerCase()));
+      return {
+        id: matDef.id,
+        name: matDef.name,
+        unit: matDef.unit,
+        qty,
+        unitPrice: matDef.price,
+        addonId: matchedAddon?._id || null,
+        total: (matDef.price || 0) * qty,
+      };
+    });
   }
 
   function storeConfiguration() {
-    if (!price) return false;
-    addCctvCartItem({
+    const materialsArray = buildMaterialsArray();
+    const payload = {
       serviceSlug: service.slug,
       serviceName: service.name,
       categoryId,
       subcategoryId: service._id,
-      input,
-      price,
-    });
+      input: { serviceType, materials: materialsArray, mapLink, date, time, notes },
+      price: { priceBreakdown },
+    };
+    addCctvCartItem(payload as any);
+    return payload;
+  }
+
+  function isValidMapLink(link: string) {
+    if (!link) return false;
+    return /https:\/\/(maps\.google\.com|goo\.gl\/maps|maps\.app\.goo\.gl)\/.*/i.test(link);
+  }
+
+  function isValidTime(t: string) {
+    return /^([01]\d|2[0-3]):([0-5]\d)$/.test(t);
+  }
+
+  function isConfigValid() {
+    if (!Object.keys(selectedMaterials).length) return false;
+    if (!mapLink || !isValidMapLink(mapLink)) return false;
+    if (!date) return false;
+    if (!time || !isValidTime(time)) return false;
     return true;
   }
 
   function addToCart() {
-    if (storeConfiguration()) setMiniCartOpen(true);
+    if (!isConfigValid()) {
+      window.alert('Please complete required fields: select materials, provide valid Google Maps link, date and time.');
+      return;
+    }
+    storeConfiguration();
+    setMiniCartOpen(true);
   }
 
   function continueBooking() {
-    if (!storeConfiguration()) return;
+    if (!isConfigValid()) {
+      window.alert('Please complete required fields before continuing to booking.');
+      return;
+    }
+    storeConfiguration();
     onOpenChange(false);
     router.push("/checkout");
   }
 
-  const breakdown = price?.priceBreakdown;
+  const materialsByServiceType: Record<string, string[]> = {
+    "Wired Camera Installation": ["cable_3p1", "cat6", "labour", "box_5x5"],
+    "Wireless Camera Installation": ["cat6_premium", "connector_set", "labour"],
+    "Dome Camera Installation": ["cat6", "labour", "box_5x5"],
+    "Bullet Camera Installation": ["cat6", "labour", "box_5x5"],
+    "PTZ Camera Installation": ["ptz_camera", "smps", "poe_switch", "network_rack"],
+    "DVR Installation": ["dvr", "hdd", "connector_set", "smps"],
+    "NVR Installation": ["nvr", "hdd", "connector_set", "smps"],
+    "CCTV Repair": ["connector_set", "junction_box", "labour"],
+    "CCTV Maintenance": ["connector_set", "labour"],
+  };
+
+  const formattedMaterials = MATERIALS
+    .filter((m) => (materialsByServiceType[serviceType] || []).includes(m.id))
+    .map((m) => ({ ...m, price: priceForMaterial(m.id) }));
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-5xl">
-          <DialogHeader>
-            <DialogTitle>Configure {service.name}</DialogTitle>
-            <DialogDescription>Select installation options before adding to cart or continuing to checkout.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-5 lg:grid-cols-[1fr,320px]">
-            <div className="grid gap-4">
-              {optionsLoading && <p className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500">Loading camera types...</p>}
-              {optionsError && <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">{optionsError}</p>}
-              <label className="grid gap-1 text-sm font-medium text-slate-700">
-                Step 1: Camera Type
-                <select className="h-11 rounded-md border border-slate-300 px-3" value={cameraTypeId} onChange={(event) => setCameraTypeId(event.target.value)} disabled={optionsLoading || !cameraTypes.length}>
-                  {!cameraTypes.length && <option value="">Unable to load camera types</option>}
-                  {cameraTypes.map((type) => <option key={type._id} value={type._id}>{type.name} - {money(type.installationPrice)}</option>)}
-                </select>
-              </label>
-              <label className="grid gap-1 text-sm font-medium text-slate-700">
-                Step 2: Camera Count
-                <input className="h-11 rounded-md border border-slate-300 px-3" type="number" min={1} value={cameraCount} onChange={(event) => setCameraCount(Number(event.target.value) || 1)} />
-              </label>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-5xl">
+        <DialogHeader>
+          <DialogTitle>Configure CCTV Installation</DialogTitle>
+          <DialogDescription>Select options below — pricing updates live.</DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-5 lg:grid-cols-[1fr,320px]">
+          <div className="grid gap-4">
+            {step === 1 && (
               <div>
-                <p className="text-sm font-medium text-slate-700">Step 3: Indoor / Outdoor</p>
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  {(["indoor", "outdoor"] as const).map((area) => (
-                    <button key={area} type="button" onClick={() => setInstallationArea(area)} className={`h-11 rounded-md border text-sm font-semibold capitalize ${installationArea === area ? "border-emerald-600 bg-emerald-50 text-emerald-700" : "border-slate-200 text-slate-600"}`}>
-                      {area}
-                    </button>
+                <label className="grid gap-1 text-sm font-medium text-slate-700">Step 1: Service Type</label>
+                <select className="h-11 w-full rounded-md border border-slate-300 px-3" value={serviceType} onChange={(e) => setServiceType(e.target.value)}>
+                  {serviceTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div>
+                <p className="text-sm font-medium text-slate-700">Step 2: Materials Required</p>
+                <div className="mt-3 grid gap-3">
+                  {formattedMaterials.map((m) => (
+                    <div key={m.id} className="flex items-center gap-3 rounded-md border border-slate-200 px-3 py-2">
+                      <input type="checkbox" checked={!!selectedMaterials[m.id]} onChange={() => toggleMaterial(m.id)} />
+                      <div className="flex-1">
+                        <div className="font-medium">{m.name} <span className="text-sm text-slate-500">({m.unit})</span></div>
+                        <div className="text-sm text-slate-500">Price: ₹{m.price} per {m.unit}</div>
+                      </div>
+                      {selectedMaterials[m.id] && (
+                        <input type="number" min={0} value={selectedMaterials[m.id]} onChange={(e) => setMaterialQty(m.id, Number(e.target.value))} className="w-28 rounded-md border px-2 py-1" />
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
-              <label className="grid gap-1 text-sm font-medium text-slate-700">
-                Step 4: Wire Length
-                <input className="h-11 rounded-md border border-slate-300 px-3" type="number" min={0} value={wireLength} onChange={(event) => setWireLength(Number(event.target.value) || 0)} />
-              </label>
+            )}
+
+            {step === 3 && (
               <div>
-                <p className="text-sm font-medium text-slate-700">Step 5: Add-ons</p>
-                <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                  {addons.map((addon) => (
-                    <label key={addon._id} className="flex items-center justify-between gap-2 rounded-md border border-slate-200 px-3 py-2 text-sm">
-                      <span><input className="mr-2" type="checkbox" checked={addonIds.includes(addon._id)} onChange={() => toggleAddon(addon._id)} />{addon.name}</span>
-                      <span className="font-semibold">{money(addon.price)}</span>
-                    </label>
-                  ))}
-                </div>
+                <label className="grid gap-1 text-sm font-medium text-slate-700">Step 3: Location (Google Maps URL)</label>
+                <input className="h-11 w-full rounded-md border border-slate-300 px-3" placeholder="https://maps.google.com/..." value={mapLink} onChange={(e) => setMapLink(e.target.value)} />
+              </div>
+            )}
+
+            {step === 4 && (
+              <div>
+                <label className="grid gap-1 text-sm font-medium text-slate-700">Step 4: Preferred Date</label>
+                <input className="h-11 w-full rounded-md border border-slate-300 px-3" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                <label className="grid gap-1 text-sm font-medium text-slate-700 mt-3">Preferred Time</label>
+                <input className="h-11 w-full rounded-md border border-slate-300 px-3" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+              </div>
+            )}
+
+            {step === 5 && (
+              <div>
+                <label className="grid gap-1 text-sm font-medium text-slate-700">Step 5: Notes</label>
+                <textarea className="w-full rounded-md border border-slate-300 px-3 py-2" placeholder="Any additional requirements" value={notes} onChange={(e) => setNotes(e.target.value)} />
+                <div className="text-sm text-slate-500 mt-2">Examples: Need concealed wiring; Existing DVR available; Need 4 additional cameras; Need cable replacement.</div>
+              </div>
+            )}
+
+            <div className="mt-4 flex items-center gap-2">
+              {step > 1 && <Button variant="outline" onClick={goPrev}>Back</Button>}
+              {step < 5 && <Button onClick={goNext}>Next</Button>}
+            </div>
+          </div>
+
+          <aside className="rounded-lg bg-slate-50 p-4 lg:sticky lg:top-4 lg:self-start">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-slate-950">Live Price Summary</h3>
+              <Zap className="h-4 w-4 text-emerald-600" />
+            </div>
+            {optionsLoading && <p className="mt-3 text-sm text-slate-500">Loading material prices...</p>}
+            {optionsError && <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">{optionsError}</p>}
+            <div className="mt-4 space-y-2 text-sm">
+              <Line label="Service Cost" value={priceBreakdown.serviceCost} />
+              <Line label="Material Cost" value={priceBreakdown.materialCost} />
+              <Line label="Labour Cost" value={priceBreakdown.labourCost} />
+              <div className="flex items-center justify-between border-t border-slate-200 pt-3 text-lg font-bold text-slate-950">
+                <span>Grand Total</span>
+                <span>{money(priceBreakdown.grandTotal)}</span>
               </div>
             </div>
-            <aside className="rounded-lg bg-slate-50 p-4 lg:sticky lg:top-4 lg:self-start">
-              <h3 className="text-lg font-semibold text-slate-950">Live Price Summary</h3>
-              {loading ? <p className="mt-3 text-sm text-slate-500">Calculating...</p> : (
-                <div className="mt-4 space-y-2 text-sm">
-                  <Line label="Base Price" value={breakdown?.baseCharge} />
-                  <Line label="Camera Total" value={breakdown?.cameraTotal} />
-                  <Line label="Wire Total" value={breakdown?.wireTotal} />
-                  <Line label="Addon Total" value={breakdown?.addonsTotal} />
-                  <Line label="Tax" value={breakdown?.taxTotal} />
-                  <div className="flex items-center justify-between border-t border-slate-200 pt-3 text-lg font-bold text-slate-950">
-                    <span>Grand Total</span>
-                    <span>{money(breakdown?.grandTotal)}</span>
-                  </div>
-                </div>
-              )}
-            </aside>
-          </div>
-          <div className="flex flex-col gap-2 border-t border-slate-200 pt-4 sm:flex-row sm:justify-end">
-            <Button variant="outline" onClick={addToCart} disabled={!price}><ShoppingCart className="h-4 w-4" /> Add To Cart</Button>
-            <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={continueBooking} disabled={!price}><CalendarCheck className="h-4 w-4" /> Continue Booking</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+            <div className="mt-4 grid gap-2">
+              <Button variant="outline" onClick={addToCart} disabled={!isConfigValid()}><ShoppingCart className="h-4 w-4" /> Add To Cart</Button>
+              <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={continueBooking} disabled={!isConfigValid()}><CalendarCheck className="h-4 w-4" /> Continue Booking</Button>
+              <Button variant="ghost" onClick={onRequestQuote}><FileText className="h-4 w-4" /> Request Quote</Button>
+            </div>
+          </aside>
+        </div>
+      </DialogContent>
       <Dialog open={miniCartOpen} onOpenChange={setMiniCartOpen}>
         <DialogContent>
           <DialogHeader>
@@ -355,7 +318,7 @@ export function CctvBookingConfigModal({
             <DialogDescription>{service.name} has been added with the selected configuration.</DialogDescription>
           </DialogHeader>
           <div className="rounded-md bg-slate-50 p-4 text-sm">
-            <Line label="Grand Total" value={breakdown?.grandTotal} />
+            <Line label="Grand Total" value={priceBreakdown.grandTotal} />
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
             <Button variant="outline" onClick={() => setMiniCartOpen(false)}>Continue Browsing</Button>
@@ -363,10 +326,12 @@ export function CctvBookingConfigModal({
           </div>
         </DialogContent>
       </Dialog>
-    </>
+    </Dialog>
   );
 }
 
 function Line({ label, value }: { label: string; value?: number }) {
   return <div className="flex items-center justify-between"><span className="text-slate-600">{label}</span><span className="font-semibold text-slate-900">{money(value)}</span></div>;
 }
+
+export default CctvBookingConfigModal;

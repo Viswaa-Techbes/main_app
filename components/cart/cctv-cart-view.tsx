@@ -20,7 +20,7 @@ export function CctvCartView() {
     return () => window.removeEventListener("cctv-cart-updated", reload);
   }, []);
 
-  const total = items.reduce((sum, item) => sum + (item.price.priceBreakdown.grandTotal || 0), 0);
+  const total = items.reduce((sum, item) => sum + ((item.price?.priceBreakdown?.grandTotal) || 0), 0);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
@@ -45,12 +45,12 @@ export function CctvCartView() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h2 className="font-semibold text-slate-950">{item.serviceName}</h2>
-                    <p className="mt-1 text-sm text-slate-600">{item.price.cameraType.name} • {item.price.cameraCount} camera(s) • {item.price.installationArea} • {item.price.wireLength}m wire</p>
-                    <p className="mt-2 text-sm text-slate-500">Add-ons: {item.price.addons.map((a) => a.name).join(", ") || "None"}</p>
+                    <p className="mt-1 text-sm text-slate-600">{item.price?.cameraType?.name || 'Camera'} • {item.price?.cameraCount || 0} camera(s) • {item.price?.installationArea || '—'} • {item.price?.wireLength ?? 0}m wire</p>
+                    <p className="mt-2 text-sm text-slate-500">Add-ons: {(item.price?.addons && item.price.addons.length) ? item.price.addons.map((a) => a.name).join(", ") : "None"}</p>
                   </div>
                   <button aria-label="Remove item" onClick={() => removeCctvCartItem(item.id)} className="rounded-md border border-slate-200 p-2 text-slate-500 hover:text-rose-600"><Trash2 className="h-4 w-4" /></button>
                 </div>
-                <div className="mt-3 text-right text-lg font-bold text-slate-950">{money(item.price.priceBreakdown.grandTotal)}</div>
+                <div className="mt-3 text-right text-lg font-bold text-slate-950">{money(item.price?.priceBreakdown?.grandTotal)}</div>
               </div>
             ))}
           </div>

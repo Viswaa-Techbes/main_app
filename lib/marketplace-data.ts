@@ -177,28 +177,7 @@ const defaultFaqs: FaqItem[] = [
   },
 ];
 
-const cctvServiceNames = [
-  "Home CCTV Installation",
-  "Office CCTV Installation",
-  "Apartment CCTV Installation",
-  "Shop CCTV Installation",
-  "Warehouse CCTV Installation",
-  "Factory CCTV Installation",
-  "Indoor Camera Installation",
-  "Outdoor Camera Installation",
-  "Wireless CCTV Installation",
-  "IP Camera Installation",
-  "Dome Camera Installation",
-  "Bullet Camera Installation",
-  "PTZ Camera Installation",
-  "DVR Installation",
-  "NVR Installation",
-  "CCTV Repair",
-  "CCTV Maintenance",
-  "AMC Service",
-  "Mobile Monitoring Setup",
-  "CCTV Cabling",
-];
+// Single unified CCTV service — individual sub-service names removed.
 
 function slugify(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -234,95 +213,59 @@ function reviewSet(serviceName: string): Review[] {
 }
 
 export const services: MarketplaceService[] = [
-  ...cctvServiceNames.map((title, index): MarketplaceService => ({
-    id: 1000 + index,
-    slug: slugify(title),
-    title,
+  // Single unified CCTV Installation service (all configurations happen inside this page)
+  {
+    id: 1000,
+    slug: "cctv-installation",
+    title: "CCTV Installation",
     categoryId: "cctv",
     category: "CCTV Installation",
-    tagline: "Configurable CCTV service with camera, cabling, and add-on pricing.",
+    tagline: "Configurable CCTV service with step-by-step booking and material selection.",
     description:
-      `${title} includes site review, camera placement guidance, installation, cable routing, recorder or mobile monitoring setup where applicable, and handover testing.`,
+      "CCTV Installation includes site review, camera placement, installation, cabling, recorder setup, and handover testing. Configure camera type, materials, and schedule in the booking flow.",
     price: "From Rs. 499",
     priceValue: 499,
     rating: 4.8,
-    reviewCount: 2304 - index * 37,
-    duration: index < 6 ? "2-6 hrs" : "1-3 hrs",
-    durationMinutes: index < 6 ? 360 : 180,
-    image: index === 0
-      ? "https://images.unsplash.com/photo-1505691723518-36a9a0b5f6b5?w=1200&h=900&fit=crop" // home exterior
-      : index === 1
-      ? "https://images.unsplash.com/photo-1520975910813-5f2d9f2c4f0d?w=1200&h=900&fit=crop" // office
-      : index === 2
-      ? "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1200&h=900&fit=crop" // apartment
-      : index === 3
-      ? "https://images.unsplash.com/photo-1581091655789-7b32d7f9c9b6?w=1200&h=900&fit=crop" // shop
-      : index === 4
-      ? "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?w=1200&h=900&fit=crop" // warehouse
-      : index === 12
-      ? "https://images.unsplash.com/photo-1590550360185-0b5b1e4b6f9b?w=1200&h=900&fit=crop" // ptz
-      : index === 8
-      ? "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?w=1200&h=900&fit=crop" // wireless
-      : "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=900&fit=crop",
+    reviewCount: 2400,
+    duration: "2-6 hrs",
+    durationMinutes: 360,
+    image: "https://images.unsplash.com/photo-1505691723518-36a9a0b5f6b5?w=1200&h=900&fit=crop",
     gallery: [
-      index === 0
-        ? "https://images.unsplash.com/photo-1505691723518-36a9a0b5f6b5?w=1200&h=900&fit=crop"
-        : index === 1
-        ? "https://images.unsplash.com/photo-1520975910813-5f2d9f2c4f0d?w=1200&h=900&fit=crop"
-        : "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=900&fit=crop",
+      "https://images.unsplash.com/photo-1505691723518-36a9a0b5f6b5?w=1200&h=900&fit=crop",
       "https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?w=1200&h=900&fit=crop",
-      "https://images.unsplash.com/photo-1520975910813-5f2d9f2c4f0d?w=1200&h=900&fit=crop",
     ],
-    badge: index === 0 ? "Most Booked" : "Configurable",
+    badge: "Configurable",
     features: [
-      "Camera type, count, and placement planning",
-      "Indoor or outdoor installation selection",
-      "Wire length and accessory add-ons",
-      "Live price calculation before checkout",
+      "Single unified booking flow for all CCTV types",
+      "Material selection with per-meter pricing",
+      "Live price calculation",
+      "Add to cart or continue to checkout",
     ],
     includes: [
-      "Site inspection and installation guidance",
+      "Site inspection and placement guidance",
       "Camera mounting and alignment",
       "Basic DVR/NVR or mobile viewing setup",
       "Workmanship warranty",
     ],
-    overview: `${title} - tailored CCTV service with options for camera types, placement, and recording hardware. We recommend reviewing supported products and addons for compatibility before booking.`,
+    overview:
+      "Unified CCTV Installation service. Use the booking flow to pick the service type, required materials, location, schedule, and add notes. All pricing is computed live.",
     excludedServices: ["Third-party device warranty", "Structural modifications"],
-    supportedProducts:
-      index === 0
-        ? ["Dome Camera", "Bullet Camera", "DVR", "SMPS", "Cable Roll", "Junction Box"]
-        : index === 1
-        ? ["IP Camera", "NVR", "PoE Switch", "Network Rack", "Cat6 Cable"]
-        : index === 12
-        ? ["PTZ Camera", "PTZ Controller", "NVR", "Joystic Controller", "PoE Switch"]
-        : ["Camera", "DVR/NVR", "Cables", "Power Adapter"],
-    supportedAddons:
-      index === 0
-        ? ["Dome Camera", "Bullet Camera", "DVR", "SMPS", "Cable Roll", "Junction Box"]
-        : index === 1
-        ? ["IP Camera", "NVR", "PoE Switch", "Network Rack", "Cat6 Cable"]
-        : index === 12
-        ? ["PTZ Camera", "PTZ Controller", "NVR", "Joystick Controller"]
-        : ["Extra Cable", "Connector Kit", "Memory Card"],
+    supportedProducts: ["Dome Camera", "Bullet Camera", "PTZ Camera", "DVR", "NVR", "Hard Disk", "SMPS"],
+    supportedAddons: ["Connector Set", "PVC Casing", "Junction Box", "PoE Switch"],
     supportedSpareParts: ["Connector Kit", "Power Adapter", "SMPS", "Hard Disk"],
     steps: [
-      "Select camera type, camera count, area, wire length, and add-ons.",
-      "Review live price estimate on the service page.",
-      "Add the configured service to cart and checkout.",
-      "Admin assigns a technician for the preferred visit slot.",
+      "Select service type and camera model",
+      "Choose required materials and quantities",
+      "Provide location",
+      "Pick preferred date and time",
+      "Add any special notes",
     ],
-    faqs: [
-      ...defaultFaqs,
-      {
-        question: "Is wire charged separately?",
-        answer: "Yes. Wire cost is calculated from the required meter length using the configured per-meter rate.",
-      },
-    ],
-    reviews: reviewSet(title),
+    faqs: defaultFaqs,
+    reviews: reviewSet("CCTV Installation"),
     recommendedFor: ["Homes", "Offices", "Retail shops", "Apartments", "Warehouses"],
-    timeSlots: ["09:00 AM", "11:30 AM", "02:00 PM", "04:30 PM"],
+    timeSlots: ["09:00", "11:30", "14:00", "16:30"],
     configurableType: "cctv",
-  })),
+  },
   {
     id: 2,
     slug: "office-network-deployment",

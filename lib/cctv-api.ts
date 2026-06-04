@@ -2,7 +2,7 @@ import { API_BASE_URL, AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
 
 export type CctvCategory = { _id: string; name: string; slug: string; description: string };
 export type CctvCameraType = { _id: string; name: string; slug: string; description: string; installationPrice: number };
-export type CctvAddon = { _id: string; name: string; slug: string; price: number };
+export type CctvAddon = { _id: string; name: string; slug: string; price: number; unit?: string; image?: string; description?: string };
 export type CctvSubcategory = {
   _id: string;
   categoryId: CctvCategory | string;
@@ -162,10 +162,16 @@ export const cctvApi = {
   subcategory: (slug: string) => api<CctvSubcategory>(`/api/v2/cctv/subcategories/${slug}`),
   cameraTypes: () => api<CctvCameraType[]>("/api/v2/cctv/camera-types"),
   addons: () => api<CctvAddon[]>("/api/v2/cctv/addons"),
+  materials: () => api<CctvAddon[]>("/api/v2/materials"),
   calculate: (body: CctvPriceInput) =>
     api<CctvPriceResult>("/api/v2/cctv/calculate-price", { method: "POST", body: JSON.stringify(body) }),
   createBooking: (body: unknown) =>
     api<any>("/api/v2/bookings/create", { method: "POST", body: JSON.stringify(body) }),
   createLead: (body: unknown) =>
     api<any>("/leads", { method: "POST", body: JSON.stringify(body) }),
+  createOrder: (body: unknown) =>
+    api<any>("/api/v2/payments/create-order", { method: "POST", body: JSON.stringify(body) }),
+  verifyPayment: (body: unknown) =>
+    api<any>("/api/v2/payments/verify-payment", { method: "POST", body: JSON.stringify(body) }),
+  myPayments: () => api<any>("/api/v2/payment/my"),
 };
