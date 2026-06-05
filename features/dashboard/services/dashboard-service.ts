@@ -1,5 +1,3 @@
-import { API_BASE_URL, AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
-
 export type DashboardMetric = {
   title: string;
   value: string;
@@ -68,17 +66,12 @@ export type DashboardData = {
   serviceReports: ServiceReport[];
 };
 
-function token() {
-  if (typeof window === "undefined") return "";
-  return window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || "";
-}
-
-async function backend<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+async function appApi<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(path, {
     ...init,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...(token() ? { Authorization: `Bearer ${token()}` } : {}),
       ...(init?.headers || {}),
     },
   });
@@ -89,7 +82,7 @@ async function backend<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const dashboardService = {
   async getDashboardData(): Promise<DashboardData> {
-    const data = await backend<any>("/api/v2/user/dashboard");
+    const data = await appApi<any>("/api/dashboard");
     return {
       metrics: [
         { title: "Upcoming services", value: String(data.metrics?.upcomingServices ?? 0), tone: "emerald" },
@@ -105,7 +98,7 @@ export const dashboardService = {
       serviceReports: data.serviceReports || [],
     };
   },
-  createAddress: (body: Partial<UserAddress>) => backend<UserAddress>("/api/v2/user/address", { method: "POST", body: JSON.stringify(body) }),
-  updateAddress: (id: string, body: Partial<UserAddress>) => backend<UserAddress>(`/api/v2/user/address/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-  deleteAddress: (id: string) => backend<void>(`/api/v2/user/address/${id}`, { method: "DELETE" }),
+  createAddress: (body: Partial<UserAddress>) => appApi<UserAddress>("/api/user/address", { method: "POST", body: JSON.stringify(body) }),
+  updateAddress: (id: string, body: Partial<UserAddress>) => appApi<UserAddress>(`/api/user/address/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+  deleteAddress: (id: string) => appApi<void>(`/api/user/address/${id}`, { method: "DELETE" }),
 };

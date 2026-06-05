@@ -11,6 +11,37 @@ function money(value?: number) {
   return `Rs. ${Math.round(value || 0).toLocaleString("en-IN")}`;
 }
 
+function loadRazorpayCheckout() {
+  return new Promise<void>((resolve, reject) => {
+    if (typeof window === "undefined") return reject(new Error("Window not available"));
+    if ((window as any).Razorpay) {
+      console.log("[Checkout] Razorpay script already loaded");
+      return resolve();
+    }
+    console.log("[Checkout] Loading Razorpay checkout script");
+    const existing = document.querySelector<HTMLScriptElement>('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+    if (existing) {
+      existing.addEventListener("load", () => {
+        console.log("[Checkout] Razorpay checkout script loaded");
+        resolve();
+      }, { once: true });
+      existing.addEventListener("error", () => reject(new Error("Failed to load Razorpay SDK")), { once: true });
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => {
+      console.log("[Checkout] Razorpay checkout script loaded");
+      resolve();
+    };
+    script.onerror = () => {
+      console.error("[Checkout] Razorpay checkout script failed to load");
+      reject(new Error("Failed to load Razorpay SDK"));
+    };
+    document.head.appendChild(script);
+  });
+}
+
 export function CctvCheckoutView() {
   const router = useRouter();
   const [items, setItems] = useState<CctvCartItem[]>([]);
@@ -34,22 +65,14 @@ export function CctvCheckoutView() {
   useEffect(() => {
     async function openExistingPayment(pid: string) {
       try {
+        console.log('[Checkout] Opening existing payment', { paymentId: pid });
         const token = typeof window !== 'undefined' ? window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) : null;
         const res = await fetch(`/api/v2/payment/${pid}`, { headers: { Authorization: `Bearer ${token}` } });
         const json = await res.json();
         if (!json.success) throw new Error(json.message || 'Failed to load payment');
         const { payment, keyId } = json.data;
 
-        // Load Razorpay
-        await new Promise<void>((resolve, reject) => {
-          if (typeof window === 'undefined') return reject(new Error('Window not available'));
-          if ((window as any).Razorpay) return resolve();
-          const script = document.createElement('script');
-          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-          script.onload = () => resolve();
-          script.onerror = () => reject(new Error('Failed to load Razorpay SDK'));
-          document.head.appendChild(script);
-        });
+        await loadRazorpayCheckout();
 
         const options = {
           key: keyId,
@@ -60,6 +83,7 @@ export function CctvCheckoutView() {
           order_id: payment.razorpayOrderId,
           handler: async (resp: any) => {
             try {
+              console.log('[Checkout] Payment Success', resp);
               const verify = await cctvApi.verifyPayment({
                 razorpay_order_id: resp.razorpay_order_id,
                 razorpay_payment_id: resp.razorpay_payment_id,
@@ -69,14 +93,21 @@ export function CctvCheckoutView() {
               const job = verify.job || verify.data?.job || verify.data;
               router.push(`/booking-success?bookingId=${job._id || job.id || ''}`);
             } catch (err: any) {
+              console.error('[Checkout] Payment verification failed', err);
               setError(err?.message || 'Payment verification failed');
             }
           },
+          modal: {
+            ondismiss: () => console.warn('[Checkout] Razorpay popup dismissed'),
+          },
         } as any;
 
+        console.log('[Checkout] Opening Razorpay');
         const rzp = new (window as any).Razorpay(options);
+        rzp.on('payment.failed', (response: any) => console.error('[Checkout] Payment Failed', response));
         rzp.open();
       } catch (err: any) {
+        console.error('[Checkout] Existing payment failed', err);
         setError(err?.message || 'Failed to open existing payment');
       }
     }
@@ -91,11 +122,13 @@ export function CctvCheckoutView() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!first) return;
+    console.log("[Checkout] Place Booking clicked");
     // require authenticated user
     const token = typeof window !== "undefined" ? window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) : null;
     if (!token) {
+      console.warn("[Checkout] Missing auth token, redirecting to login");
       alert('Please login or register before placing a booking.');
-      router.push('/auth/login');
+      router.push('/login');
       return;
     }
     try {
@@ -152,19 +185,12 @@ export function CctvCheckoutView() {
       };
 
       // Create Razorpay order via backend (stores booking payload in Payment record)
+      console.log("[Checkout] Creating Order", bookingPayload);
       const orderResp = await cctvApi.createOrder({ bookingPayload });
       const order = orderResp;
+      console.log("[Checkout] Order Created", order);
 
-      // Load Razorpay script
-      await new Promise<void>((resolve, reject) => {
-        if (typeof window === 'undefined') return reject(new Error('Window not available'));
-        if ((window as any).Razorpay) return resolve();
-        const script = document.createElement('script');
-        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error('Failed to load Razorpay SDK'));
-        document.head.appendChild(script);
-      });
+      await loadRazorpayCheckout();
 
       const options = {
         key: order.keyId || order.key || order.keyId,
@@ -175,17 +201,23 @@ export function CctvCheckoutView() {
         order_id: order.orderId || order.id,
         handler: async (resp: any) => {
           try {
+            console.log("[Checkout] Payment Success", resp);
             const verify = await cctvApi.verifyPayment({
               razorpay_order_id: resp.razorpay_order_id,
               razorpay_payment_id: resp.razorpay_payment_id,
               razorpay_signature: resp.razorpay_signature,
             });
+            console.log("[Checkout] Payment Verified", verify);
             clearCctvCart();
             const job = verify.job || verify.data?.job || verify.data;
             router.push(`/booking-success?bookingId=${job._id || job.id || ''}`);
           } catch (err: any) {
+            console.error("[Checkout] Payment verification failed", err);
             setError(err?.message || 'Payment verification failed');
           }
+        },
+        modal: {
+          ondismiss: () => console.warn("[Checkout] Razorpay popup dismissed"),
         },
         prefill: {
           name: bookingPayload.customerName,
@@ -193,9 +225,12 @@ export function CctvCheckoutView() {
         },
       } as any;
 
+      console.log("[Checkout] Opening Razorpay");
       const rzp = new (window as any).Razorpay(options);
+      rzp.on("payment.failed", (response: any) => console.error("[Checkout] Payment Failed", response));
       rzp.open();
     } catch (err: any) {
+      console.error("[Checkout] Checkout failed", err);
       setError(err.message || "Checkout failed");
     } finally {
       setSaving(false);

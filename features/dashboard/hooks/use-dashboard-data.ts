@@ -10,6 +10,7 @@ export function useDashboardData() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let isActive = true;
@@ -45,11 +46,12 @@ export function useDashboardData() {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   return {
     data,
     isLoading,
     error,
+    reload: () => setReloadKey((value) => value + 1),
   };
 }

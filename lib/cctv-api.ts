@@ -147,12 +147,18 @@ function authHeaders() {
 }
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const method = init?.method || "GET";
+  console.log(`[API] ${method} ${path}`);
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: { "Content-Type": "application/json", ...(init?.headers || {}), ...authHeaders() },
   });
   const payload = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(payload.message || "Request failed");
+  if (!res.ok) {
+    console.error(`[API] ${method} ${path} failed`, { status: res.status, payload });
+    throw new Error(payload.message || "Request failed");
+  }
+  console.log(`[API] ${method} ${path} succeeded`, payload.data);
   return payload.data;
 }
 
