@@ -151,7 +151,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   console.log(`[API] ${method} ${path}`);
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers || {}), ...authHeaders() },
+    headers: { "Content-Type": "application/json", ...(init?.headers as any || {}), ...authHeaders() } as any,
   });
   const payload = await res.json().catch(() => ({}));
   if (!res.ok) {

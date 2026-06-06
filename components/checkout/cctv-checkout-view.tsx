@@ -136,22 +136,16 @@ export function CctvCheckoutView() {
       setError("");
       // Validate map link (if provided) and time format
       const mapLink = first.input?.mapLink || form.location || "";
-      if (mapLink) {
-        const ok = /https:\/\/(maps\.google\.com|goo\.gl\/maps|maps\.app\.goo\.gl)\/.*/i.test(mapLink);
-        if (!ok) {
-          setError('Map link must be a valid Google Maps URL (maps.google.com, goo.gl/maps, maps.app.goo.gl)');
-          setSaving(false);
-          return;
-        }
+      if (!mapLink || mapLink.trim().length === 0) {
+        setError('Map link or location is required.');
+        setSaving(false);
+        return;
       }
       const timeToCheck = first.input?.time || form.timeSlot || "";
-      if (timeToCheck) {
-        const okTime = /^([01]\d|2[0-3]):([0-5]\d)$/.test(timeToCheck);
-        if (!okTime) {
-          setError('Time must be in 24-hour format HH:MM (e.g. 08:00, 13:30)');
-          setSaving(false);
-          return;
-        }
+      if (!timeToCheck || timeToCheck.trim().length === 0) {
+        setError('Preferred time is required.');
+        setSaving(false);
+        return;
       }
       const bookingPayload = {
         service: first.serviceName,

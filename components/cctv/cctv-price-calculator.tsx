@@ -168,15 +168,15 @@ export function CctvBookingConfigModal({ open, onOpenChange, service, onRequestQ
   }
 
   function isValidMapLink(link: string) {
-    if (!link) return false;
-    return /https:\/\/(maps\.google\.com|goo\.gl\/maps|maps\.app\.goo\.gl)\/.*/i.test(link);
+    return link && link.trim().length > 0;
   }
 
   function isValidTime(t: string) {
-    return /^([01]\d|2[0-3]):([0-5]\d)$/.test(t);
+    return t && t.trim().length > 0;
   }
 
   function isConfigValid() {
+    if (!serviceType || !serviceType.trim()) return false;
     if (!Object.keys(selectedMaterials).length) return false;
     if (!mapLink || !isValidMapLink(mapLink)) return false;
     if (!date) return false;
@@ -185,8 +185,18 @@ export function CctvBookingConfigModal({ open, onOpenChange, service, onRequestQ
   }
 
   function addToCart() {
+    const config = {
+      serviceType,
+      selectedMaterials,
+      mapLink,
+      date,
+      time,
+      notes,
+    };
+    console.log("CCTV Config", config);
+
     if (!isConfigValid()) {
-      window.alert('Please complete required fields: select materials, provide valid Google Maps link, date and time.');
+      window.alert('Please complete required fields: select materials, provide Google Maps link, date and time.');
       return;
     }
     storeConfiguration();
@@ -194,6 +204,16 @@ export function CctvBookingConfigModal({ open, onOpenChange, service, onRequestQ
   }
 
   function continueBooking() {
+    const payload = {
+      serviceSlug: service.slug,
+      serviceName: service.name,
+      categoryId,
+      subcategoryId: service._id,
+      input: { serviceType, materials: buildMaterialsArray(), mapLink, date, time, notes },
+      price: { priceBreakdown },
+    };
+    console.log("Checkout Payload", payload);
+
     if (!isConfigValid()) {
       window.alert('Please complete required fields before continuing to booking.');
       return;

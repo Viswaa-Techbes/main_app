@@ -10,7 +10,7 @@ export type CctvCartItem = {
   serviceName: string;
   categoryId?: string;
   subcategoryId: string;
-  input: CctvPriceInput;
+  input: any;
   price: CctvPriceResult;
   notes?: string;
 };
@@ -29,9 +29,17 @@ export function saveCctvCart(items: CctvCartItem[]) {
   window.dispatchEvent(new Event("cctv-cart-updated"));
 }
 
+function generateUUID(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  // Fallback to random alphanumeric string + timestamp
+  return Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
+}
+
 export function addCctvCartItem(item: Omit<CctvCartItem, "id">) {
   const items = getCctvCart();
-  const next = [{ ...item, id: crypto.randomUUID() }, ...items];
+  const next = [{ ...item, id: generateUUID() }, ...items];
   saveCctvCart(next);
 }
 

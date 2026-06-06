@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { ProtectedRoute } from "@/components/auth/protected-route";
 
 export default function AdminPaymentsPage() {
-  const [payments, setPayments] = useState([]);
+  const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -18,7 +18,7 @@ export default function AdminPaymentsPage() {
       const json = await res.json();
       if (!json.success) throw new Error(json.message || 'Failed');
       setPayments(json.data || []);
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
@@ -27,14 +27,14 @@ export default function AdminPaymentsPage() {
 
   useEffect(() => { load(); }, []);
 
-  async function refund(paymentId) {
+  async function refund(paymentId: string) {
     const token = window.localStorage.getItem('techbes_backend_token');
     const res = await fetch('/api/v2/payment/admin/refund', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ paymentId }) });
     const j = await res.json();
     if (j.success) load(); else alert(j.message || 'Refund failed');
   }
 
-  async function retry(paymentId) {
+  async function retry(paymentId: string) {
     const token = window.localStorage.getItem('techbes_backend_token');
     const res = await fetch('/api/v2/payment/admin/retry', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ paymentId }) });
     const j = await res.json();
