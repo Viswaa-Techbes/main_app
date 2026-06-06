@@ -148,12 +148,33 @@ function authHeaders() {
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const method = init?.method || "GET";
-  console.log('API_BASE_URL', API_BASE_URL);
-  console.log('Calling', `${API_BASE_URL}${path}`);
-  console.log(`[API] ${method} ${path}`);
+  
+  // STEP 1
+  console.log("API_BASE_URL =", API_BASE_URL);
+  console.log("PATH =", path);
+  console.log("FINAL URL =", `${API_BASE_URL}${path}`);
+
+  // STEP 3
+  console.log("NEXT_PUBLIC_API_URL =", process.env.NEXT_PUBLIC_API_URL);
+
+  // STEP 4
+  const token = typeof window !== "undefined" ? window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) : null;
+  const headers = { "Content-Type": "application/json", ...(init?.headers as any || {}), ...authHeaders() };
+  console.log("token =", token);
+  console.log("headers =", headers);
+  console.log("request body =", init?.body);
+
+  // STEP 5
+  if (typeof window !== "undefined") {
+    fetch('https://technician-app.onrender.com/api/health')
+      .then(r => r.json())
+      .then(data => console.log("TEST HEALTH SUCCESS:", data))
+      .catch(err => console.error("TEST HEALTH FAILURE:", err));
+  }
+
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
-    headers: { "Content-Type": "application/json", ...(init?.headers as any || {}), ...authHeaders() } as any,
+    headers: headers as any,
   });
   const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
