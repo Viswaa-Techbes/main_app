@@ -148,6 +148,8 @@ function authHeaders() {
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const method = init?.method || "GET";
+  console.log('API_BASE_URL', API_BASE_URL);
+  console.log('Calling', `${API_BASE_URL}${path}`);
   console.log(`[API] ${method} ${path}`);
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
