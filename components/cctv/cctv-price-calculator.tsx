@@ -12,7 +12,21 @@ function money(value?: number) {
   return `Rs. ${Math.round(value || 0).toLocaleString("en-IN")}`;
 }
 
-export function CctvBookingConfigModal({ open, onOpenChange, service, onRequestQuote }: { open: boolean; onOpenChange: (v: boolean) => void; service: CctvSubcategory; onRequestQuote?: () => void; }) {
+import { getCctvCart } from "@/lib/cctv-cart";
+
+export function CctvBookingConfigModal({
+  open,
+  onOpenChange,
+  service,
+  editItem,
+  onRequestQuote
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  service: CctvSubcategory;
+  editItem?: any | null;
+  onRequestQuote?: () => void;
+}) {
   const router = useRouter();
   const [addons, setAddons] = useState<CctvAddon[]>([]);
   const [optionsLoading, setOptionsLoading] = useState(true);
@@ -63,9 +77,37 @@ export function CctvBookingConfigModal({ open, onOpenChange, service, onRequestQ
   const [notes, setNotes] = useState("");
   const [priceBreakdown, setPriceBreakdown] = useState<{ serviceCost: number; materialCost: number; labourCost: number; grandTotal: number }>({ serviceCost: 0, materialCost: 0, labourCost: 0, grandTotal: 0 });
   const [miniCartOpen, setMiniCartOpen] = useState(false);
+  const [replaceConfirmOpen, setReplaceConfirmOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<"cart" | "checkout" | null>(null);
 
   const categoryId = typeof service.categoryId === "string" && service.categoryId.length === 24 ? service.categoryId : typeof service.categoryId === "object" ? service.categoryId?._id : undefined;
   const subcategoryId = service._id && service._id.length === 24 ? service._id : undefined;
+
+  useEffect(() => {
+    if (!open) return;
+    if (editItem) {
+      setServiceType(editItem.input?.serviceType || serviceTypes[0]);
+      
+      const matMap: Record<string, number> = {};
+      (editItem.input?.materials || []).forEach((m: any) => {
+        matMap[m.id] = m.qty;
+      });
+      setSelectedMaterials(matMap);
+      setMapLink(editItem.input?.mapLink || "");
+      setDate(editItem.input?.date || "");
+      setTime(editItem.input?.time || "");
+      setNotes(editItem.input?.notes || "");
+      setStep(1);
+    } else {
+      setServiceType(serviceTypes[0]);
+      setSelectedMaterials({});
+      setMapLink("");
+      setDate("");
+      setTime("");
+      setNotes("");
+      setStep(1);
+    }
+  }, [editItem, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -153,9 +195,10 @@ export function CctvBookingConfigModal({ open, onOpenChange, service, onRequestQ
     });
   }
 
-  function storeConfiguration() {
+  function storeConfiguration(replaceExisting = false) {
     const materialsArray = buildMaterialsArray();
     const payload = {
+      id: editItem ? editItem.id : undefined,
       serviceSlug: service.slug,
       serviceName: service.name,
       categoryId,
@@ -163,7 +206,7 @@ export function CctvBookingConfigModal({ open, onOpenChange, service, onRequestQ
       input: { serviceType, materials: materialsArray, mapLink, date, time, notes },
       price: { priceBreakdown },
     };
-    addCctvCartItem(payload as any);
+    addCctvCartItem(payload as any, replaceExisting);
     return payload;
   }
 
@@ -184,43 +227,62 @@ export function CctvBookingConfigModal({ open, onOpenChange, service, onRequestQ
     return true;
   }
 
-  function addToCart() {
-    const config = {
-      serviceType,
-      selectedMaterials,
-      mapLink,
-      date,
-      time,
-      notes,
-    };
-    console.log("CCTV Config", config);
+  function handleReplaceConfirm(replace: boolean) {
+    setReplaceConfirmOpen(false);
+    storeConfiguration(replace);
+    if (pendingAction === "cart") {
+      setMiniCartOpen(true);
+    } else if (pendingAction === "checkout") {
+      onOpenChange(false);
+      router.push("/checkout");
+    }
+    setPendingAction(null);
+  }
 
+  function addToCart() {
     if (!isConfigValid()) {
-      window.alert('Please complete required fields: select materials, provide Google Maps link, date and time.');
+      window.alert('Please complete all required configuration fields (materials, map link, date, and time).');
       return;
     }
-    storeConfiguration();
-    setMiniCartOpen(true);
+
+    if (editItem) {
+      storeConfiguration(false);
+      setMiniCartOpen(true);
+      return;
+    }
+
+    const cartItems = getCctvCart();
+    if (cartItems.length > 0) {
+      setPendingAction("cart");
+      setReplaceConfirmOpen(true);
+    } else {
+      storeConfiguration(false);
+      setMiniCartOpen(true);
+    }
   }
 
   function continueBooking() {
-    const payload = {
-      serviceSlug: service.slug,
-      serviceName: service.name,
-      categoryId,
-      subcategoryId: service._id,
-      input: { serviceType, materials: buildMaterialsArray(), mapLink, date, time, notes },
-      price: { priceBreakdown },
-    };
-    console.log("Checkout Payload", payload);
-
     if (!isConfigValid()) {
-      window.alert('Please complete required fields before continuing to booking.');
+      window.alert('Please complete all required configuration fields before booking.');
       return;
     }
-    storeConfiguration();
-    onOpenChange(false);
-    router.push("/checkout");
+
+    if (editItem) {
+      storeConfiguration(false);
+      onOpenChange(false);
+      router.push("/checkout");
+      return;
+    }
+
+    const cartItems = getCctvCart();
+    if (cartItems.length > 0) {
+      setPendingAction("checkout");
+      setReplaceConfirmOpen(true);
+    } else {
+      storeConfiguration(false);
+      onOpenChange(false);
+      router.push("/checkout");
+    }
   }
 
   const materialsByServiceType: Record<string, string[]> = {
@@ -343,6 +405,18 @@ export function CctvBookingConfigModal({ open, onOpenChange, service, onRequestQ
           <div className="grid gap-2 sm:grid-cols-2">
             <Button variant="outline" onClick={() => setMiniCartOpen(false)}>Continue Browsing</Button>
             <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={() => router.push("/cart")}>View Cart</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={replaceConfirmOpen} onOpenChange={setReplaceConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cart Already Has Items</DialogTitle>
+            <DialogDescription>Your cart contains existing configurations. Would you like to replace them or add this new configuration to your existing cart?</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <Button variant="outline" onClick={() => handleReplaceConfirm(false)}>Add To Existing Cart</Button>
+            <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={() => handleReplaceConfirm(true)}>Replace Existing Cart</Button>
           </div>
         </DialogContent>
       </Dialog>

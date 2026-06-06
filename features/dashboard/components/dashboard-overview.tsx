@@ -58,29 +58,30 @@ export function DashboardOverview() {
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.1fr,0.9fr]">
         <Panel title="My Bookings" action={<Button asChild variant="outline"><Link href="/services">Book service</Link></Button>}>
           {data.bookings.length ? data.bookings.map((booking) => (
-            <Row key={booking._id} title={booking.serviceName || booking.title || "Service"} meta={`Booking ID: ${booking._id}`} side={`Rs. ${Number(booking.amount || booking.price || 0).toLocaleString("en-IN")}`}>
-              <Status status={booking.status} />
-              <p className="text-sm text-slate-500">{booking.bookingDate || "Date pending"} {booking.timeSlot || ""}</p>
-              <p className="text-sm text-slate-500">Technician: {booking.assignedTechnician?.name || "Unassigned"}</p>
+            <Row key={booking._id} title={booking.serviceName || booking.title || "Service"} meta={`Booking ID: ${booking.bookingNumber || booking.bookingId || booking._id}`} side={`Rs. ${Number(booking.amount || booking.price || 0).toLocaleString("en-IN")}`}>
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 w-full text-xs text-slate-500 border-t pt-3 mt-2">
+                <div><strong>Service Type:</strong> <span className="capitalize">{booking.serviceType || "CCTV"}</span></div>
+                <div><strong>Status:</strong> <Status status={booking.status || booking.bookingStatus || 'pending'} /></div>
+                <div><strong>Payment Status:</strong> <span className={`font-semibold capitalize ${booking.paymentStatus === 'paid' ? 'text-emerald-600' : 'text-amber-600'}`}>{booking.paymentStatus}</span></div>
+                <div><strong>Scheduled:</strong> {booking.bookingDate || booking.scheduledDate || "Date pending"} {booking.timeSlot || booking.scheduledTime || ""}</div>
+                <div><strong>Technician:</strong> {booking.assignedTechnician?.name || "Unassigned"}</div>
+                <div><strong>Booked On:</strong> {booking.createdAt ? new Date(booking.createdAt).toLocaleDateString("en-IN") : "-"}</div>
+              </div>
             </Row>
           )) : <Empty title="No bookings found" />}
         </Panel>
 
-        <Panel title="Saved Addresses" action={<Button onClick={() => setAddressModal({})}><Plus className="h-4 w-4" /> Add Address</Button>}>
+        <Panel title="Saved Addresses" action={<Button asChild><Link href="/dashboard/addresses">Manage Addresses</Link></Button>}>
           {data.addresses.length ? data.addresses.map((address) => (
-            <div key={address._id} className="rounded-xl border border-slate-200 p-4">
+            <div key={address._id} className="rounded-xl border border-slate-200 p-4 text-sm text-slate-600">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-semibold text-slate-950">{address.label} {address.isDefault && <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">Default</span>}</p>
-                  <p className="mt-1 text-sm text-slate-600">{[address.addressLine1, address.addressLine2, address.landmark].filter(Boolean).join(", ")}</p>
-                  <p className="text-sm text-slate-500">{[address.city, address.state, address.pincode].filter(Boolean).join(", ")}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button className="rounded-md border p-2" onClick={() => setAddressModal(address)}><Edit className="h-4 w-4" /></button>
-                  <button className="rounded-md border p-2 text-rose-600" onClick={async () => { await dashboardService.deleteAddress(address._id); reload(); }}><Trash2 className="h-4 w-4" /></button>
+                  <p className="font-semibold text-slate-950 text-base">{address.label} {address.isDefault && <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">Default</span>}</p>
+                  <p className="mt-1 font-medium text-slate-700">{address.name} — {address.mobile}</p>
+                  <p className="mt-1">{[address.address || address.addressLine1, address.landmark, address.city, address.state, address.pincode].filter(Boolean).join(", ")}</p>
+                  {address.googleMapLink && <a href={address.googleMapLink} target="_blank" rel="noreferrer" className="text-xs text-blue-600 underline block mt-2 break-all">Google Maps Link</a>}
                 </div>
               </div>
-              {!address.isDefault && <Button className="mt-3" variant="outline" onClick={async () => { await dashboardService.updateAddress(address._id, { isDefault: true }); reload(); }}>Set Default</Button>}
             </div>
           )) : <Empty title="No saved addresses" />}
         </Panel>
@@ -88,7 +89,12 @@ export function DashboardOverview() {
 
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <Panel title="Upcoming Services">
-          {data.upcomingBookings.length ? data.upcomingBookings.map((booking) => <Row key={booking._id} title={booking.serviceName || booking.title || "Service"} meta={`${booking.bookingDate || "Date pending"} ${booking.timeSlot || ""}`} />) : <Empty title="No upcoming services" />}
+          {data.upcomingBookings.length ? data.upcomingBookings.map((booking) => (
+            <Row key={booking._id} title={booking.serviceName || booking.title || "Service"} meta={`Booking ID: ${booking.bookingNumber || booking._id}`}>
+              <Status status={booking.status} />
+              <p className="text-xs text-slate-500 mt-1">Scheduled: {booking.bookingDate || "Date pending"} {booking.timeSlot || ""}</p>
+            </Row>
+          )) : <Empty title="No upcoming services" />}
         </Panel>
         <Panel title="My Payments">
           {data.payments.length ? data.payments.map((payment) => <Row key={payment._id} title={payment.razorpayPaymentId || payment._id} meta={new Date(payment.createdAt).toLocaleDateString("en-IN")} side={`Rs. ${(payment.amount / 100).toLocaleString("en-IN")}`}><Status status={payment.status} /><Button variant="outline" disabled>Invoice Download</Button></Row>) : <Empty title="No payments found" />}
@@ -97,8 +103,6 @@ export function DashboardOverview() {
           {data.serviceReports.length ? data.serviceReports.map((report) => <Row key={report.jobId} title={`Job ${report.jobId}`} meta={`Technician: ${report.technician}`} side={report.completionDate ? new Date(report.completionDate).toLocaleDateString("en-IN") : ""}><Button asChild variant="outline" disabled={!report.pdfReport}><a href={report.pdfReport || "#"}>PDF Report</a></Button></Row>) : <Empty title="No service reports" />}
         </Panel>
       </div>
-
-      <AddressModal value={addressModal} onClose={() => setAddressModal(null)} onSaved={() => { setAddressModal(null); reload(); }} />
     </section>
   );
 }
@@ -121,32 +125,4 @@ function Status({ status }: { status: string }) {
 
 function Empty({ title }: { title: string }) {
   return <div className="rounded-xl border border-dashed border-slate-300 bg-white px-5 py-8 text-center text-sm text-slate-500">{title}</div>;
-}
-
-function AddressModal({ value, onClose, onSaved }: { value: Partial<UserAddress> | null; onClose: () => void; onSaved: () => void }) {
-  const [form, setForm] = useState<Partial<UserAddress>>({});
-  useEffect(() => { setForm(value || {}); }, [value]);
-  if (value === null) return null;
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    if (form._id) await dashboardService.updateAddress(form._id, form);
-    else await dashboardService.createAddress(form);
-    onSaved();
-  }
-
-  return (
-    <Dialog open={value !== null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
-        <DialogHeader><DialogTitle>{form._id ? "Edit Address" : "Add Address"}</DialogTitle></DialogHeader>
-        <form onSubmit={submit} className="grid gap-3">
-          {["label", "addressLine1", "addressLine2", "landmark", "city", "state", "pincode"].map((field) => (
-            <label key={field} className="grid gap-1 text-sm font-medium text-slate-700">{field}<input className="h-10 rounded-md border px-3" value={(form as any)[field] || ""} onChange={(e) => setForm({ ...form, [field]: e.target.value })} required={["label", "addressLine1"].includes(field)} /></label>
-          ))}
-          <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={!!form.isDefault} onChange={(e) => setForm({ ...form, isDefault: e.target.checked })} /> Set as default</label>
-          <Button className="bg-emerald-600 text-white hover:bg-emerald-700">Save Address</Button>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
 }

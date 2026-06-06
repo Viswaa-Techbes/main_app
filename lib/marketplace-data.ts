@@ -118,14 +118,6 @@ export const categories: ServiceCategory[] = [
     gradient: "from-slate-700 via-blue-700 to-cyan-600",
   },
   {
-    id: "datacenter",
-    title: "Data Center",
-    description: "Server room setup, racks, cooling, and power continuity.",
-    servicesLabel: "6 services",
-    icon: Server,
-    gradient: "from-indigo-600 via-blue-600 to-cyan-500",
-  },
-  {
     id: "hardware",
     title: "Hardware Repair",
     description: "Laptop, desktop, printer, and workplace device support.",
@@ -148,14 +140,6 @@ export const categories: ServiceCategory[] = [
     servicesLabel: "7 services",
     icon: Flame,
     gradient: "from-orange-500 via-amber-500 to-rose-500",
-  },
-  {
-    id: "infrastructure",
-    title: "IT Shifting",
-    description: "Office moves, rack relocation, and device redeployment.",
-    servicesLabel: "4 services",
-    icon: ArrowUpDown,
-    gradient: "from-sky-500 via-cyan-500 to-emerald-500",
   },
 ];
 
@@ -357,51 +341,6 @@ export const services: MarketplaceService[] = [
     reviews: reviewSet("Managed Firewall Setup"),
     recommendedFor: ["SMBs", "Warehouses", "Multi-branch teams"],
     timeSlots: ["09:30 AM", "01:00 PM", "03:30 PM"],
-  },
-  {
-    id: 4,
-    slug: "server-room-setup",
-    title: "Server Room Setup",
-    categoryId: "datacenter",
-    category: "Data Center",
-    tagline: "Rack planning, cooling, power backup, and tidy cable flow.",
-    description:
-      "Build a reliable server room with racks, cable organization, cooling planning, UPS integration, and room-level health checks designed for operational continuity.",
-    price: "From Rs. 25,999",
-    priceValue: 25999,
-    rating: 4.7,
-    reviewCount: 651,
-    duration: "1-2 days",
-    durationMinutes: 960,
-    image:
-      "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&h=900&fit=crop",
-    gallery: [
-      "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&h=900&fit=crop",
-      "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&h=900&fit=crop",
-      "https://images.unsplash.com/photo-1581092918484-8313b6c3667b?w=1200&h=900&fit=crop",
-    ],
-    features: [
-      "Rack layout and airflow planning",
-      "UPS and power path review",
-      "Cable routing and labeling standards",
-      "Room readiness and safety checklist",
-    ],
-    includes: [
-      "On-site assessment",
-      "Implementation checklist",
-      "Visual organization standards",
-      "Commissioning notes",
-    ],
-    steps: [
-      "Share room dimensions and server count.",
-      "Receive a setup plan and equipment readiness checklist.",
-      "Technicians install, organize, and validate the environment.",
-      "We hand over documentation and support guidelines.",
-    ],
-    faqs: defaultFaqs,
-    reviews: reviewSet("Server Room Setup"),
-    recommendedFor: ["Growing tech teams", "Factories", "Campuses"],
-    timeSlots: ["09:00 AM", "12:00 PM"],
   },
   {
     id: 5,

@@ -45,23 +45,97 @@ function loadRazorpayCheckout() {
 export function CctvCheckoutView() {
   const router = useRouter();
   const [items, setItems] = useState<CctvCartItem[]>([]);
+  const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({
     customerName: "",
     customerPhone: "",
     address: "",
-    location: "",
+    location: "", // Used as googleMapLink
     date: "",
     timeSlot: "",
     notes: "",
   });
 
-  useEffect(() => setItems(getCctvCart()), []);
   const search = useSearchParams();
   const paymentId = search?.get ? search.get('paymentId') : null;
 
-  // If paymentId provided (retry/admin), fetch payment details and open Razorpay
+  // Verify Auth on Load
+  useEffect(() => {
+    const token = typeof window !== "undefined" ? window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) : null;
+    if (!token) {
+      console.warn("[Checkout] Unauthenticated. Redirecting to login.");
+      alert("Please log in or register before checking out.");
+      router.push("/login?redirect=/checkout");
+      return;
+    }
+
+    // Load Cart Items
+    const cartItems = getCctvCart();
+    setItems(cartItems);
+    if (cartItems.length > 0) {
+      const firstItem = cartItems[0];
+      setForm((prev) => ({
+        ...prev,
+        date: firstItem.input?.date || prev.date,
+        timeSlot: firstItem.input?.time || prev.timeSlot,
+        location: firstItem.input?.mapLink || prev.location,
+        notes: firstItem.input?.notes || prev.notes,
+      }));
+    }
+
+    // Load Saved Addresses
+    fetch("/api/user/addresses")
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success && Array.isArray(json.data)) {
+          setSavedAddresses(json.data);
+          // Auto-select default address if present
+          const def = json.data.find((a: any) => a.isDefault);
+          if (def) {
+            setSelectedAddressId(def._id);
+            setForm((prev) => ({
+              ...prev,
+              customerName: def.name || prev.customerName,
+              customerPhone: def.mobile || prev.customerPhone,
+              address: def.address || [def.addressLine1, def.addressLine2].filter(Boolean).join(", "),
+              location: def.googleMapLink || prev.location,
+            }));
+          }
+        }
+      })
+      .catch((err) => console.error("Failed to load saved addresses", err));
+  }, [router]);
+
+  // Handle Saved Address Selection Change
+  function handleAddressChange(addrId: string) {
+    setSelectedAddressId(addrId);
+    if (addrId === "new") {
+      setForm((prev) => ({
+        ...prev,
+        customerName: "",
+        customerPhone: "",
+        address: "",
+        location: "",
+      }));
+      return;
+    }
+
+    const addr = savedAddresses.find((a) => a._id === addrId);
+    if (addr) {
+      setForm((prev) => ({
+        ...prev,
+        customerName: addr.name || prev.customerName,
+        customerPhone: addr.mobile || prev.customerPhone,
+        address: addr.address || [addr.addressLine1, addr.addressLine2].filter(Boolean).join(", "),
+        location: addr.googleMapLink || prev.location,
+      }));
+    }
+  }
+
+  // Handle Existing/Retry Payments
   useEffect(() => {
     async function openExistingPayment(pid: string) {
       try {
@@ -115,70 +189,103 @@ export function CctvCheckoutView() {
     if (paymentId) {
       openExistingPayment(paymentId);
     }
-  }, [paymentId]);
+  }, [paymentId, router]);
+
   const first = items[0];
   const total = items.reduce((sum, item) => sum + (item.price?.priceBreakdown?.grandTotal || 0), 0);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (!first) return;
-    console.log("[Checkout] Place Booking clicked");
-    // require authenticated user
-    const token = typeof window !== "undefined" ? window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) : null;
-    if (!token) {
-      console.warn("[Checkout] Missing auth token, redirecting to login");
-      alert('Please login or register before placing a booking.');
-      router.push('/login');
+    setError("");
+
+    if (!first) {
+      setError("Your cart is empty.");
       return;
     }
+
+    // 1. Authenticated check
+    const token = typeof window !== "undefined" ? window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) : null;
+    if (!token) {
+      setError("User session expired. Please login again.");
+      router.push("/login");
+      return;
+    }
+
+    // 2. Service Type check
+    const serviceType = first.input?.serviceType;
+    if (!serviceType || !serviceType.trim()) {
+      setError("Please ensure a Service Type is configured for your CCTV selection.");
+      return;
+    }
+
+    // 3. Materials selected check
+    const materialsSelected = first.input?.materials;
+    if (!materialsSelected || !materialsSelected.length) {
+      setError("Please ensure at least one Material is selected in your CCTV configuration.");
+      return;
+    }
+
+    // 4. Date check
+    const dateToCheck = form.date || first.input?.date;
+    if (!dateToCheck || !dateToCheck.trim()) {
+      setError("Please select a Preferred Date for scheduling.");
+      return;
+    }
+
+    // 5. Time check
+    const timeToCheck = form.timeSlot || first.input?.time;
+    if (!timeToCheck || !timeToCheck.trim()) {
+      setError("Please select a Preferred Time slot for scheduling.");
+      return;
+    }
+
+    // 6. Address check
+    if (!form.address || !form.address.trim()) {
+      setError("Please provide a valid shipping/installation Address.");
+      return;
+    }
+
+    // 7. Google Map Link check
+    const mapLink = form.location || first.input?.mapLink;
+    if (!mapLink || !mapLink.trim() || !mapLink.includes("http")) {
+      setError("A valid Google Map Link (URL) is required.");
+      return;
+    }
+
     try {
       setSaving(true);
-      setError("");
-      // Validate map link (if provided) and time format
-      const mapLink = first.input?.mapLink || form.location || "";
-      if (!mapLink || mapLink.trim().length === 0) {
-        setError('Map link or location is required.');
-        setSaving(false);
-        return;
-      }
-      const timeToCheck = first.input?.time || form.timeSlot || "";
-      if (!timeToCheck || timeToCheck.trim().length === 0) {
-        setError('Preferred time is required.');
-        setSaving(false);
-        return;
-      }
       const bookingPayload = {
         service: first.serviceName,
         serviceId: first.subcategoryId,
         serviceName: first.serviceName,
         address: form.address,
         description: form.notes,
-        date: form.date,
-        timeSlot: form.timeSlot,
+        date: dateToCheck,
+        timeSlot: timeToCheck,
         customerName: form.customerName,
         customerPhone: form.customerPhone,
         totalAmount: total,
-        serviceType: first.input?.serviceType || "installation",
+        serviceType: serviceType || "installation",
+        addressId: selectedAddressId && selectedAddressId !== "new" ? selectedAddressId : undefined,
         cctvDetails: (() => {
           const selected = first.input?.materials || [];
-          const materialLengths = selected.filter((m:any) => m.unit === 'meter').map((m:any) => ({ id: m.id, length: m.qty }));
-          const materialQuantities = selected.filter((m:any) => m.unit !== 'meter').map((m:any) => ({ id: m.id, qty: m.qty }));
+          const materialLengths = selected.filter((m: any) => m.unit === 'meter').map((m: any) => ({ id: m.id, length: m.qty }));
+          const materialQuantities = selected.filter((m: any) => m.unit !== 'meter').map((m: any) => ({ id: m.id, qty: m.qty }));
           return {
             serviceCategory: first.categoryId || 'cctv',
-            serviceType: first.input?.serviceType,
+            serviceType: serviceType,
             selectedMaterials: selected,
             materialLengths,
             materialQuantities,
-            mapLink: first.input?.mapLink,
-            date: first.input?.date || form.date,
-            time: first.input?.time || form.timeSlot,
+            mapLink: mapLink,
+            date: dateToCheck,
+            time: timeToCheck,
             notes: first.input?.notes || form.notes,
             priceBreakdown: { ...(first.price?.priceBreakdown || {}), grandTotal: total },
           };
         })(),
       };
 
-      // Create Razorpay order via backend (stores booking payload in Payment record)
       console.log("[Checkout] Creating Order", bookingPayload);
       const orderResp = await cctvApi.createOrder({ bookingPayload });
       const order = orderResp;
@@ -235,40 +342,84 @@ export function CctvCheckoutView() {
     <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
       <h1 className="text-3xl font-semibold text-slate-950">Checkout</h1>
       <p className="mt-2 text-sm text-slate-600">Confirm customer details and preferred slot.</p>
-      {!items.length ? <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6 text-slate-600">Your cart is empty.</div> : (
+      {!items.length ? (
+        <div className="mt-6 rounded-lg border border-slate-200 bg-white p-6 text-slate-600">Your cart is empty.</div>
+      ) : (
         <form onSubmit={submit} className="mt-6 grid gap-5 lg:grid-cols-[1fr,320px]">
-          <div className="rounded-lg border border-slate-200 bg-white p-5">
+          <div className="rounded-lg border border-slate-200 bg-white p-5 space-y-4">
+            {/* Address Selection Dropdown */}
+            {savedAddresses.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Select Service Address</label>
+                <select
+                  value={selectedAddressId}
+                  onChange={(e) => handleAddressChange(e.target.value)}
+                  className="h-11 w-full rounded-md border border-slate-300 px-3 bg-white"
+                >
+                  <option value="" disabled>-- Choose Address --</option>
+                  {savedAddresses.map((a) => (
+                    <option key={a._id} value={a._id}>
+                      {a.label} ({a.name} - {a.city})
+                    </option>
+                  ))}
+                  <option value="new">-- Enter New Address --</option>
+                </select>
+              </div>
+            )}
+
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Name" value={form.customerName} onChange={(v) => setForm({ ...form, customerName: v })} required />
-              <Field label="Phone" value={form.customerPhone} onChange={(v) => setForm({ ...form, customerPhone: v })} required />
+              <Field label="Customer Name" value={form.customerName} onChange={(v) => setForm({ ...form, customerName: v })} required />
+              <Field label="Customer Phone" value={form.customerPhone} onChange={(v) => setForm({ ...form, customerPhone: v })} required />
               <Field label="Preferred Date" type="date" value={form.date} onChange={(v) => setForm({ ...form, date: v })} required />
               <Field label="Preferred Time" type="time" value={form.timeSlot} onChange={(v) => setForm({ ...form, timeSlot: v })} required />
-              <label className="grid gap-1 text-sm font-medium text-slate-700 sm:col-span-2">Address<textarea className="min-h-24 rounded-md border border-slate-300 px-3 py-2" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} required /></label>
-              <label className="grid gap-1 text-sm font-medium text-slate-700 sm:col-span-2">Notes<textarea className="min-h-20 rounded-md border border-slate-300 px-3 py-2" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></label>
+              <Field label="Google Map Link" value={form.location} onChange={(v) => setForm({ ...form, location: v })} required placeholder="https://maps.google.com/..." />
+              
+              <label className="grid gap-1 text-sm font-medium text-slate-700 sm:col-span-2">
+                Address
+                <textarea
+                  className="min-h-24 rounded-md border border-slate-300 px-3 py-2"
+                  value={form.address}
+                  onChange={(e) => setForm({ ...form, address: e.target.value })}
+                  required
+                />
+              </label>
+              
+              <label className="grid gap-1 text-sm font-medium text-slate-700 sm:col-span-2">
+                Notes
+                <textarea
+                  className="min-h-20 rounded-md border border-slate-300 px-3 py-2"
+                  value={form.notes}
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                />
+              </label>
             </div>
             {error && <p className="mt-4 rounded-md bg-rose-50 p-3 text-sm text-rose-700">{error}</p>}
           </div>
           <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm lg:self-start">
             <h2 className="font-semibold text-slate-950">Order Summary</h2>
             {items.map((item) => (
-              <div key={item.id} className="mt-3 text-sm text-slate-600">
-                <div className="font-medium">{item.serviceName} — <span className="text-sm font-normal">{item.input?.serviceType}</span></div>
-                <div className="mt-2">
+              <div key={item.id} className="mt-3 text-sm text-slate-600 border-b border-slate-100 pb-3">
+                <div className="font-medium text-slate-900">{item.serviceName}</div>
+                <div className="text-xs text-slate-500 capitalize">{item.input?.serviceType}</div>
+                <div className="mt-2 space-y-1">
                   {(item.input?.materials || []).map((m: any) => (
-                    <div key={m.id} className="flex justify-between text-sm text-slate-600">
-                      <div>{m.name} {m.qty} {m.unit}</div>
-                      <div>₹{m.unitPrice} × {m.qty} = <b>₹{m.total}</b></div>
+                    <div key={m.id} className="flex justify-between text-xs text-slate-500">
+                      <div>{m.name} ×{m.qty}</div>
+                      <div>₹{m.total}</div>
                     </div>
                   ))}
                 </div>
-                <div className="mt-2 text-sm text-slate-600">Labour: <b>{money(item.price?.priceBreakdown?.labourCost)}</b></div>
-                <div className="mt-2 text-sm text-slate-600">Map Link: {item.input?.mapLink ? <a href={item.input.mapLink} target="_blank" rel="noreferrer">Open Map</a> : '—'}</div>
-                <div className="mt-1 text-sm text-slate-600">Preferred: {item.input?.date || form.date} {item.input?.time || form.timeSlot}</div>
-                <div className="mt-1 text-sm text-slate-600">Notes: {item.input?.notes || form.notes || '—'}</div>
-                <div className="mt-1 font-bold text-slate-950">{money(item.price?.priceBreakdown?.grandTotal)}</div>
+                <div className="mt-2 text-xs text-slate-600 flex justify-between">
+                  <span>Labour:</span>
+                  <span>{money(item.price?.priceBreakdown?.labourCost)}</span>
+                </div>
+                <div className="mt-1 text-xs text-slate-600 flex justify-between">
+                  <span>Subtotal:</span>
+                  <span>{money(item.price?.priceBreakdown?.grandTotal)}</span>
+                </div>
               </div>
             ))}
-            <div className="mt-4 flex justify-between border-t border-slate-200 pt-3 text-lg font-bold"><span>Total</span><span>{money(total)}</span></div>
+            <div className="mt-4 flex justify-between text-lg font-bold text-slate-950"><span>Total</span><span>{money(total)}</span></div>
             <Button disabled={saving} className="mt-5 w-full bg-emerald-600 text-white hover:bg-emerald-700">{saving ? "Booking..." : "Place Booking"}</Button>
           </aside>
         </form>
@@ -278,5 +429,5 @@ export function CctvCheckoutView() {
 }
 
 function Field({ label, value, onChange, type = "text", required, placeholder }: { label: string; value: string; onChange: (value: string) => void; type?: string; required?: boolean; placeholder?: string }) {
-  return <label className="grid gap-1 text-sm font-medium text-slate-700">{label}<input className="h-10 rounded-md border border-slate-300 px-3" type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required} placeholder={placeholder} /></label>;
+  return <label className="grid gap-1 text-sm font-medium text-slate-700">{label}<input className="h-11 rounded-md border border-slate-300 px-3 bg-white" type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required} placeholder={placeholder} /></label>;
 }
