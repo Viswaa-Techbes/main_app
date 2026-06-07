@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { addCctvCartItem } from "@/lib/cctv-cart";
 import { cctvApi, CctvAddon, CctvSubcategory } from "@/lib/cctv-api";
-import { API_BASE_URL } from "@/core/api/config";
 
 function money(value?: number) {
   return `Rs. ${Math.round(value || 0).toLocaleString("en-IN")}`;
@@ -383,21 +382,31 @@ export function ServiceBookingConfigModal({
     return t && t.trim().length > 0;
   }
 
-  function isConfigValid() {
-    // Only require serviceType when service type options actually exist
+  function getValidationErrors(): { field: string; stepLabel: string }[] {
+    const errors: { field: string; stepLabel: string }[] = [];
     const hasServiceTypeOptions = serviceTypes.length > 0;
-    if (hasServiceTypeOptions && (!serviceType || !serviceType.trim())) return false;
-    
+    if (hasServiceTypeOptions && (!serviceType || !serviceType.trim())) {
+      errors.push({ field: "Service Type", stepLabel: "Service Type" });
+    }
     const s = service as any;
     const isStep2Required = s.formSchema?.step2?.options && s.formSchema.step2.options.length > 0;
     if (isStep2Required && !Object.keys(selectedMaterials).length) {
-      return false;
+      errors.push({ field: "Materials/Requirements", stepLabel: s.formSchema?.step2?.title || "Requirements" });
     }
-    
-    if (!mapLink || !isValidMapLink(mapLink)) return false;
-    if (!date) return false;
-    if (!time || !isValidTime(time)) return false;
-    return true;
+    if (!mapLink || !isValidMapLink(mapLink)) {
+      errors.push({ field: "Google Maps Link (must start with http)", stepLabel: "Location" });
+    }
+    if (!date) {
+      errors.push({ field: "Preferred Date", stepLabel: "Schedule" });
+    }
+    if (!time || !isValidTime(time)) {
+      errors.push({ field: "Preferred Time", stepLabel: "Schedule" });
+    }
+    return errors;
+  }
+
+  function isConfigValid() {
+    return getValidationErrors().length === 0;
   }
 
   function handleReplaceConfirm(replace: boolean) {
@@ -413,8 +422,13 @@ export function ServiceBookingConfigModal({
   }
 
   function addToCart() {
-    if (!isConfigValid()) {
-      window.alert('Please complete all required configuration fields (requirements/materials, valid Google Map link, date, and time).');
+    const errors = getValidationErrors();
+    if (errors.length > 0) {
+      const missing = errors.map(e => `• ${e.field} (go to "${e.stepLabel}" step)`).join("\n");
+      window.alert(`Please complete the following required fields:\n\n${missing}`);
+      // Navigate to the step with the first error
+      const firstErrorStep = stepsList.find(s => s.label === errors[0].stepLabel);
+      if (firstErrorStep) setStep(firstErrorStep.step);
       return;
     }
 
@@ -435,8 +449,12 @@ export function ServiceBookingConfigModal({
   }
 
   function continueBooking() {
-    if (!isConfigValid()) {
-      window.alert('Please complete all required configuration fields before booking.');
+    const errors = getValidationErrors();
+    if (errors.length > 0) {
+      const missing = errors.map(e => `• ${e.field} (go to "${e.stepLabel}" step)`).join("\n");
+      window.alert(`Please complete the following required fields:\n\n${missing}`);
+      const firstErrorStep = stepsList.find(s => s.label === errors[0].stepLabel);
+      if (firstErrorStep) setStep(firstErrorStep.step);
       return;
     }
 
@@ -591,8 +609,8 @@ export function ServiceBookingConfigModal({
               </div>
             </div>
             <div className="mt-4 grid gap-2">
-              <Button variant="outline" onClick={addToCart} disabled={!isConfigValid()}><ShoppingCart className="h-4 w-4" /> Add To Cart</Button>
-              <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={continueBooking} disabled={!isConfigValid()}><CalendarCheck className="h-4 w-4" /> Continue Booking</Button>
+              <Button variant="outline" onClick={addToCart}><ShoppingCart className="h-4 w-4" /> Add To Cart</Button>
+              <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={continueBooking}><CalendarCheck className="h-4 w-4" /> Continue Booking</Button>
               <Button variant="ghost" onClick={onRequestQuote}><FileText className="h-4 w-4" /> Request Quote</Button>
             </div>
           </aside>
