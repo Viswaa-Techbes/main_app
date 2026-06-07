@@ -11,7 +11,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { BookingModal } from "@/components/services/booking-modal";
 import { CctvBookingConfigModal } from "@/components/cctv/cctv-price-calculator";
 import { cctvApi } from "@/lib/cctv-api";
 import { getRecommendedServices, MarketplaceService } from "@/lib/marketplace-data";
@@ -20,7 +19,6 @@ import { useToast } from "@/hooks/use-toast";
 
 export function ServiceDetailView({ service }: { service: MarketplaceService }) {
   const [reviews] = useState(service.reviews);
-  const [bookingOpen, setBookingOpen] = useState(false);
   const [configOpen, setConfigOpen] = useState(false);
   const [quoteOpen, setQuoteOpen] = useState(false);
   const [quoteSaving, setQuoteSaving] = useState(false);
@@ -32,18 +30,18 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
   const searchParams = useSearchParams();
   const recommended = getRecommendedServices(service.id);
   const cctvService = service.configurableType === "cctv"
-    ? {
+    ? (service.managedService || {
         _id: service.slug,
         slug: service.slug,
         name: service.title,
-        categoryId: "cctv",
+        categoryId: service.categoryId || "cctv",
         shortDescription: service.tagline,
         overview: service.description,
         suitableFor: service.recommendedFor,
         includedServices: service.includes,
         excludedServices: [],
-        cameraTypes: ["Dome Camera", "Bullet Camera", "PTZ Camera", "IP Camera", "Wireless Camera"],
-        cableTypes: ["Cat6 cable", "Coaxial cable", "Power cable", "PVC casing"],
+        cameraTypes: [],
+        cableTypes: [],
         installationProcess: service.steps,
         installationTime: service.duration,
         warranty: "30-day workmanship warranty. Product warranty depends on device brand and invoice.",
@@ -53,7 +51,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
         supportedAddons: (service as any).supportedAddons || [],
         supportedProducts: (service as any).supportedProducts || [],
         supportedSpareParts: (service as any).supportedSpareParts || [],
-      }
+      })
     : null;
 
   function openBooking() {
@@ -62,7 +60,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
       router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
       return;
     }
-    setBookingOpen(true);
+    setConfigOpen(true);
   }
 
   async function submitQuote(event: FormEvent) {
@@ -200,7 +198,6 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
         </div>
       </section>
 
-      <BookingModal open={bookingOpen} onOpenChange={setBookingOpen} service={service} />
       {cctvService && <CctvBookingConfigModal open={configOpen} onOpenChange={setConfigOpen} service={cctvService as any} />}
       <Dialog open={quoteOpen} onOpenChange={setQuoteOpen}>
         <DialogContent>

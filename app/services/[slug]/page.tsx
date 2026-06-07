@@ -43,11 +43,21 @@ export default async function ServiceDetailsPage({ params }: PageProps) {
   const { slug } = await params;
   let service = getServiceBySlug(slug) as any;
 
-  if (!service) {
-    try {
-      const managed = await cctvApi.subcategory(slug);
-      service = managedServiceToMarketplaceService(managed, 0);
-    } catch {}
+  try {
+    const managed = await cctvApi.subcategory(slug);
+    if (managed) {
+      if (!service) {
+        service = managedServiceToMarketplaceService(managed, 0);
+      } else {
+        service = {
+          ...service,
+          managedService: managed,
+          priceValue: managed.pricingStartsFrom || service.priceValue,
+        };
+      }
+    }
+  } catch (err) {
+    console.error("Failed to load managed service configurations for slug:", slug, err);
   }
 
   if (!service) {
@@ -60,3 +70,4 @@ export default async function ServiceDetailsPage({ params }: PageProps) {
     </PageShell>
   );
 }
+

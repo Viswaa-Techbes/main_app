@@ -96,8 +96,16 @@ export function CctvCartView() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h2 className="font-semibold text-slate-950 text-lg">{item.serviceName}</h2>
-                    <p className="mt-1 text-sm text-slate-600">{item.price?.cameraType?.name || 'Camera'} • {item.price?.cameraCount || 0} camera(s) • {item.price?.installationArea || '—'} • {item.price?.wireLength ?? 0}m wire</p>
-                    <p className="mt-2 text-sm text-slate-500">Add-ons: {(item.price?.addons && item.price.addons.length) ? item.price.addons.map((a) => a.name).join(", ") : "None"}</p>
+                    {item.categoryId === "cctv" ? (
+                      <p className="mt-1 text-sm text-slate-600">
+                        {item.price?.cameraType?.name || 'Camera'} • {item.price?.cameraCount || 0} camera(s) • {item.price?.installationArea || '—'} • {item.price?.wireLength ?? 0}m wire
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-sm text-slate-600">
+                        {item.price?.cameraType?.name || 'Standard Service'}
+                      </p>
+                    )}
+                    <p className="mt-2 text-sm text-slate-500">Add-ons / Options: {(item.price?.addons && item.price.addons.length) ? item.price.addons.map((a) => `${a.name} (x${a.quantity || 1})`).join(", ") : "None"}</p>
                   </div>
                   
                   <div className="flex items-center gap-2">
@@ -176,12 +184,16 @@ export function CctvCartView() {
               <div className="grid grid-cols-2 gap-2 rounded-lg bg-slate-50 p-3">
                 <div><strong>Service Type:</strong></div>
                 <div>{viewDetailsItem.input?.serviceType}</div>
-                <div><strong>Camera Model:</strong></div>
-                <div>{viewDetailsItem.price?.cameraType?.name} (Count: {viewDetailsItem.price?.cameraCount})</div>
-                <div><strong>Area Type:</strong></div>
-                <div className="capitalize">{viewDetailsItem.price?.installationArea}</div>
-                <div><strong>Cabling length:</strong></div>
-                <div>{viewDetailsItem.price?.wireLength} meters</div>
+                {viewDetailsItem.categoryId === "cctv" && (
+                  <>
+                    <div><strong>Camera Model:</strong></div>
+                    <div>{viewDetailsItem.price?.cameraType?.name} (Count: {viewDetailsItem.price?.cameraCount})</div>
+                    <div><strong>Area Type:</strong></div>
+                    <div className="capitalize">{viewDetailsItem.price?.installationArea}</div>
+                    <div><strong>Cabling length:</strong></div>
+                    <div>{viewDetailsItem.price?.wireLength} meters</div>
+                  </>
+                )}
               </div>
 
               <div>

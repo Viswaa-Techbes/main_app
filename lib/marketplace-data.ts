@@ -295,6 +295,7 @@ export const services: MarketplaceService[] = [
     reviews: reviewSet("Office Network Deployment"),
     recommendedFor: ["Coworking spaces", "Studios", "Branch offices"],
     timeSlots: ["10:00 AM", "12:30 PM", "03:00 PM", "05:00 PM"],
+    configurableType: "cctv",
   },
   {
     id: 3,
@@ -341,6 +342,7 @@ export const services: MarketplaceService[] = [
     reviews: reviewSet("Managed Firewall Setup"),
     recommendedFor: ["SMBs", "Warehouses", "Multi-branch teams"],
     timeSlots: ["09:30 AM", "01:00 PM", "03:30 PM"],
+    configurableType: "cctv",
   },
   {
     id: 5,
@@ -387,6 +389,7 @@ export const services: MarketplaceService[] = [
     reviews: reviewSet("Business AMC Plan"),
     recommendedFor: ["SMBs", "Schools", "Clinics"],
     timeSlots: ["10:00 AM", "01:30 PM", "04:00 PM"],
+    configurableType: "cctv",
   },
   {
     id: 6,
@@ -433,6 +436,7 @@ export const services: MarketplaceService[] = [
     reviews: reviewSet("Laptop & Desktop Repair"),
     recommendedFor: ["Remote teams", "Students", "Small offices"],
     timeSlots: ["09:30 AM", "11:00 AM", "02:30 PM", "06:00 PM"],
+    configurableType: "cctv",
   },
   {
     id: 7,
@@ -475,6 +479,7 @@ export const services: MarketplaceService[] = [
     reviews: reviewSet("₹1 Payment Test Service"),
     recommendedFor: ["Developers", "Admins", "QA Team"],
     timeSlots: ["09:00 AM", "11:00 AM", "01:00 PM", "03:00 PM", "05:00 PM"],
+    configurableType: "cctv",
   },
 ];
 

@@ -186,7 +186,9 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const cctvApi = {
+  getConfig: (serviceId: string) => api<any>(`/api/v2/services/${serviceId}/config`),
   categories: () => api<CctvCategory[]>("/api/v2/cctv/categories"),
+
   subcategories: () => api<CctvSubcategory[]>("/api/v2/cctv/subcategories"),
   subcategory: (slug: string) => api<CctvSubcategory>(`/api/v2/cctv/subcategories/${slug}`),
   cameraTypes: () => api<CctvCameraType[]>("/api/v2/cctv/camera-types"),

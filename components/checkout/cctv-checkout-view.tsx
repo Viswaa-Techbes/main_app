@@ -214,14 +214,14 @@ export function CctvCheckoutView() {
     // 2. Service Type check
     const serviceType = first.input?.serviceType;
     if (!serviceType || !serviceType.trim()) {
-      setError("Please ensure a Service Type is configured for your CCTV selection.");
+      setError("Please ensure a Service Type is configured for your service selection.");
       return;
     }
 
     // 3. Materials selected check
     const materialsSelected = first.input?.materials;
-    if (!materialsSelected || !materialsSelected.length) {
-      setError("Please ensure at least one Material is selected in your CCTV configuration.");
+    if (first.input?.isMaterialsRequired && (!materialsSelected || !materialsSelected.length)) {
+      setError("Please ensure at least one Material/Option is selected in your service configuration.");
       return;
     }
 
