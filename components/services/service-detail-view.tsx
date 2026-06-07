@@ -11,7 +11,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CctvBookingConfigModal } from "@/components/cctv/cctv-price-calculator";
+import { ServiceBookingConfigModal } from "@/components/booking/service-config-modal";
 import { cctvApi } from "@/lib/cctv-api";
 import { getRecommendedServices, MarketplaceService } from "@/lib/marketplace-data";
 import { useAuth } from "@/features/auth/context/auth-context";
@@ -198,7 +198,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
         </div>
       </section>
 
-      {cctvService && <CctvBookingConfigModal open={configOpen} onOpenChange={setConfigOpen} service={cctvService as any} />}
+      {cctvService && <ServiceBookingConfigModal open={configOpen} onOpenChange={setConfigOpen} service={cctvService as any} />}
       <Dialog open={quoteOpen} onOpenChange={setQuoteOpen}>
         <DialogContent>
           <DialogHeader>

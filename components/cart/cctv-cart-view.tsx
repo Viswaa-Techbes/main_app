@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CctvCartItem, getCctvCart, removeCctvCartItem, clearCctvCart } from "@/lib/cctv-cart";
 import { cctvApi, CctvSubcategory } from "@/lib/cctv-api";
-import { CctvBookingConfigModal } from "@/components/cctv/cctv-price-calculator";
+import { ServiceBookingConfigModal } from "@/components/booking/service-config-modal";
 
 function money(value?: number) {
   return `Rs. ${Math.round(value || 0).toLocaleString("en-IN")}`;
@@ -240,7 +240,7 @@ export function CctvCartView() {
 
       {/* 4. Edit Configuration Config Modal */}
       {editService && (
-        <CctvBookingConfigModal
+        <ServiceBookingConfigModal
           open={editModalOpen}
           onOpenChange={setEditModalOpen}
           service={editService}

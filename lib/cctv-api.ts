@@ -137,6 +137,7 @@ export function managedServiceToMarketplaceService(service: CctvSubcategory, ind
     recommendedFor: service.suitableFor || [],
     timeSlots: ["09:00 AM", "11:30 AM", "02:00 PM", "04:30 PM"],
     managedService: service,
+    configurableType: "cctv",
   };
 }
 
@@ -179,7 +180,11 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
     console.error(`[API] ${method} ${path} failed`, { status: res.status, payload });
-    throw new Error(payload.message || "Request failed");
+    const err = new Error(payload.message || "Request failed") as any;
+    err.url = `${API_BASE_URL}${path}`;
+    err.status = res.status;
+    err.body = payload;
+    throw err;
   }
   console.log(`[API] ${method} ${path} succeeded`, payload.data);
   return payload.data;

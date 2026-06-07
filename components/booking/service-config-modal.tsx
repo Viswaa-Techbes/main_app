@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { addCctvCartItem } from "@/lib/cctv-cart";
-import { cctvApi, CctvAddon, CctvSubcategory, fallbackAddons } from "@/lib/cctv-api";
+import { cctvApi, CctvAddon, CctvSubcategory } from "@/lib/cctv-api";
+import { API_BASE_URL } from "@/core/api/config";
 
 function money(value?: number) {
   return `Rs. ${Math.round(value || 0).toLocaleString("en-IN")}`;
@@ -14,7 +15,7 @@ function money(value?: number) {
 
 import { getCctvCart } from "@/lib/cctv-cart";
 
-export function CctvBookingConfigModal({
+export function ServiceBookingConfigModal({
   open,
   onOpenChange,
   service,
@@ -146,9 +147,13 @@ export function CctvBookingConfigModal({
         }
         setOptionsError("");
       })
-      .catch((err) => {
+      .catch((err: any) => {
         console.error("Failed to load service config:", err);
-        setOptionsError("Unable to load service configuration.");
+        console.error("Request URL:", err.url || `${API_BASE_URL}/api/v2/services/${service.slug || service._id}/config`);
+        console.error("serviceId:", service.slug || service._id);
+        console.error("response status:", err.status || "N/A");
+        console.error("response body:", err.body || JSON.stringify(err) || "N/A");
+        setOptionsError("Unable to load service configuration");
       })
       .finally(() => setOptionsLoading(false));
   }, [open, service]);
@@ -320,8 +325,6 @@ export function CctvBookingConfigModal({
 
   function storeConfiguration(replaceExisting = false) {
     const materialsArray = buildMaterialsArray();
-    
-    // Check if the service actually has materials/options in its schema
     const hasAddonSchema = (service as any).formSchema?.step2?.options?.length > 0 || formattedMaterials.length > 0;
     
     const payload = {
@@ -385,7 +388,6 @@ export function CctvBookingConfigModal({
     const hasServiceTypeOptions = serviceTypes.length > 0;
     if (hasServiceTypeOptions && (!serviceType || !serviceType.trim())) return false;
     
-    // Validate Step 2 / Step 3 selection: require at least one selection if options exist and are configured
     const s = service as any;
     const isStep2Required = s.formSchema?.step2?.options && s.formSchema.step2.options.length > 0;
     if (isStep2Required && !Object.keys(selectedMaterials).length) {
@@ -631,4 +633,4 @@ function Line({ label, value }: { label: string; value?: number }) {
   return <div className="flex items-center justify-between"><span className="text-slate-600">{label}</span><span className="font-semibold text-slate-900">{money(value)}</span></div>;
 }
 
-export default CctvBookingConfigModal;
+export default ServiceBookingConfigModal;
