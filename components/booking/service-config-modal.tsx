@@ -148,12 +148,12 @@ export function ServiceBookingConfigModal({
         setOptionsError("");
       })
       .catch((err: any) => {
-        console.error("Failed to load service config:", err);
-        console.error("Request URL:", err.url || `${API_BASE_URL}/api/v2/services/${service.slug || service._id}/config`);
-        console.error("serviceId:", service.slug || service._id);
-        console.error("response status:", err.status || "N/A");
-        console.error("response body:", err.body || JSON.stringify(err) || "N/A");
-        setOptionsError("Unable to load service configuration");
+        console.error("Failed to load service config:", err.message);
+        if (err.isNetworkError) {
+          setOptionsError("Backend server is not reachable. Using default pricing.");
+        } else {
+          setOptionsError("Unable to load service configuration");
+        }
       })
       .finally(() => setOptionsLoading(false));
   }, [open, service]);

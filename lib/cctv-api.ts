@@ -149,34 +149,25 @@ function authHeaders() {
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const method = init?.method || "GET";
-  
-  // STEP 1
-  console.log("API_BASE_URL =", API_BASE_URL);
-  console.log("PATH =", path);
-  console.log("FINAL URL =", `${API_BASE_URL}${path}`);
-
-  // STEP 3
-  console.log("NEXT_PUBLIC_API_URL =", process.env.NEXT_PUBLIC_API_URL);
-
-  // STEP 4
-  const token = typeof window !== "undefined" ? window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) : null;
   const headers = { "Content-Type": "application/json", ...(init?.headers as any || {}), ...authHeaders() };
-  console.log("token =", token);
-  console.log("headers =", headers);
-  console.log("request body =", init?.body);
 
-  // STEP 5
-  if (typeof window !== "undefined") {
-    fetch('https://technician-app.onrender.com/api/health')
-      .then(r => r.json())
-      .then(data => console.log("TEST HEALTH SUCCESS:", data))
-      .catch(err => console.error("TEST HEALTH FAILURE:", err));
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      headers: headers as any,
+    });
+  } catch (networkErr: any) {
+    // Network-level failure: backend is unreachable (not running, CORS preflight blocked, DNS fail, etc.)
+    console.warn(`[API] ${method} ${path} — network error (is the backend running at ${API_BASE_URL}?):`, networkErr.message);
+    const err = new Error("Backend server is unreachable. Please ensure the server is running.") as any;
+    err.url = `${API_BASE_URL}${path}`;
+    err.status = 0;
+    err.body = {};
+    err.isNetworkError = true;
+    throw err;
   }
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: headers as any,
-  });
   const payload = await res.json().catch(() => ({}));
   if (!res.ok) {
     console.error(`[API] ${method} ${path} failed`, { status: res.status, payload });
@@ -186,7 +177,6 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
     err.body = payload;
     throw err;
   }
-  console.log(`[API] ${method} ${path} succeeded`, payload.data);
   return payload.data;
 }
 
