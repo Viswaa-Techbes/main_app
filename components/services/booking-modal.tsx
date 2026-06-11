@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import {
   CheckCircle2,
   ChevronLeft,
@@ -18,7 +19,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MarketplaceService } from "@/lib/marketplace-data";
 import { useBookingFlow } from "@/hooks/use-booking-flow";
-import { API_BASE_URL, AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
+import { getApiBaseUrl, AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
 import { useAuth } from "@/features/auth/context/auth-context";
 
 /** Returns today + next 3 days as formatted strings */
@@ -117,7 +118,8 @@ export function BookingModal({
     try {
       // 2) Create Razorpay order for advance amount
       const token = typeof window !== "undefined" ? window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) : "";
-      const createRes = await fetch(`${API_BASE_URL}/api/payments/create-order`, {
+      const apiBaseUrl = getApiBaseUrl();
+      const createRes = await fetch(`${apiBaseUrl}/api/payments/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -163,7 +165,8 @@ export function BookingModal({
         order_id: order.orderId,
         handler: async function (response: any) {
           // Verify payment on server
-          const verifyRes = await fetch(`${API_BASE_URL}/api/payments/verify-payment`, {
+          const apiBaseUrl = getApiBaseUrl();
+          const verifyRes = await fetch(`${apiBaseUrl}/api/payments/verify-payment`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

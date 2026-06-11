@@ -1,4 +1,4 @@
-import { API_BASE_URL, AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
+import { getApiBaseUrl, AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
 
 export type CctvCategory = { _id: string; name: string; slug: string; description: string };
 export type CctvCameraType = { _id: string; name: string; slug: string; description: string; installationPrice: number };
@@ -150,18 +150,19 @@ function authHeaders() {
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const method = init?.method || "GET";
   const headers = { "Content-Type": "application/json", ...(init?.headers as any || {}), ...authHeaders() };
+  const apiBaseUrl = getApiBaseUrl();
 
   let res: Response;
   try {
-    res = await fetch(`${API_BASE_URL}${path}`, {
+    res = await fetch(`${apiBaseUrl}${path}`, {
       ...init,
       headers: headers as any,
     });
   } catch (networkErr: any) {
     // Network-level failure: backend is unreachable (not running, CORS preflight blocked, DNS fail, etc.)
-    console.warn(`[API] ${method} ${path} — network error (is the backend running at ${API_BASE_URL}?):`, networkErr.message);
+    console.warn(`[API] ${method} ${path} — network error (is the backend running at ${apiBaseUrl}?):`, networkErr.message);
     const err = new Error("Backend server is unreachable. Please ensure the server is running.") as any;
-    err.url = `${API_BASE_URL}${path}`;
+    err.url = `${apiBaseUrl}${path}`;
     err.status = 0;
     err.body = {};
     err.isNetworkError = true;
@@ -172,7 +173,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (!res.ok) {
     console.error(`[API] ${method} ${path} failed`, { status: res.status, payload });
     const err = new Error(payload.message || "Request failed") as any;
-    err.url = `${API_BASE_URL}${path}`;
+    err.url = `${apiBaseUrl}${path}`;
     err.status = res.status;
     err.body = payload;
     throw err;

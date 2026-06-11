@@ -3,8 +3,9 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { MapPin } from "lucide-react";
+import { AUTH_TOKEN_STORAGE_KEY, getApiBaseUrl } from "@/core/api/config";
 import { cctvApi } from "@/lib/cctv-api";
-import { AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
 import { clearCctvCart, CctvCartItem, getCctvCart } from "@/lib/cctv-cart";
 
 import dynamic from "next/dynamic";
@@ -62,6 +63,7 @@ export function CctvCheckoutView() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [profile, setProfile] = useState<{ name: string; mobileNumber: string } | null>(null);
+  const [showMap, setShowMap] = useState(true);
   const [form, setForm] = useState({
     customerName: "",
     customerPhone: "",
@@ -73,6 +75,8 @@ export function CctvCheckoutView() {
     latitude: 0,
     longitude: 0,
     pincode: "",
+    city: "",
+    state: "",
   });
 
   const search = useSearchParams();
@@ -91,9 +95,17 @@ export function CctvCheckoutView() {
     // Load Cart Items
     const cartItems = getCctvCart();
     setItems(cartItems);
+    let initialLat = 0;
+    let initialLng = 0;
+    let initialLocation = "";
     if (cartItems.length > 0) {
       const firstItem = cartItems[0];
       const coords = parseCoordsFromUrl(firstItem.input?.mapLink || "");
+      if (coords?.lat && coords?.lng) {
+        initialLat = coords.lat;
+        initialLng = coords.lng;
+        initialLocation = firstItem.input?.mapLink || "";
+      }
       setForm((prev) => ({
         ...prev,
         date: firstItem.input?.date || prev.date,
@@ -103,6 +115,7 @@ export function CctvCheckoutView() {
         longitude: coords?.lng || prev.longitude,
         notes: firstItem.input?.notes || prev.notes,
       }));
+      setShowMap(!(coords?.lat && coords?.lng));
     }
 
     // Load Saved Addresses
@@ -115,21 +128,37 @@ export function CctvCheckoutView() {
           const def = json.data.find((a: any) => a.isDefault);
           if (def) {
             setSelectedAddressId(def._id);
-            const coords = def.latitude && def.longitude ? { lat: def.latitude, lng: def.longitude } : parseCoordsFromUrl(def.googleMapLink || "");
+            const addrCoords = def.latitude && def.longitude ? { lat: def.latitude, lng: def.longitude } : parseCoordsFromUrl(def.googleMapLink || "");
+            const resolvedLat = initialLat || addrCoords?.lat || 0;
+            const resolvedLng = initialLng || addrCoords?.lng || 0;
+            const hasCoords = !!(resolvedLat && resolvedLng);
             setForm((prev) => ({
               ...prev,
               customerName: def.name || prev.customerName,
               customerPhone: def.mobile || prev.customerPhone,
               address: def.address || [def.addressLine1, def.addressLine2].filter(Boolean).join(", "),
-              location: def.googleMapLink || prev.location,
-              latitude: coords?.lat || 0,
-              longitude: coords?.lng || 0,
-              pincode: def.pincode || "",
+              location: def.googleMapLink || prev.location || initialLocation,
+              latitude: resolvedLat,
+              longitude: resolvedLng,
+              pincode: def.pincode || prev.pincode || "",
+              city: def.city || prev.city || "",
+              state: def.state || prev.state || "",
             }));
+            setShowMap(!hasCoords);
+          } else {
+            const hasCoords = !!(initialLat && initialLng);
+            setShowMap(!hasCoords);
           }
+        } else {
+          const hasCoords = !!(initialLat && initialLng);
+          setShowMap(!hasCoords);
         }
       })
-      .catch((err) => console.error("Failed to load saved addresses", err));
+      .catch((err) => {
+        console.error("Failed to load saved addresses", err);
+        const hasCoords = !!(initialLat && initialLng);
+        setShowMap(!hasCoords);
+      });
 
     // Fetch user profile details to auto-fill customerName & customerPhone
     fetch("/api/auth/me", {
@@ -162,13 +191,17 @@ export function CctvCheckoutView() {
         latitude: 0,
         longitude: 0,
         pincode: "",
+        city: "",
+        state: "",
       }));
+      setShowMap(true);
       return;
     }
 
     const addr = savedAddresses.find((a) => a._id === addrId);
     if (addr) {
       const coords = addr.latitude && addr.longitude ? { lat: addr.latitude, lng: addr.longitude } : parseCoordsFromUrl(addr.googleMapLink || "");
+      const hasCoords = !!(coords?.lat && coords?.lng);
       setForm((prev) => ({
         ...prev,
         customerName: addr.name || prev.customerName,
@@ -178,7 +211,12 @@ export function CctvCheckoutView() {
         latitude: coords?.lat || 0,
         longitude: coords?.lng || 0,
         pincode: addr.pincode || "",
+        city: addr.city || "",
+        state: addr.state || "",
       }));
+      setShowMap(!hasCoords);
+    } else {
+      setShowMap(true);
     }
   }
 
@@ -191,6 +229,11 @@ export function CctvCheckoutView() {
     latitude: number;
     longitude: number;
   }) {
+    console.log("Selected Location:");
+    console.log("Address:", data.address);
+    console.log("Coordinates:", `${data.latitude}, ${data.longitude}`);
+    console.log("Pincode:", data.pincode);
+    
     setForm((prev) => ({
       ...prev,
       address: data.address,
@@ -198,7 +241,10 @@ export function CctvCheckoutView() {
       latitude: data.latitude,
       longitude: data.longitude,
       pincode: data.pincode,
+      city: data.city,
+      state: data.state,
     }));
+    setShowMap(false); // Automatically collapse map view on confirm
   }
 
   // Handle Existing/Retry Payments
@@ -334,6 +380,10 @@ export function CctvCheckoutView() {
         addressId: selectedAddressId && selectedAddressId !== "new" ? selectedAddressId : undefined,
         lat: String(form.latitude),
         lng: String(form.longitude),
+        latitude: form.latitude,
+        longitude: form.longitude,
+        city: form.city || "",
+        state: form.state || "",
         pincode: form.pincode,
         cctvDetails: (() => {
           const selected = first.input?.materials || [];
@@ -354,9 +404,16 @@ export function CctvCheckoutView() {
         })(),
       };
 
+      console.log("Selected Location:");
+      console.log("Address:", form.address);
+      console.log("Coordinates:", `${form.latitude}, ${form.longitude}`);
+      console.log("Pincode:", form.pincode);
+      console.log("API URL:", `${getApiBaseUrl()}/api/v2/payments/create-order`);
       console.log("[Checkout] Creating Order", bookingPayload);
+      
       const orderResp = await cctvApi.createOrder({ bookingPayload });
       const order = orderResp;
+      console.log("Response:", order);
       console.log("[Checkout] Order Created", order);
 
       await loadRazorpayCheckout();
@@ -376,11 +433,13 @@ export function CctvCheckoutView() {
               razorpay_payment_id: resp.razorpay_payment_id,
               razorpay_signature: resp.razorpay_signature,
             });
+            console.log("Response:", verify);
             console.log("[Checkout] Payment Verified", verify);
             clearCctvCart();
             const job = verify.job || verify.data?.job || verify.data;
             router.push(`/booking-success?bookingId=${job._id || job.id || ''}`);
           } catch (err: any) {
+            console.error("Error:", err.message || err);
             console.error("[Checkout] Payment verification failed", err);
             setError(err?.message || 'Payment verification failed');
           }
@@ -396,9 +455,13 @@ export function CctvCheckoutView() {
 
       console.log("[Checkout] Opening Razorpay");
       const rzp = new (window as any).Razorpay(options);
-      rzp.on("payment.failed", (response: any) => console.error("[Checkout] Payment Failed", response));
+      rzp.on("payment.failed", (response: any) => {
+        console.error("Error:", response);
+        console.error("[Checkout] Payment Failed", response);
+      });
       rzp.open();
     } catch (err: any) {
+      console.error("Error:", err.message || err);
       console.error("[Checkout] Checkout failed", err);
       setError(err.message || "Checkout failed");
     } finally {
@@ -435,12 +498,45 @@ export function CctvCheckoutView() {
               </div>
             )}
 
-            {/* Dynamic Map Picker for New Address Selection */}
-            {(selectedAddressId === "new" || savedAddresses.length === 0) && (
-              <div className="border-t border-slate-100 pt-4 pb-2">
-                <label className="block text-sm font-semibold text-slate-700 mb-2">Pin Service Location on Map</label>
-                <LocationPicker onLocationSelected={handleLocationSelected} />
+            {/* Confirmed Location Summary (Swiggy/Uber Style) */}
+            {!showMap && form.latitude && form.longitude ? (
+              <div className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4 flex items-start justify-between gap-4">
+                <div className="flex gap-3 items-start">
+                  <div className="rounded-full bg-emerald-100 p-2 text-emerald-700 mt-0.5">
+                    <MapPin className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-slate-900 text-sm">Service Location Confirmed</h3>
+                    <p className="text-sm text-slate-700 mt-1 leading-relaxed">{form.address}</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 mt-2">
+                      {form.city && <span><strong>City:</strong> {form.city}</span>}
+                      {form.state && <span><strong>State:</strong> {form.state}</span>}
+                      {form.pincode && <span><strong>Pincode:</strong> {form.pincode}</span>}
+                      <span><strong>Coordinates:</strong> {form.latitude.toFixed(5)}, {form.longitude.toFixed(5)}</span>
+                    </div>
+                  </div>
+                </div>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowMap(true)}
+                  className="border-emerald-200 hover:bg-emerald-50 text-emerald-700 font-medium shrink-0 rounded-full"
+                >
+                  Change Location
+                </Button>
               </div>
+            ) : (
+              /* Map Picker for Address Selection */
+              (selectedAddressId === "new" || savedAddresses.length === 0 || showMap) && (
+                <div className="border-t border-slate-100 pt-4 pb-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">Pin Service Location on Map</label>
+                  <LocationPicker 
+                    onLocationSelected={handleLocationSelected} 
+                    initialCoords={form.latitude && form.longitude ? { lat: form.latitude, lng: form.longitude } : null}
+                  />
+                </div>
+              )
             )}
 
             <div className="grid gap-4 sm:grid-cols-2">

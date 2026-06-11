@@ -63,6 +63,7 @@ export interface MarketplaceService {
   supportedProducts?: string[];
   supportedAddons?: string[];
   supportedSpareParts?: string[];
+  managedService?: any;
 }
 
 export interface DashboardBooking {

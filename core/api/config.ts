@@ -2,13 +2,30 @@ const getFallbackUrl = () => {
   return "https://technician-app.onrender.com";
 };
 
-export const API_BASE_URL =
+export function getApiBaseUrl() {
+  if (typeof window !== "undefined") {
+    // On the client side (browser), always make requests relative to the frontend origin to prevent CORS errors.
+    // Next.js rewrites in next.config.mjs will proxy these requests to the backend server.
+    return "";
+  }
+  // On the server side, use the absolute backend API URL.
+  return (
+    process.env.BACKEND_API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    "https://technician-app.onrender.com"
+  );
+}
+
+export const API_BASE_URL = typeof window !== "undefined" ? "" : (
+  process.env.BACKEND_API_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  getFallbackUrl();
+  "https://technician-app.onrender.com"
+);
 
 export function getBackendApiUrl(path: string) {
-  const base = (process.env.BACKEND_API_URL || API_BASE_URL).replace(/\/$/, "");
+  const base = (process.env.BACKEND_API_URL || getApiBaseUrl() || "https://technician-app.onrender.com").replace(/\/$/, "");
   const nextPath = path.startsWith("/") ? path : `/${path}`;
   return `${base}${nextPath}`;
 }

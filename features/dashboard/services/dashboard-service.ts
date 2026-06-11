@@ -17,6 +17,9 @@ export type UserProfile = {
 export type UserAddress = {
   _id: string;
   label: string;
+  name?: string;
+  mobile?: string;
+  address?: string;
   addressLine1: string;
   addressLine2?: string;
   landmark?: string;
@@ -25,18 +28,27 @@ export type UserAddress = {
   pincode?: string;
   latitude?: number;
   longitude?: number;
+  formattedAddress?: string;
   isDefault?: boolean;
 };
 
 export type UserBooking = {
   _id: string;
+  bookingNumber?: string;
+  bookingId?: string;
   serviceName?: string;
   title?: string;
+  serviceType?: string;
   amount?: number;
   price?: number;
   status: string;
+  bookingStatus?: string;
+  paymentStatus?: string;
   bookingDate?: string;
+  scheduledDate?: string;
   timeSlot?: string;
+  scheduledTime?: string;
+  createdAt?: string;
   location?: string;
   assignedTechnician?: { name?: string };
 };

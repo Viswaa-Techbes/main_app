@@ -72,18 +72,31 @@ export function DashboardOverview() {
         </Panel>
 
         <Panel title="Saved Addresses" action={<Button asChild><Link href="/dashboard/addresses">Manage Addresses</Link></Button>}>
-          {data.addresses.length ? data.addresses.map((address) => (
-            <div key={address._id} className="rounded-xl border border-slate-200 p-4 text-sm text-slate-600">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-semibold text-slate-950 text-base">{address.label} {address.isDefault && <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">Default</span>}</p>
-                  <p className="mt-1 font-medium text-slate-700">{address.name} — {address.mobile}</p>
-                  <p className="mt-1">{[address.address || address.addressLine1, address.landmark, address.city, address.state, address.pincode].filter(Boolean).join(", ")}</p>
-                  {address.googleMapLink && <a href={address.googleMapLink} target="_blank" rel="noreferrer" className="text-xs text-blue-600 underline block mt-2 break-all">Google Maps Link</a>}
+          {data.addresses.length ? data.addresses.map((address) => {
+            const formatted = address.formattedAddress || [
+              address.address || address.addressLine1,
+              address.addressLine2,
+              address.landmark,
+              address.city,
+              address.state,
+              address.pincode
+            ].filter(Boolean).join(", ");
+
+            return (
+              <div key={address._id} className="rounded-xl border border-slate-200 p-4 text-sm text-slate-600">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold text-slate-950 text-base">{address.label} {address.isDefault && <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">Default</span>}</p>
+                    <p className="mt-1 font-medium text-slate-700">{address.name} — {address.mobile}</p>
+                    <p className="mt-1">{formatted}</p>
+                    {address.latitude && address.longitude && (
+                      <a href={`https://maps.google.com/?q=${address.latitude},${address.longitude}`} target="_blank" rel="noreferrer" className="text-xs text-blue-600 underline block mt-2 break-all">Google Maps Link</a>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )) : <Empty title="No saved addresses" />}
+            );
+          }) : <Empty title="No saved addresses" />}
         </Panel>
       </div>
 

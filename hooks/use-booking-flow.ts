@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { API_BASE_URL, AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
+import { getApiBaseUrl, AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
 
 export interface BookingFlowState {
   address: string;
@@ -67,7 +67,8 @@ export function useBookingFlow() {
 
     try {
       const token = getAuthToken();
-      const res = await fetch(`${API_BASE_URL}/api/bookings/create`, {
+      const apiBaseUrl = getApiBaseUrl();
+      const res = await fetch(`${apiBaseUrl}/api/bookings/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
