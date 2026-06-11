@@ -49,6 +49,7 @@ export function CctvCheckoutView() {
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [profile, setProfile] = useState<{ name: string; mobileNumber: string } | null>(null);
   const [form, setForm] = useState({
     customerName: "",
     customerPhone: "",
@@ -107,6 +108,23 @@ export function CctvCheckoutView() {
         }
       })
       .catch((err) => console.error("Failed to load saved addresses", err));
+
+    // Fetch user profile details to auto-fill customerName & customerPhone
+    fetch("/api/auth/me", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          setProfile(json.data);
+          setForm((prev) => ({
+            ...prev,
+            customerName: json.data.name || prev.customerName,
+            customerPhone: json.data.mobileNumber || json.data.phone || prev.customerPhone,
+          }));
+        }
+      })
+      .catch((err) => console.error("Failed to load user profile", err));
   }, [router]);
 
   // Handle Saved Address Selection Change
@@ -368,8 +386,8 @@ export function CctvCheckoutView() {
             )}
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Customer Name" value={form.customerName} onChange={(v) => setForm({ ...form, customerName: v })} required />
-              <Field label="Customer Phone" value={form.customerPhone} onChange={(v) => setForm({ ...form, customerPhone: v })} required />
+              <Field label="Customer Name" value={form.customerName} onChange={(v) => setForm({ ...form, customerName: v })} required disabled={!!profile?.name} />
+              <Field label="Customer Phone" value={form.customerPhone} onChange={(v) => setForm({ ...form, customerPhone: v })} required disabled={!!profile?.mobileNumber} />
               <Field label="Preferred Date" type="date" value={form.date} onChange={(v) => setForm({ ...form, date: v })} required />
               <Field label="Preferred Time" type="time" value={form.timeSlot} onChange={(v) => setForm({ ...form, timeSlot: v })} required />
               <Field label="Google Map Link" value={form.location} onChange={(v) => setForm({ ...form, location: v })} required placeholder="https://maps.google.com/..." />
@@ -428,6 +446,6 @@ export function CctvCheckoutView() {
   );
 }
 
-function Field({ label, value, onChange, type = "text", required, placeholder }: { label: string; value: string; onChange: (value: string) => void; type?: string; required?: boolean; placeholder?: string }) {
-  return <label className="grid gap-1 text-sm font-medium text-slate-700">{label}<input className="h-11 rounded-md border border-slate-300 px-3 bg-white" type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required} placeholder={placeholder} /></label>;
+function Field({ label, value, onChange, type = "text", required, placeholder, disabled }: { label: string; value: string; onChange: (value: string) => void; type?: string; required?: boolean; placeholder?: string; disabled?: boolean }) {
+  return <label className="grid gap-1 text-sm font-medium text-slate-700">{label}<input className="h-11 rounded-md border border-slate-300 px-3 bg-white disabled:bg-slate-100 disabled:text-slate-500" type={type} value={value} onChange={(e) => onChange(e.target.value)} required={required} placeholder={placeholder} disabled={disabled} /></label>;
 }

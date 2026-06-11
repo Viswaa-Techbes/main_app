@@ -53,8 +53,18 @@ export function BookingModal({
   const flow = useBookingFlow();
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const availableDates = getAvailableDates();
+
+  // Prefill details if user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      flow.updateState({
+        customerName: flow.state.customerName || user.name || "",
+        customerPhone: flow.state.customerPhone || user.phone || "",
+      });
+    }
+  }, [isAuthenticated, user, flow.state.customerName, flow.state.customerPhone]);
 
   function closeModal(nextOpen: boolean) {
     onOpenChange(nextOpen);
@@ -355,6 +365,7 @@ export function BookingModal({
                           onChange={(event) => flow.updateState({ customerName: event.target.value })}
                           className="h-12 rounded-2xl"
                           placeholder="e.g. John Doe"
+                          disabled={!!user?.name}
                         />
                       </div>
                       <div>
@@ -365,6 +376,7 @@ export function BookingModal({
                           className="h-12 rounded-2xl"
                           placeholder="e.g. 9876543210"
                           type="tel"
+                          disabled={!!user?.phone}
                         />
                       </div>
                     </div>
