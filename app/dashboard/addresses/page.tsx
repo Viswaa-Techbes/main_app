@@ -9,6 +9,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { InlineAlert } from "@/shared/components/feedback/inline-alert";
 import { PageStatus } from "@/shared/components/feedback/page-status";
 
+import dynamic from "next/dynamic";
+const LocationPicker = dynamic(() => import("@/components/booking/LocationPicker"), { ssr: false });
+
 export default function AddressesPage() {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +32,8 @@ export default function AddressesPage() {
     city: "",
     state: "",
     pincode: "",
-    googleMapLink: "",
+    latitude: 0,
+    longitude: 0,
     isDefault: false,
   });
 
@@ -64,7 +68,8 @@ export default function AddressesPage() {
       city: "",
       state: "",
       pincode: "",
-      googleMapLink: "",
+      latitude: 0,
+      longitude: 0,
       isDefault: false,
     });
     setModalOpen(true);
@@ -81,14 +86,39 @@ export default function AddressesPage() {
       city: addr.city || "",
       state: addr.state || "",
       pincode: addr.pincode || "",
-      googleMapLink: addr.googleMapLink || "",
+      latitude: addr.latitude || 0,
+      longitude: addr.longitude || 0,
       isDefault: !!addr.isDefault,
     });
     setModalOpen(true);
   }
 
+  function handleLocationSelected(data: {
+    address: string;
+    city: string;
+    state: string;
+    pincode: string;
+    latitude: number;
+    longitude: number;
+  }) {
+    setForm((prev) => ({
+      ...prev,
+      address: data.address,
+      city: data.city,
+      state: data.state,
+      pincode: data.pincode,
+      latitude: data.latitude,
+      longitude: data.longitude,
+    }));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!form.latitude || !form.longitude) {
+      alert("Please locate your address on the map first.");
+      return;
+    }
+
     try {
       const isEdit = !!editingAddr;
       const url = isEdit ? `/api/user/address/${editingAddr._id}` : "/api/user/address";
@@ -99,6 +129,7 @@ export default function AddressesPage() {
         ...form,
         addressLine1: form.address,
         addressLine2: "",
+        googleMapLink: `https://maps.google.com/?q=${form.latitude},${form.longitude}`,
       };
 
       const res = await fetch(url, {
@@ -192,10 +223,10 @@ export default function AddressesPage() {
                     <div className="mt-3 text-sm text-slate-700 font-medium">{addr.name} — {addr.mobile}</div>
                     <p className="mt-1 text-sm text-slate-600">{addr.address || [addr.addressLine1, addr.addressLine2].filter(Boolean).join(", ")}</p>
                     <p className="text-sm text-slate-500">{[addr.landmark, addr.city, addr.state, addr.pincode].filter(Boolean).join(", ")}</p>
-                    {addr.googleMapLink && (
-                      <a href={addr.googleMapLink} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs text-blue-600 underline break-all">
-                        Google Map Link
-                      </a>
+                    {addr.latitude && addr.longitude && (
+                      <span className="text-xs text-slate-400 mt-2 block">
+                        Coordinates: {addr.latitude.toFixed(4)}, {addr.longitude.toFixed(4)}
+                      </span>
                     )}
                   </div>
                   <div className="flex gap-1">
@@ -216,11 +247,19 @@ export default function AddressesPage() {
 
       {/* Address Form Dialog */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-lg max-h-[92vh] overflow-y-auto">
+        <DialogContent className="max-w-xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingAddr ? "Edit Address" : "Add Address"}</DialogTitle>
-            <DialogDescription>Save your service location details below.</DialogDescription>
+            <DialogDescription>Locate your address on the map and confirm details.</DialogDescription>
           </DialogHeader>
+          
+          <div className="mt-2 border-b border-slate-100 pb-4">
+            <LocationPicker 
+              onLocationSelected={handleLocationSelected}
+              initialCoords={editingAddr ? { lat: form.latitude, lng: form.longitude } : null}
+            />
+          </div>
+
           <form onSubmit={handleSubmit} className="mt-3 space-y-3">
             <div>
               <label className="block text-sm font-medium text-slate-700">Label (e.g., Home, Office)</label>
@@ -259,10 +298,6 @@ export default function AddressesPage() {
                 <label className="block text-sm font-medium text-slate-700">State</label>
                 <input type="text" className="h-10 w-full rounded-md border border-slate-300 px-3 mt-1 text-sm bg-white" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} required />
               </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700">Google Map Link</label>
-              <input type="url" className="h-10 w-full rounded-md border border-slate-300 px-3 mt-1 text-sm bg-white" value={form.googleMapLink} onChange={(e) => setForm({ ...form, googleMapLink: e.target.value })} placeholder="https://maps.google.com/..." required />
             </div>
             <div className="flex items-center gap-2 pt-2">
               <input type="checkbox" checked={form.isDefault} id="isDefault" onChange={(e) => setForm({ ...form, isDefault: e.target.checked })} />

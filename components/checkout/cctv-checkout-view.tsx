@@ -7,8 +7,20 @@ import { cctvApi } from "@/lib/cctv-api";
 import { AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
 import { clearCctvCart, CctvCartItem, getCctvCart } from "@/lib/cctv-cart";
 
+import dynamic from "next/dynamic";
+const LocationPicker = dynamic(() => import("@/components/booking/LocationPicker"), { ssr: false });
+
 function money(value?: number) {
   return `Rs. ${Math.round(value || 0).toLocaleString("en-IN")}`;
+}
+
+function parseCoordsFromUrl(url: string) {
+  if (!url) return null;
+  const match = url.match(/q=([-\d.]+),([-\d.]+)/);
+  if (match) {
+    return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
+  }
+  return null;
 }
 
 function loadRazorpayCheckout() {
@@ -54,10 +66,13 @@ export function CctvCheckoutView() {
     customerName: "",
     customerPhone: "",
     address: "",
-    location: "", // Used as googleMapLink
+    location: "", // Used as googleMapLink for compatibility
     date: "",
     timeSlot: "",
     notes: "",
+    latitude: 0,
+    longitude: 0,
+    pincode: "",
   });
 
   const search = useSearchParams();
@@ -78,11 +93,14 @@ export function CctvCheckoutView() {
     setItems(cartItems);
     if (cartItems.length > 0) {
       const firstItem = cartItems[0];
+      const coords = parseCoordsFromUrl(firstItem.input?.mapLink || "");
       setForm((prev) => ({
         ...prev,
         date: firstItem.input?.date || prev.date,
         timeSlot: firstItem.input?.time || prev.timeSlot,
         location: firstItem.input?.mapLink || prev.location,
+        latitude: coords?.lat || prev.latitude,
+        longitude: coords?.lng || prev.longitude,
         notes: firstItem.input?.notes || prev.notes,
       }));
     }
@@ -97,12 +115,16 @@ export function CctvCheckoutView() {
           const def = json.data.find((a: any) => a.isDefault);
           if (def) {
             setSelectedAddressId(def._id);
+            const coords = def.latitude && def.longitude ? { lat: def.latitude, lng: def.longitude } : parseCoordsFromUrl(def.googleMapLink || "");
             setForm((prev) => ({
               ...prev,
               customerName: def.name || prev.customerName,
               customerPhone: def.mobile || prev.customerPhone,
               address: def.address || [def.addressLine1, def.addressLine2].filter(Boolean).join(", "),
               location: def.googleMapLink || prev.location,
+              latitude: coords?.lat || 0,
+              longitude: coords?.lng || 0,
+              pincode: def.pincode || "",
             }));
           }
         }
@@ -137,20 +159,46 @@ export function CctvCheckoutView() {
         customerPhone: "",
         address: "",
         location: "",
+        latitude: 0,
+        longitude: 0,
+        pincode: "",
       }));
       return;
     }
 
     const addr = savedAddresses.find((a) => a._id === addrId);
     if (addr) {
+      const coords = addr.latitude && addr.longitude ? { lat: addr.latitude, lng: addr.longitude } : parseCoordsFromUrl(addr.googleMapLink || "");
       setForm((prev) => ({
         ...prev,
         customerName: addr.name || prev.customerName,
         customerPhone: addr.mobile || prev.customerPhone,
         address: addr.address || [addr.addressLine1, addr.addressLine2].filter(Boolean).join(", "),
         location: addr.googleMapLink || prev.location,
+        latitude: coords?.lat || 0,
+        longitude: coords?.lng || 0,
+        pincode: addr.pincode || "",
       }));
     }
+  }
+
+  // Handle Dynamic Location Picker selection
+  function handleLocationSelected(data: {
+    address: string;
+    city: string;
+    state: string;
+    pincode: string;
+    latitude: number;
+    longitude: number;
+  }) {
+    setForm((prev) => ({
+      ...prev,
+      address: data.address,
+      location: `https://maps.google.com/?q=${data.latitude},${data.longitude}`,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      pincode: data.pincode,
+    }));
   }
 
   // Handle Existing/Retry Payments
@@ -263,10 +311,9 @@ export function CctvCheckoutView() {
       return;
     }
 
-    // 7. Google Map Link check
-    const mapLink = form.location || first.input?.mapLink;
-    if (!mapLink || !mapLink.trim() || !mapLink.includes("http")) {
-      setError("A valid Google Map Link (URL) is required.");
+    // 7. Coordinates check
+    if (!form.latitude || !form.longitude) {
+      setError("Please select and confirm your service location on the map.");
       return;
     }
 
@@ -285,6 +332,9 @@ export function CctvCheckoutView() {
         totalAmount: total,
         serviceType: serviceType || "installation",
         addressId: selectedAddressId && selectedAddressId !== "new" ? selectedAddressId : undefined,
+        lat: String(form.latitude),
+        lng: String(form.longitude),
+        pincode: form.pincode,
         cctvDetails: (() => {
           const selected = first.input?.materials || [];
           const materialLengths = selected.filter((m: any) => m.unit === 'meter').map((m: any) => ({ id: m.id, length: m.qty }));
@@ -295,7 +345,7 @@ export function CctvCheckoutView() {
             selectedMaterials: selected,
             materialLengths,
             materialQuantities,
-            mapLink: mapLink,
+            mapLink: form.location,
             date: dateToCheck,
             time: timeToCheck,
             notes: first.input?.notes || form.notes,
@@ -385,12 +435,19 @@ export function CctvCheckoutView() {
               </div>
             )}
 
+            {/* Dynamic Map Picker for New Address Selection */}
+            {(selectedAddressId === "new" || savedAddresses.length === 0) && (
+              <div className="border-t border-slate-100 pt-4 pb-2">
+                <label className="block text-sm font-semibold text-slate-700 mb-2">Pin Service Location on Map</label>
+                <LocationPicker onLocationSelected={handleLocationSelected} />
+              </div>
+            )}
+
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Customer Name" value={form.customerName} onChange={(v) => setForm({ ...form, customerName: v })} required disabled={!!profile?.name} />
               <Field label="Customer Phone" value={form.customerPhone} onChange={(v) => setForm({ ...form, customerPhone: v })} required disabled={!!profile?.mobileNumber} />
               <Field label="Preferred Date" type="date" value={form.date} onChange={(v) => setForm({ ...form, date: v })} required />
               <Field label="Preferred Time" type="time" value={form.timeSlot} onChange={(v) => setForm({ ...form, timeSlot: v })} required />
-              <Field label="Google Map Link" value={form.location} onChange={(v) => setForm({ ...form, location: v })} required placeholder="https://maps.google.com/..." />
               
               <label className="grid gap-1 text-sm font-medium text-slate-700 sm:col-span-2">
                 Address
@@ -399,6 +456,7 @@ export function CctvCheckoutView() {
                   value={form.address}
                   onChange={(e) => setForm({ ...form, address: e.target.value })}
                   required
+                  placeholder="Street address, building, suite details..."
                 />
               </label>
               
@@ -408,6 +466,7 @@ export function CctvCheckoutView() {
                   className="min-h-20 rounded-md border border-slate-300 px-3 py-2"
                   value={form.notes}
                   onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                  placeholder="Optional site directives, specific camera placements, access details..."
                 />
               </label>
             </div>

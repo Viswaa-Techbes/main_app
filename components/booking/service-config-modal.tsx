@@ -13,6 +13,8 @@ function money(value?: number) {
 }
 
 import { getCctvCart } from "@/lib/cctv-cart";
+import dynamic from "next/dynamic";
+const LocationPicker = dynamic(() => import("@/components/booking/LocationPicker"), { ssr: false });
 
 export function ServiceBookingConfigModal({
   open,
@@ -561,9 +563,13 @@ export function ServiceBookingConfigModal({
             {/* Dynamic Step Location */}
             {currentStepDef?.label === "Location" && (
               <div>
-                <label className="grid gap-1 text-sm font-medium text-slate-700">Location (Google Maps Link)</label>
-                <input className="h-11 w-full rounded-md border border-slate-300 px-3 mt-2" placeholder="https://maps.google.com/..." value={mapLink} onChange={(e) => setMapLink(e.target.value)} />
-                <p className="text-xs text-slate-500 mt-2">Example: Search for your address in Google Maps, click "Share", copy the link, and paste it here.</p>
+                <label className="grid gap-1 text-sm font-semibold text-slate-700 mb-2">Locate your service area</label>
+                <LocationPicker 
+                  onLocationSelected={(data) => {
+                    setMapLink(`https://maps.google.com/?q=${data.latitude},${data.longitude}`);
+                    setNotes((prev) => `${prev}\nAddress selected: ${data.address}`.trim());
+                  }} 
+                />
               </div>
             )}
 
