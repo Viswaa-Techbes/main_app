@@ -56,14 +56,23 @@ export default function LocationPicker({ onLocationSelected, initialCoords }: Lo
   const [pincode, setPincode] = useState("");
 
   const markerRef = useRef<L.Marker>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Reverse Geocoding via Nominatim
+  // Clean up timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Reverse Geocoding via local server proxy
   async function reverseGeocode(lat: number, lng: number) {
     setGeocoding(true);
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
-        { headers: { "User-Agent": "TechnicianApp/1.0" } }
+        `/api/geocode?action=reverse&lat=${lat}&lng=${lng}`
       );
       if (!response.ok) throw new Error("Reverse geocoding failed");
       const data = await response.json();
@@ -85,30 +94,35 @@ export default function LocationPicker({ onLocationSelected, initialCoords }: Lo
     }
   }
 
-  // Handle Autocomplete Search
+  // Handle Autocomplete Search with Debouncing
   async function handleSearch(query: string) {
     setSearchQuery(query);
+    
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
     if (query.trim().length < 3) {
       setSuggestions([]);
       return;
     }
+
     setSearching(true);
-    try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          query
-        )}&countrycodes=in&limit=5&addressdetails=1`,
-        { headers: { "User-Agent": "TechnicianApp/1.0" } }
-      );
-      if (!response.ok) throw new Error("Search geocoding failed");
-      const data = await response.json();
-      setSuggestions(data);
-      setShowSuggestions(true);
-    } catch (err) {
-      console.error("Autocomplete search error:", err);
-    } finally {
-      setSearching(false);
-    }
+    searchTimeoutRef.current = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `/api/geocode?action=search&q=${encodeURIComponent(query)}`
+        );
+        if (!response.ok) throw new Error("Search geocoding failed");
+        const data = await response.json();
+        setSuggestions(data);
+        setShowSuggestions(true);
+      } catch (err) {
+        console.error("Autocomplete search error:", err);
+      } finally {
+        setSearching(false);
+      }
+    }, 500);
   }
 
   // Initialize reverse geocode on load if initial coords exist
