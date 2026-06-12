@@ -101,9 +101,11 @@ export function CctvCheckoutView() {
     if (cartItems.length > 0) {
       const firstItem = cartItems[0];
       const coords = parseCoordsFromUrl(firstItem.input?.mapLink || "");
-      if (coords?.lat && coords?.lng) {
-        initialLat = coords.lat;
-        initialLng = coords.lng;
+      const latVal = firstItem.input?.latitude || coords?.lat || 0;
+      const lngVal = firstItem.input?.longitude || coords?.lng || 0;
+      if (latVal && lngVal) {
+        initialLat = latVal;
+        initialLng = lngVal;
         initialLocation = firstItem.input?.mapLink || "";
       }
       setForm((prev) => ({
@@ -111,16 +113,20 @@ export function CctvCheckoutView() {
         date: firstItem.input?.date || prev.date,
         timeSlot: firstItem.input?.time || prev.timeSlot,
         location: firstItem.input?.mapLink || prev.location,
-        latitude: coords?.lat || prev.latitude,
-        longitude: coords?.lng || prev.longitude,
+        latitude: latVal || prev.latitude,
+        longitude: lngVal || prev.longitude,
+        pincode: firstItem.input?.pincode || prev.pincode || "",
+        address: firstItem.input?.fullAddress || prev.address || "",
+        city: firstItem.input?.city || prev.city || "",
+        state: firstItem.input?.state || prev.state || "",
         notes: firstItem.input?.notes || prev.notes,
       }));
-      setShowMap(!(coords?.lat && coords?.lng));
+      setShowMap(!(latVal && lngVal));
     }
 
     // Load Saved Addresses
     fetch("/api/user/addresses")
-      .then((r) => r.json())
+      .then((r) => r.ok ? r.json().catch(() => ({})) : {})
       .then((json) => {
         if (json.success && Array.isArray(json.data)) {
           setSavedAddresses(json.data);
@@ -164,7 +170,7 @@ export function CctvCheckoutView() {
     fetch("/api/auth/me", {
       headers: { Authorization: `Bearer ${token}` }
     })
-      .then((r) => r.json())
+      .then((r) => r.ok ? r.json().catch(() => ({})) : {})
       .then((json) => {
         if (json.success && json.data) {
           setProfile(json.data);

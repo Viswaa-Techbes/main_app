@@ -40,7 +40,7 @@ export default function AddressesPage() {
   const loadAddresses = () => {
     setLoading(true);
     fetch("/api/user/addresses")
-      .then((r) => r.json())
+      .then((r) => r.ok ? r.json().catch(() => ({})) : {})
       .then((json) => {
         if (json.success) {
           setAddresses(json.data || []);
@@ -137,7 +137,7 @@ export default function AddressesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const json = await res.json();
+      const json = await res.json().catch(() => ({}));
       
       if (!res.ok) throw new Error(json.message || "Failed to save address.");
       

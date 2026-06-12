@@ -90,6 +90,12 @@ export function CctvBookingConfigModal({
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [notes, setNotes] = useState("");
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [pincode, setPincode] = useState("");
+  const [fullAddress, setFullAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [stateName, setStateName] = useState("");
   const [priceBreakdown, setPriceBreakdown] = useState<{ serviceCost: number; materialCost: number; labourCost: number; grandTotal: number }>({ serviceCost: 0, materialCost: 0, labourCost: 0, grandTotal: 0 });
   const [miniCartOpen, setMiniCartOpen] = useState(false);
   const [replaceConfirmOpen, setReplaceConfirmOpen] = useState(false);
@@ -117,6 +123,12 @@ export function CctvBookingConfigModal({
       setDate(editItem.input?.date || "");
       setTime(editItem.input?.time || "");
       setNotes(editItem.input?.notes || "");
+      setLatitude(editItem.input?.latitude || null);
+      setLongitude(editItem.input?.longitude || null);
+      setPincode(editItem.input?.pincode || "");
+      setFullAddress(editItem.input?.fullAddress || "");
+      setCity(editItem.input?.city || "");
+      setStateName(editItem.input?.state || "");
       setStep(1);
     } else {
       setServiceType(serviceTypes[0] || "");
@@ -125,6 +137,12 @@ export function CctvBookingConfigModal({
       setDate("");
       setTime("");
       setNotes("");
+      setLatitude(null);
+      setLongitude(null);
+      setPincode("");
+      setFullAddress("");
+      setCity("");
+      setStateName("");
       setStep(1);
     }
   }, [editItem, open, serviceTypes]);
@@ -339,7 +357,13 @@ export function CctvBookingConfigModal({
         date,
         time,
         notes,
-        isMaterialsRequired: hasAddonSchema
+        isMaterialsRequired: hasAddonSchema,
+        latitude,
+        longitude,
+        pincode,
+        fullAddress,
+        city,
+        state: stateName
       },
       price: {
         category: { id: categoryId, name: service.name, slug: service.slug },
@@ -547,8 +571,18 @@ export function CctvBookingConfigModal({
                 <LocationPicker 
                   onLocationSelected={(data) => {
                     setMapLink(`https://maps.google.com/?q=${data.latitude},${data.longitude}`);
-                    setNotes((prev) => `${prev}\nAddress selected: ${data.address}`.trim());
+                    setLatitude(data.latitude);
+                    setLongitude(data.longitude);
+                    setPincode(data.pincode);
+                    setFullAddress(data.address);
+                    setCity(data.city);
+                    setStateName(data.state);
+                    setNotes((prev) => {
+                      const prefix = prev ? prev + "\n" : "";
+                      return `${prefix}Address selected: ${data.address}`;
+                    });
                   }} 
+                  initialCoords={latitude && longitude ? { lat: latitude, lng: longitude } : null}
                 />
               </div>
             )}

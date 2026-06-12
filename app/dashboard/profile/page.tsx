@@ -11,7 +11,7 @@ export default function ProfilePage() {
   useEffect(() => {
     let mounted = true;
     fetch('/api/auth/me', { credentials: 'include' })
-      .then((r) => r.json())
+      .then((r) => r.ok ? r.json().catch(() => ({})) : {})
       .then((payload) => {
         if (!mounted) return;
         if (payload && payload.success) setProfile(payload.data);

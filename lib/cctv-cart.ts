@@ -27,7 +27,7 @@ export function triggerBackendSync() {
   if (typeof window === "undefined" || isSyncing || !isUserLoggedIn()) return;
   isSyncing = true;
   fetch("/api/cart")
-    .then((r) => r.json())
+    .then((r) => r.ok ? r.json().catch(() => ({})) : {})
     .then((json) => {
       if (json.success && json.data?.items) {
         saveCctvCartLocal(json.data.items);
@@ -93,7 +93,7 @@ export function addCctvCartItem(item: Omit<CctvCartItem, "id"> & { id?: string }
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ item: newItem, replaceExisting }),
     })
-      .then((r) => r.json())
+      .then((r) => r.ok ? r.json().catch(() => ({})) : {})
       .then((json) => {
         if (json.success && json.data?.items) {
           saveCctvCartLocal(json.data.items);
@@ -111,7 +111,7 @@ export function removeCctvCartItem(id: string) {
     fetch(`/api/cart/item/${id}`, {
       method: "DELETE",
     })
-      .then((r) => r.json())
+      .then((r) => r.ok ? r.json().catch(() => ({})) : {})
       .then((json) => {
         if (json.success && json.data?.items) {
           saveCctvCartLocal(json.data.items);
@@ -128,7 +128,7 @@ export function clearCctvCart() {
     fetch("/api/cart/clear", {
       method: "DELETE",
     })
-      .then((r) => r.json())
+      .then((r) => r.ok ? r.json().catch(() => ({})) : {})
       .then((json) => {
         if (json.success && json.data?.items) {
           saveCctvCartLocal(json.data.items);
