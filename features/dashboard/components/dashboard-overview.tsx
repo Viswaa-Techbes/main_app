@@ -20,6 +20,38 @@ export function DashboardOverview() {
   const { data, error, isLoading, reload } = useDashboardData();
   const [addressModal, setAddressModal] = useState<Partial<UserAddress> | null>(null);
 
+  // Review states
+  const [reviewBooking, setReviewBooking] = useState<any | null>(null);
+  const [reviewRating, setReviewRating] = useState<number>(5);
+  const [reviewComment, setReviewComment] = useState<string>("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState<boolean>(false);
+
+  const handleReviewSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!reviewBooking) return;
+    
+    setIsSubmittingReview(true);
+    try {
+      const techId = reviewBooking.assignedTechnician?._id || reviewBooking.assignedTechnician?.id || reviewBooking.assignedTechnician;
+      await dashboardService.createReview({
+        rating: reviewRating,
+        comment: reviewComment,
+        technicianId: techId,
+        jobId: reviewBooking._id,
+        clientName: data.profile?.name || user?.email || "Customer",
+      });
+
+      setReviewBooking(null);
+      setReviewComment("");
+      setReviewRating(5);
+      reload(); // Reload dashboard data
+    } catch (err: any) {
+      alert(err.message || "Failed to submit review");
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
   if (isLoading) return <PageStatus message="Loading your dashboard..." className="min-h-[70vh]" />;
   if (error || !data) {
     return <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8"><InlineAlert message={error ?? "Dashboard data is unavailable."} /></section>;
@@ -66,6 +98,24 @@ export function DashboardOverview() {
                 <div><strong>Scheduled:</strong> {booking.bookingDate || booking.scheduledDate || "Date pending"} {booking.timeSlot || booking.scheduledTime || ""}</div>
                 <div><strong>Technician:</strong> {booking.assignedTechnician?.name || "Unassigned"}</div>
                 <div><strong>Booked On:</strong> {booking.createdAt ? new Date(booking.createdAt).toLocaleDateString("en-IN") : "-"}</div>
+                {(booking.status === 'completed' || booking.bookingStatus === 'completed') && (
+                  <div>
+                    <strong>Review:</strong>{" "}
+                    {booking.rating ? (
+                      <span className="text-amber-500 font-semibold">⭐ {booking.rating} / 5</span>
+                    ) : booking.assignedTechnician ? (
+                      <button
+                        type="button"
+                        className="font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+                        onClick={() => setReviewBooking(booking)}
+                      >
+                        Rate & Review
+                      </button>
+                    ) : (
+                      <span className="text-slate-400">No technician</span>
+                    )}
+                  </div>
+                )}
               </div>
             </Row>
           )) : <Empty title="No bookings found" />}
@@ -116,6 +166,66 @@ export function DashboardOverview() {
           {data.serviceReports.length ? data.serviceReports.map((report) => <Row key={report.jobId} title={`Job ${report.jobId}`} meta={`Technician: ${report.technician}`} side={report.completionDate ? new Date(report.completionDate).toLocaleDateString("en-IN") : ""}><Button asChild variant="outline" disabled={!report.pdfReport}><a href={report.pdfReport || "#"}>PDF Report</a></Button></Row>) : <Empty title="No service reports" />}
         </Panel>
       </div>
+
+      <Dialog open={reviewBooking !== null} onOpenChange={(open) => !open && setReviewBooking(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Rate & Review Service</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleReviewSubmit} className="space-y-4 pt-2">
+            <div>
+              <p className="text-sm font-medium text-slate-700 mb-1">
+                Technician: {reviewBooking?.assignedTechnician?.name || "Technician"}
+              </p>
+              <p className="text-xs text-slate-500">
+                Service: {reviewBooking?.serviceName || reviewBooking?.title}
+              </p>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Rating</label>
+              <div className="flex gap-2 text-2xl">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setReviewRating(star)}
+                    className={`focus:outline-none transition-colors ${
+                      star <= reviewRating ? "text-amber-400" : "text-slate-300"
+                    }`}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="comment" className="block text-sm font-semibold text-slate-700 mb-1">
+                Your Review
+              </label>
+              <textarea
+                id="comment"
+                rows={3}
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                placeholder="Share your experience with our service..."
+                className="w-full rounded-lg border border-slate-200 p-2.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                required
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={() => setReviewBooking(null)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmittingReview}>
+                {isSubmittingReview ? "Submitting..." : "Submit Review"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

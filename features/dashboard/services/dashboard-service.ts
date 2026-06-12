@@ -50,7 +50,8 @@ export type UserBooking = {
   scheduledTime?: string;
   createdAt?: string;
   location?: string;
-  assignedTechnician?: { name?: string };
+  assignedTechnician?: { name?: string; _id?: string; id?: string };
+  rating?: number;
 };
 
 export type UserPayment = {
@@ -113,4 +114,6 @@ export const dashboardService = {
   createAddress: (body: Partial<UserAddress>) => appApi<UserAddress>("/api/user/address", { method: "POST", body: JSON.stringify(body) }),
   updateAddress: (id: string, body: Partial<UserAddress>) => appApi<UserAddress>(`/api/user/address/${id}`, { method: "PUT", body: JSON.stringify(body) }),
   deleteAddress: (id: string) => appApi<void>(`/api/user/address/${id}`, { method: "DELETE" }),
+  createReview: (body: { rating: number; comment: string; technicianId: string; jobId: string; clientName?: string }) =>
+    appApi<any>("/api/reviews", { method: "POST", body: JSON.stringify(body) }),
 };
