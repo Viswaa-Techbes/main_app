@@ -228,17 +228,18 @@ export default function ServiceReportPage() {
               <table className="w-full text-left text-sm">
                 <thead className="bg-slate-900 text-white text-xs uppercase">
                   <tr>
-                    <th className="px-6 py-3.5 font-bold">Item Description</th>
-                    <th className="px-6 py-3.5 font-bold">Model / Serial</th>
+                    <th className="px-6 py-3.5 font-bold">Item Name</th>
+                    <th className="px-6 py-3.5 font-bold">Category</th>
                     <th className="px-6 py-3.5 font-bold text-center">Qty</th>
-                    <th className="px-6 py-3.5 text-right font-bold">Price</th>
+                    <th className="px-6 py-3.5 font-bold">Unit</th>
+                    <th className="px-6 py-3.5 text-right font-bold">Unit Price</th>
                     <th className="px-6 py-3.5 text-right font-bold">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
                   {materials.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-slate-500 font-medium">
+                      <td colSpan={6} className="px-6 py-8 text-center text-slate-500 font-medium">
                         No materials were reported or charged.
                       </td>
                     </tr>
@@ -247,15 +248,14 @@ export default function ServiceReportPage() {
                       <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
                         <td className="px-6 py-4">
                           <p className="font-semibold text-slate-950">{mat.name}</p>
-                          <p className="text-xs text-slate-500">{mat.brand || "-"}</p>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="font-medium text-slate-800">{mat.model || "-"}</p>
-                          <p className="text-xs text-slate-500">S/N: {mat.serialNumber || "-"}</p>
+                          <p className="font-medium text-slate-800">{mat.category || mat.brand || "-"}</p>
                         </td>
                         <td className="px-6 py-4 text-center font-medium text-slate-700">{mat.quantity}</td>
-                        <td className="px-6 py-4 text-right font-medium text-slate-700">₹{mat.unitCost.toLocaleString("en-IN")}</td>
-                        <td className="px-6 py-4 text-right font-bold text-slate-900">₹{mat.totalCost.toLocaleString("en-IN")}</td>
+                        <td className="px-6 py-4 font-medium text-slate-700">{mat.unit || "Piece"}</td>
+                        <td className="px-6 py-4 text-right font-medium text-slate-700">₹{(mat.unitPrice || mat.unitCost || 0).toLocaleString("en-IN")}</td>
+                        <td className="px-6 py-4 text-right font-bold text-slate-900">₹{(mat.total || mat.totalCost || 0).toLocaleString("en-IN")}</td>
                       </tr>
                     ))
                   )}
