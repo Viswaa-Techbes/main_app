@@ -163,7 +163,29 @@ export function DashboardOverview() {
           {data.payments.length ? data.payments.map((payment) => <Row key={payment._id} title={payment.razorpayPaymentId || payment._id} meta={new Date(payment.createdAt).toLocaleDateString("en-IN")} side={`Rs. ${(payment.amount / 100).toLocaleString("en-IN")}`}><Status status={payment.status} /><Button variant="outline" disabled>Invoice Download</Button></Row>) : <Empty title="No payments found" />}
         </Panel>
         <Panel title="My Service Reports">
-          {data.serviceReports.length ? data.serviceReports.map((report) => <Row key={report.jobId} title={`Job ${report.jobId}`} meta={`Technician: ${report.technician}`} side={report.completionDate ? new Date(report.completionDate).toLocaleDateString("en-IN") : ""}><Button asChild variant="outline" disabled={!report.pdfReport}><a href={report.pdfReport || "#"}>PDF Report</a></Button></Row>) : <Empty title="No service reports" />}
+          {data.serviceReports.length ? data.serviceReports.map((report) => (
+            <Row 
+              key={report.jobId} 
+              title={`Booking #${report.bookingNumber || report.jobId}`} 
+              meta={`Technician: ${report.technician}`} 
+              side={report.completionDate ? new Date(report.completionDate).toLocaleDateString("en-IN") : ""}
+            >
+              <div className="flex gap-2 w-full mt-2">
+                <Button asChild variant="outline" size="sm" className="h-8 text-xs">
+                  <Link href={`/dashboard/service-report/${report.jobId}`}>
+                    View Report
+                  </Link>
+                </Button>
+                {report.pdfReport && (
+                  <Button asChild variant="outline" size="sm" className="h-8 text-xs border-slate-300">
+                    <a href={report.pdfReport} target="_blank" rel="noreferrer">
+                      Download PDF
+                    </a>
+                  </Button>
+                )}
+              </div>
+            </Row>
+          )) : <Empty title="No service reports" />}
         </Panel>
       </div>
 

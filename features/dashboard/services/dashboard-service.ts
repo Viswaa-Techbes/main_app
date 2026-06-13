@@ -64,6 +64,7 @@ export type UserPayment = {
 
 export type ServiceReport = {
   jobId: string;
+  bookingNumber?: string;
   technician: string;
   completionDate: string;
   pdfReport?: string;
