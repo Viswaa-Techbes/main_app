@@ -110,14 +110,117 @@ export function calculateFallbackCctvPrice(input: CctvPriceInput, cameraTypes = 
   };
 }
 
+export function normalizeCategoryName(name: string): string {
+  const n = name.trim().toLowerCase();
+  if (n.includes("cctv")) return "CCTV";
+  if (n.includes("network")) return "Networking";
+  if (n.includes("laptop")) return "Laptop";
+  if (n.includes("desktop")) return "Desktop";
+  if (n.includes("server")) return "Server";
+  if (n.includes("amc") || n.includes("contract") || n.includes("electronic")) return "Electronic Contracts";
+  if (n.includes("automation") || n.includes("home")) return "Home Automation";
+  if (n.includes("website") || n.includes("web")) return "Website Development";
+  if (n.includes("license") || n.includes("licensing")) return "Software Licensing";
+  if (n.includes("security") || n.includes("cyber")) return "Cyber Security";
+  return name;
+}
+
+export function normalizeCategoryId(idOrSlug: string): string {
+  const s = idOrSlug.trim().toLowerCase();
+  if (s.includes("cctv")) return "cctv";
+  if (s.includes("network")) return "networking";
+  if (s.includes("laptop")) return "laptop";
+  if (s.includes("desktop")) return "desktop";
+  if (s.includes("server")) return "server";
+  if (s.includes("amc") || s.includes("contract") || s.includes("electronic")) return "electronic-contracts";
+  if (s.includes("automation") || s.includes("home")) return "home-automation";
+  if (s.includes("website") || s.includes("web")) return "website-development";
+  if (s.includes("license") || s.includes("licensing")) return "software-licensing";
+  if (s.includes("security") || s.includes("cyber")) return "cyber-security";
+  return idOrSlug;
+}
+
+export function getCctvServiceImage(slugOrName: string, fallback?: string): string {
+  const term = slugOrName.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  
+  if (term.includes("ip-camera") || term.includes("ip-installation")) {
+    return "https://images.unsplash.com/photo-1528319725582-ddc096101511?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("analog")) {
+    return "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("dvr")) {
+    return "https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("nvr")) {
+    return "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("cctv-amc") || term.includes("amc")) {
+    return "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("dome")) {
+    return "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("bullet")) {
+    return "https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("ptz")) {
+    return "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("wireless-cctv") || term.includes("wireless")) {
+    return "https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("outdoor")) {
+    return "https://images.unsplash.com/photo-1508962914676-134849a727f0?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("indoor")) {
+    return "https://images.unsplash.com/photo-1558002038-1055907df827?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("access-control")) {
+    return "https://images.unsplash.com/photo-1558002038-1055907df827?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("biometric") || term.includes("fingerprint")) {
+    return "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("door-phone") || term.includes("video-door")) {
+    return "https://images.unsplash.com/photo-1508962914676-134849a727f0?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("upgrade")) {
+    return "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("repair")) {
+    return "https://images.unsplash.com/photo-1597484211625-2ef315222da1?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("maintenance")) {
+    return "https://images.unsplash.com/photo-1620283085439-39620a1e21c4?w=1200&h=900&fit=crop";
+  }
+  if (term.includes("installation") || term.includes("cctv")) {
+    return "https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=1200&h=900&fit=crop";
+  }
+
+  // Fallbacks
+  if (fallback && fallback !== "/placeholder.jpg" && fallback.startsWith("http")) {
+    return fallback;
+  }
+  return "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1200&h=900&fit=crop";
+}
+
 export function managedServiceToMarketplaceService(service: CctvSubcategory, index = 0) {
   const category = typeof service.categoryId === "string" ? undefined : service.categoryId;
+  const rawCatSlug = category?.slug || (typeof service.categoryId === "string" ? service.categoryId : "cctv");
+  const rawCatName = category?.name || "CCTV";
+  
+  const normCatId = normalizeCategoryId(rawCatSlug);
+  const normCatName = normalizeCategoryName(rawCatName);
+  
+  const resolvedImg = getCctvServiceImage(service.slug || service.name, service.image);
+
   return {
     id: 10000 + index,
     slug: service.slug,
     title: service.name,
-    categoryId: category?.slug === "cctv-installation" ? "cctv" : category?.slug || "cctv",
-    category: category?.name || "CCTV Installation",
+    categoryId: normCatId,
+    category: normCatName,
     tagline: service.shortDescription || service.overview,
     description: service.overview || service.shortDescription,
     price: `From Rs. ${(service.pricingStartsFrom || 499).toLocaleString("en-IN")}`,
@@ -126,8 +229,8 @@ export function managedServiceToMarketplaceService(service: CctvSubcategory, ind
     reviewCount: 0,
     duration: service.installationTime || "On-site visit",
     durationMinutes: 180,
-    image: service.image || "/placeholder.jpg",
-    gallery: [service.image || "/placeholder.jpg"],
+    image: resolvedImg,
+    gallery: [resolvedImg],
     badge: "Configurable",
     features: service.suitableFor || [],
     includes: service.includedServices || [],

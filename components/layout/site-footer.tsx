@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 
 const footerGroups = {
-  Platform: ["Home", "Services", "Dashboard", "AMC Plans"],
+  Platform: ["Home", "Services", "Dashboard", "Electronic Contracts"],
   Company: ["About", "Partners", "Careers", "Contact"],
   Support: ["Help Center", "Privacy", "Terms", "Service Policy"],
 };

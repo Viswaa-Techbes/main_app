@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Calendar, Check, CheckCircle, ChevronLeft, Clock3, FileText, MapPin, Star, TicketPercent, Toolbox, Users } from "lucide-react";
 import type { ReactNode } from "react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -29,6 +29,14 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const recommended = getRecommendedServices(service.id);
+
+  const initialImage = (service.gallery && service.gallery.length > 0 ? service.gallery[0] : service.image) || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80";
+  const [imgSrc, setImgSrc] = useState(initialImage);
+
+  useEffect(() => {
+    const nextImg = (service.gallery && service.gallery.length > 0 ? service.gallery[0] : service.image) || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80";
+    setImgSrc(nextImg);
+  }, [service.image, service.gallery]);
   const cctvService = service.configurableType === "cctv"
     ? (service.managedService || {
         _id: service.slug,
@@ -98,7 +106,14 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
           <div className="space-y-6">
             <div className="grid gap-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-2 lg:items-center">
               <div className="relative h-56 overflow-hidden rounded-2xl bg-slate-100 sm:h-72">
-                <Image src={service.gallery[0]} alt={service.title} fill className="object-cover" priority />
+                <Image
+                  src={imgSrc}
+                  alt={service.title}
+                  fill
+                  className="object-cover"
+                  onError={() => setImgSrc("https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80")}
+                  priority
+                />
               </div>
               <div>
                 <Badge className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">{service.category}</Badge>

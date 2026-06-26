@@ -9,7 +9,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Techbes Marketplace | Book Verified IT Experts",
   description:
-    "A modern IT service marketplace for CCTV installation, networking, cyber security, repair, and AMC plans.",
+    "A modern IT service marketplace for CCTV, networking, laptop, desktop, server setup, electronic contracts, home automation, website development, software licensing, and cyber security.",
   generator: "OpenAI Codex",
   icons: {
     icon: "/logo.png",

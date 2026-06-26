@@ -18,8 +18,8 @@ export function RecommendedStrip() {
           </p>
         </div>
         <Button asChild className="mt-6 rounded-full bg-white text-slate-950 hover:bg-slate-100 lg:mt-0">
-          <Link href="/services?category=amc">
-            Explore AMC Plans
+          <Link href="/services?category=electronic-contracts">
+            Explore Electronic Contracts
             <ArrowRight className="h-4 w-4" />
           </Link>
         </Button>

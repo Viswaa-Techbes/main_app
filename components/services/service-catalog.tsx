@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Search, SlidersHorizontal, Star } from "lucide-react";
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -231,13 +231,26 @@ function FilterGroup({ label, children }: { label: string; children: ReactNode }
 }
 
 function CatalogCard({ service, selectedCategory }: { service: MarketplaceService; selectedCategory?: string }) {
+  const [imgSrc, setImgSrc] = useState(service.image || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80");
+
+  useEffect(() => {
+    setImgSrc(service.image || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80");
+  }, [service.image]);
+
   return (
     <Link
       href={`/services/${service.slug}${selectedCategory && selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''}`}
       className="group overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.42)] transition duration-300 hover:-translate-y-1 hover:border-emerald-200"
     >
       <div className="relative h-56 overflow-hidden">
-        <Image src={service.image} alt={service.title} fill className="object-cover transition duration-500 group-hover:scale-105" />
+        <Image
+          src={imgSrc}
+          alt={service.title}
+          fill
+          className="object-cover transition duration-500 group-hover:scale-105"
+          onError={() => setImgSrc("https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80")}
+          loading="lazy"
+        />
         {service.badge && (
           <span className="absolute left-4 top-4 rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white">
             {service.badge}

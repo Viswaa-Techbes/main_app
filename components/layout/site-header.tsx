@@ -44,7 +44,7 @@ export function SiteHeader() {
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
               className="h-12 rounded-full border-white bg-white/90 pl-11 shadow-[0_20px_40px_-24px_rgba(15,23,42,0.4)]"
-              placeholder="Search CCTV, networking, AMC plans..."
+              placeholder="Search CCTV, networking, laptop repair..."
             />
           </div>
         </div>
@@ -102,7 +102,7 @@ export function SiteHeader() {
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
               className="h-12 rounded-full bg-slate-50 pl-11"
-              placeholder="Search CCTV, networking, AMC plans..."
+              placeholder="Search CCTV, networking, laptop repair..."
             />
           </div>
           <div className="mb-4 flex items-center gap-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
