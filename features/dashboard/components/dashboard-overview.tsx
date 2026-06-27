@@ -20,6 +20,18 @@ export function DashboardOverview() {
   const { data, error, isLoading, reload } = useDashboardData();
   const [addressModal, setAddressModal] = useState<Partial<UserAddress> | null>(null);
 
+  useEffect(() => {
+    // If there is any active booking, auto-reload every 5 seconds to get real-time status changes
+    const hasActiveBookings = data?.upcomingBookings && data.upcomingBookings.length > 0;
+    if (!hasActiveBookings) return;
+
+    const timer = setInterval(() => {
+      reload();
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [data?.upcomingBookings, reload]);
+
   // Review states
   const [reviewBooking, setReviewBooking] = useState<any | null>(null);
   const [reviewRating, setReviewRating] = useState<number>(5);
@@ -117,6 +129,22 @@ export function DashboardOverview() {
                   </div>
                 )}
               </div>
+              {booking.status === 'assigned' && booking.startJobOtp && (
+                <div className="col-span-full mt-4 p-4 rounded-2xl border border-blue-100 bg-blue-50/50 backdrop-blur-sm shadow-sm animate-pulse w-full">
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                    </span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-blue-700">Start Job OTP Card</span>
+                  </div>
+                  <p className="mt-2 text-sm font-medium text-slate-700">Share this OTP with the technician to start the job:</p>
+                  <div className="mt-3 inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2 text-xl font-mono font-bold tracking-widest text-white shadow-md">
+                    {booking.startJobOtp}
+                  </div>
+                  <p className="mt-2 text-[10px] font-semibold text-blue-500/80">Valid for 10 minutes from arrival/assignment</p>
+                </div>
+              )}
             </Row>
           )) : <Empty title="No bookings found" />}
         </Panel>
