@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Search, SlidersHorizontal, Star } from "lucide-react";
+import { Search, SlidersHorizontal, Star, Clock, ArrowRight } from "lucide-react";
 import { ReactNode, useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -45,43 +45,45 @@ export function ServiceCatalog() {
   if (sortBy === "top-rated") filteredServices = [...filteredServices].sort((a, b) => b.rating - a.rating);
 
   return (
-    <section className="mx-auto w-full max-w-screen-xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-      <div className="rounded-[36px] border border-slate-200 bg-white p-6 shadow-[0_25px_60px_-36px_rgba(15,23,42,0.35)] sm:p-8 lg:p-10">
-        <div className="inline-flex rounded-full bg-emerald-100 px-4 py-1.5 text-sm font-semibold text-emerald-700">
-          Service marketplace
+    <section className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* Search and Hero Card */}
+      <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm sm:p-8">
+        <div className="inline-flex items-center gap-1 bg-blue-50 px-3 py-1 rounded-full text-[10px] font-bold text-blue-700 uppercase tracking-wider">
+          Marketplace
         </div>
         <div className="mt-4 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl font-semibold text-slate-950">Browse IT services with richer filters and faster decisions</h1>
-            <p className="mt-3 max-w-3xl text-slate-600">
-              Filter by category, budget, duration, and quality signals to find the right service quickly.
+          <div className="max-w-xl">
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight sm:text-3xl">Professional IT Services</h1>
+            <p className="mt-2 text-xs leading-relaxed text-slate-500">
+              Filter by category, budget, duration, and ratings to find the right certified technician.
             </p>
           </div>
-          <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto lg:min-w-[28rem] lg:max-w-xl">
+          <div className="flex w-full flex-col gap-2.5 sm:flex-row lg:w-auto lg:min-w-[24rem]">
             <div className="relative w-full flex-1">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                className="h-12 rounded-full pl-11"
-                placeholder="Search services"
+                className="h-11 rounded-xl pl-10 text-xs border-slate-200 focus:ring-blue-500/20 bg-slate-50"
+                placeholder="Search services..."
               />
             </div>
-            <Button variant="outline" className="rounded-full lg:hidden" onClick={() => setShowFilters((current) => !current)}>
-              <SlidersHorizontal className="h-4 w-4" />
+            <Button variant="outline" className="rounded-xl lg:hidden h-11 text-xs font-semibold" onClick={() => setShowFilters((current) => !current)}>
+              <SlidersHorizontal className="h-4 w-4 mr-1.5" />
               Filters
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start">
-        <aside className={`${showFilters ? "block" : "hidden"} w-full lg:block lg:w-80 lg:shrink-0 xl:w-84`}>
-          <div className="sticky top-24 rounded-[32px] border border-slate-200 bg-white p-6 shadow-[0_20px_50px_-36px_rgba(15,23,42,0.3)]">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-950">Filters</h2>
+      <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-start">
+        {/* Filters Sidebar */}
+        <aside className={`${showFilters ? "block" : "hidden"} w-full lg:block lg:w-72 shrink-0`}>
+          <div className="sticky top-28 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-6">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h2 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Filters</h2>
               <button
-                className="text-sm font-medium text-emerald-700"
+                className="text-xs font-bold text-blue-600 hover:text-blue-800 transition"
                 onClick={() => {
                   setSelectedCategory("all");
                   setMinRating(0);
@@ -89,33 +91,36 @@ export function ServiceCatalog() {
                   setDurationFilter("all");
                 }}
               >
-                Reset
+                Reset All
               </button>
             </div>
 
             <FilterGroup label="Category">
-              {["all", ...categories.map((category) => category.id)].map((categoryId) => {
-                const label =
-                  categoryId === "all"
-                    ? "All services"
-                    : categories.find((category) => category.id === categoryId)?.title ?? categoryId;
-                return (
-                  <button
-                    key={categoryId}
-                    onClick={() => setSelectedCategory(categoryId)}
-                    className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-medium transition ${
-                      selectedCategory === categoryId
-                        ? "bg-slate-950 text-white"
-                        : "bg-slate-50 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
+              <div className="flex flex-col gap-1">
+                {["all", ...categories.map((category) => category.id)].map((categoryId) => {
+                  const label =
+                    categoryId === "all"
+                      ? "All Services"
+                      : categories.find((category) => category.id === categoryId)?.title ?? categoryId;
+                  const isSelected = selectedCategory === categoryId;
+                  return (
+                    <button
+                      key={categoryId}
+                      onClick={() => setSelectedCategory(categoryId)}
+                      className={`w-full rounded-xl px-3 py-2 text-left text-xs font-semibold transition ${
+                        isSelected
+                          ? "bg-blue-600 text-white shadow-sm"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
             </FilterGroup>
 
-            <FilterGroup label="Price range">
+            <FilterGroup label="Price Range">
               <input
                 type="range"
                 min={499}
@@ -123,85 +128,90 @@ export function ServiceCatalog() {
                 step={500}
                 value={maxPrice}
                 onChange={(event) => setMaxPrice(Number(event.target.value))}
-                className="w-full accent-emerald-600"
+                className="w-full accent-blue-600 cursor-pointer"
               />
-              <div className="flex items-center justify-between text-sm text-slate-500">
+              <div className="flex items-center justify-between text-[11px] text-slate-400 font-semibold mt-1">
                 <span>Rs. 499</span>
-                <span className="font-semibold text-slate-950">Up to Rs. {maxPrice.toLocaleString("en-IN")}</span>
+                <span className="text-slate-800">Up to Rs. {maxPrice.toLocaleString("en-IN")}</span>
               </div>
             </FilterGroup>
 
-            <FilterGroup label="Minimum rating">
-              {[0, 4, 4.5, 4.8].map((rating) => (
-                <button
-                  key={rating}
-                  onClick={() => setMinRating(rating)}
-                  className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-medium transition ${
-                    minRating === rating
-                      ? "bg-blue-50 text-blue-700"
-                      : "bg-slate-50 text-slate-600 hover:bg-blue-50/60 hover:text-blue-700"
-                  }`}
-                >
-                  <span>{rating === 0 ? "Any rating" : `${rating}+ stars`}</span>
-                  <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                </button>
-              ))}
+            <FilterGroup label="Rating">
+              <div className="flex flex-col gap-1">
+                {[0, 4, 4.5, 4.8].map((rating) => (
+                  <button
+                    key={rating}
+                    onClick={() => setMinRating(rating)}
+                    className={`flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition ${
+                      minRating === rating
+                        ? "bg-blue-50 text-blue-700"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    }`}
+                  >
+                    <span>{rating === 0 ? "Any Rating" : `${rating}+ Stars`}</span>
+                    <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                  </button>
+                ))}
+              </div>
             </FilterGroup>
 
-            <FilterGroup label="Duration">
-              {[
-                { value: "all", label: "Any duration" },
-                { value: "short", label: "Up to 3 hrs" },
-                { value: "medium", label: "3 to 6 hrs" },
-                { value: "long", label: "Long projects" },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => setDurationFilter(option.value)}
-                  className={`w-full rounded-2xl px-4 py-3 text-left text-sm font-medium transition ${
-                    durationFilter === option.value
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "bg-slate-50 text-slate-600 hover:bg-emerald-50/70 hover:text-emerald-700"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
+            <FilterGroup label="Service Duration">
+              <div className="flex flex-col gap-1">
+                {[
+                  { value: "all", label: "Any Duration" },
+                  { value: "short", label: "Quick Fix (Up to 3 hrs)" },
+                  { value: "medium", label: "Standard (3 to 6 hrs)" },
+                  { value: "long", label: "Complex (6+ hrs)" },
+                ].map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => setDurationFilter(option.value)}
+                    className={`w-full rounded-xl px-3 py-2 text-left text-xs font-semibold transition ${
+                      durationFilter === option.value
+                        ? "bg-blue-50 text-blue-700"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </FilterGroup>
           </div>
         </aside>
 
+        {/* Catalog Grid */}
         <div className="min-w-0 flex-1">
-          <div className="mb-5 flex flex-col gap-3 rounded-[28px] border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-slate-500">
-              Showing <span className="font-semibold text-slate-950">{filteredServices.length}</span> services
+          <div className="mb-4 flex items-center justify-between rounded-2xl border border-slate-100 bg-white px-5 py-3 shadow-sm">
+            <p className="text-xs text-slate-500 font-semibold">
+              Showing <span className="text-slate-800 font-bold">{filteredServices.length}</span> services
             </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="text-sm text-slate-500">Sort by</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-400 font-semibold">Sort:</span>
               <select
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value as SortOption)}
-                className="h-11 rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700"
+                className="h-8 rounded-xl border border-slate-200 bg-white px-2.5 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               >
-                <option value="popular">Most Popular</option>
-                <option value="price-low">Price Low to High</option>
+                <option value="popular">Popularity</option>
+                <option value="price-low">Price: Low to High</option>
                 <option value="top-rated">Top Rated</option>
               </select>
             </div>
           </div>
 
           {filteredServices.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
               {filteredServices.map((service) => (
                 <CatalogCard key={service.slug} service={service} selectedCategory={selectedCategory} />
               ))}
             </div>
           ) : (
-            <div className="rounded-[32px] border border-dashed border-slate-300 bg-white px-8 py-16 text-center">
-              <h3 className="text-2xl font-semibold text-slate-950">No results found</h3>
-              <p className="mt-3 text-slate-500">Try broadening your price, rating, or duration filters to see more matches.</p>
+            <div className="rounded-3xl border border-dashed border-slate-200 bg-white px-8 py-16 text-center">
+              <h3 className="text-base font-bold text-slate-800">No Services Found</h3>
+              <p className="mt-2 text-xs text-slate-400">Try adjusting your pricing or rating filter.</p>
               <Button
-                className="mt-6 rounded-full"
+                className="mt-4 rounded-xl text-xs font-bold"
                 variant="outline"
                 onClick={() => {
                   setSearch("");
@@ -211,7 +221,7 @@ export function ServiceCatalog() {
                   setDurationFilter("all");
                 }}
               >
-                Clear filters
+                Clear Filters
               </Button>
             </div>
           )}
@@ -223,9 +233,9 @@ export function ServiceCatalog() {
 
 function FilterGroup({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="mt-7">
-      <h3 className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">{label}</h3>
-      <div className="space-y-2">{children}</div>
+    <div className="space-y-2">
+      <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{label}</h3>
+      {children}
     </div>
   );
 }
@@ -240,41 +250,49 @@ function CatalogCard({ service, selectedCategory }: { service: MarketplaceServic
   return (
     <Link
       href={`/services/${service.slug}${selectedCategory && selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''}`}
-      className="group overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_60px_-40px_rgba(15,23,42,0.42)] transition duration-300 hover:-translate-y-1 hover:border-emerald-200"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-300"
     >
-      <div className="relative h-56 overflow-hidden">
+      <div className="relative h-48 w-full overflow-hidden bg-slate-50">
         <Image
           src={imgSrc}
           alt={service.title}
           fill
-          className="object-cover transition duration-500 group-hover:scale-105"
+          className="object-cover transition-transform duration-500 group-hover:scale-103"
           onError={() => setImgSrc("https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80")}
           loading="lazy"
         />
         {service.badge && (
-          <span className="absolute left-4 top-4 rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white">
+          <span className="absolute left-3 top-3 rounded-full bg-slate-900/90 backdrop-blur-sm px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">
             {service.badge}
           </span>
         )}
       </div>
-      <div className="space-y-4 p-6">
+      
+      <div className="flex flex-1 flex-col p-5">
         <div className="flex items-center justify-between gap-3">
-          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">{service.category}</span>
-          <span className="text-sm font-semibold text-slate-950">{service.price}</span>
+          <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[9px] font-bold text-blue-600 uppercase tracking-wider">{service.category}</span>
+          <span className="text-xs font-extrabold text-slate-800">{service.price}</span>
         </div>
-        <div>
-          <h3 className="text-xl font-semibold text-slate-950 transition group-hover:text-emerald-700">{service.title}</h3>
-          <p className="mt-2 text-sm leading-6 text-slate-600">{service.tagline}</p>
+        
+        <div className="mt-3 flex-1">
+          <h3 className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-1">{service.title}</h3>
+          <p className="mt-1.5 text-xs text-slate-400 font-medium line-clamp-2 leading-relaxed">{service.tagline}</p>
         </div>
-        <div className="flex items-center justify-between text-sm text-slate-500">
-          <span className="inline-flex items-center gap-1.5">
-            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-            {service.rating} ({service.reviewCount})
+
+        <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between text-[11px] text-slate-400 font-semibold">
+          <span className="inline-flex items-center gap-1">
+            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+            <span className="text-slate-700">{service.rating}</span> ({service.reviewCount})
           </span>
-          <span>{service.duration}</span>
+          <span className="flex items-center gap-1">
+            <Clock className="h-3.5 w-3.5 text-slate-300" />
+            {service.duration}
+          </span>
         </div>
-        <div className="inline-flex h-11 w-full items-center justify-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-[0_18px_40px_-18px_rgba(16,185,129,0.65)]">
-          Book Now
+
+        <div className="mt-4 flex items-center justify-between h-9.5 w-full rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm group-hover:bg-blue-700 transition duration-150 pl-4 pr-3">
+          <span>Book Now</span>
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </div>
       </div>
     </Link>

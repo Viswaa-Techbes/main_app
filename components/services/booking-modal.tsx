@@ -10,6 +10,7 @@ import {
   MapPin,
   TicketPercent,
   Phone,
+  Calendar,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -202,7 +203,7 @@ export function BookingModal({
           name: flow.state.customerName,
           contact: flow.state.customerPhone,
         },
-        theme: { color: '#0ea5a4' },
+        theme: { color: '#2563eb' },
       };
 
       // @ts-ignore
@@ -228,244 +229,269 @@ export function BookingModal({
 
   return (
     <Dialog open={open} onOpenChange={closeModal}>
-      <DialogContent className="flex max-h-[92dvh] max-w-3xl flex-col overflow-hidden rounded-[32px] border-white/70 bg-white p-0 shadow-2xl">
-        <DialogHeader className="shrink-0 border-b border-slate-100 px-6 py-5 pr-14 text-left">
-          <DialogTitle className="text-2xl font-semibold text-slate-950">Book {service.title}</DialogTitle>
-          <DialogDescription className="text-slate-500">
-            Complete the four-step booking flow to confirm your technician slot.
+      <DialogContent className="flex max-h-[92dvh] max-w-3xl flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white p-0 shadow-2xl">
+        <DialogHeader className="shrink-0 border-b border-slate-100 px-6 py-4.5 pr-14 text-left">
+          <DialogTitle className="text-base font-bold text-slate-900">Book {service.title}</DialogTitle>
+          <DialogDescription className="text-xs text-slate-400">
+            Complete the checkout steps to book your certified technician.
           </DialogDescription>
         </DialogHeader>
 
         {flow.isConfirmed ? (
-          <div className="min-h-0 overflow-y-auto p-8 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-              <CheckCircle2 className="h-8 w-8" />
+          <div className="min-h-0 overflow-y-auto p-8 text-center flex flex-col items-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-600 shadow-sm">
+              <CheckCircle2 className="h-7 w-7" />
             </div>
-            <h3 className="mt-5 text-2xl font-semibold text-slate-950">Booking confirmed!</h3>
-            <p className="mt-3 text-slate-600">
-              Your request for <strong>{service.title}</strong> has been placed for{" "}
-              <strong>{flow.state.date}</strong> at <strong>{flow.state.timeSlot}</strong>.
+            <h3 className="mt-4 text-base font-bold text-slate-900">Booking Confirmed!</h3>
+            <p className="mt-2 text-xs leading-relaxed text-slate-500 max-w-sm">
+              Your request for <strong>{service.title}</strong> has been scheduled for{" "}
+              <strong>{flow.state.date}</strong> during <strong>{flow.state.timeSlot}</strong>.
               <br />
-              <span className="text-sm text-slate-500 mt-1 block">
-                We will assign a technician and notify you shortly.
+              <span className="text-[10px] text-slate-400 mt-2 block">
+                A verified technician is being assigned to your request.
               </span>
             </p>
-            <Button className="mt-6 rounded-full" onClick={() => closeModal(false)}>
-              Done
+            <Button className="mt-6 rounded-xl text-xs font-bold px-6 h-9" onClick={() => closeModal(false)}>
+              Close
             </Button>
           </div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col">
-            {/* ─── LEFT PANEL ─── */}
-            <div className="shrink-0 border-b border-slate-100 px-6 py-4">
+            {/* Steps Indicator */}
+            <div className="shrink-0 border-b border-slate-50 bg-slate-50/50 px-6 py-3.5">
               <StepIndicator currentStep={flow.step} />
             </div>
 
             <div className="min-h-0 flex-1 overflow-y-auto">
-              <div className="grid gap-0 lg:grid-cols-[1.1fr,0.9fr]">
-                <div className="p-6">
-                  <div>
-
-                {/* Step 1 – Address */}
-                {flow.step === 1 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-slate-950">Select service address</h3>
-                    <Input
-                      id="booking-address"
-                      value={flow.state.address || ""}
-                      onChange={(event) => flow.updateState({ address: event.target.value })}
-                      className="h-12 rounded-2xl"
-                      placeholder="Office / home address"
-                    />
-                    <div className="rounded-3xl bg-slate-50 p-4 text-sm text-slate-500">
-                      Add a precise address to improve technician allocation and ETA accuracy.
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 2 – Date & Time (limited to next 4 days) */}
-                {flow.step === 2 && (
-                  <div className="space-y-6">
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-950">Choose date</h3>
-                      <p className="text-sm text-slate-500 mt-1">Only slots for the next 4 days are available.</p>
-                      {/* Responsive date grid – 2 cols on sm, 1 col on mobile */}
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(2, 1fr)",
-                          gap: 10,
-                          marginTop: 16,
-                        }}
-                        className="booking-date-grid"
-                      >
-                        <style>{`
-                          @media (max-width: 600px) {
-                            .booking-date-grid { grid-template-columns: 1fr !important; }
-                            .booking-time-grid { grid-template-columns: 1fr !important; }
-                          }
-                        `}</style>
-                        {availableDates.map(({ iso, label }) => (
-                          <button
-                            key={iso}
-                            id={`date-${iso}`}
-                            style={{ width: "100%", padding: "12px", borderRadius: 10 }}
-                            className={`rounded-3xl border px-4 py-4 text-left text-sm font-medium transition ${
-                              flow.state.date === iso
-                                ? "border-emerald-500 bg-emerald-50 text-emerald-700"
-                                : "border-slate-200 bg-white text-slate-700 hover:border-emerald-200 hover:bg-emerald-50/50"
-                            }`}
-                            onClick={() => flow.updateState({ date: iso })}
-                          >
-                            {label}
-                          </button>
-                        ))}
+              <div className="grid gap-0 lg:grid-cols-[1.2fr,0.8fr]">
+                {/* Left Wizard Page */}
+                <div className="p-6 min-h-[320px]">
+                  
+                  {/* Step 1 – Address */}
+                  {flow.step === 1 && (
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Service Location Address</h3>
+                      <Input
+                        id="booking-address"
+                        value={flow.state.address || ""}
+                        onChange={(event) => flow.updateState({ address: event.target.value })}
+                        className="h-11 rounded-xl border-slate-200 focus:ring-blue-500/20 text-xs bg-slate-50"
+                        placeholder="Enter complete installation/repair address..."
+                      />
+                      <div className="rounded-2xl bg-blue-50/50 p-4 text-[11px] font-semibold text-blue-600 leading-relaxed">
+                        Providing a complete address with floor/building number improves auto-assignment accuracy and reduces ETAs.
                       </div>
                     </div>
+                  )}
 
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-950">Choose time slot</h3>
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns: "repeat(2, 1fr)",
-                          gap: 10,
-                          marginTop: 16,
-                        }}
-                        className="booking-time-grid"
-                      >
-                        {service.timeSlots.map((slot) => (
-                          <button
-                            key={slot}
-                            id={`slot-${slot.replace(/\s/g, "-")}`}
-                            style={{ width: "100%", padding: "12px", borderRadius: 10 }}
-                            className={`rounded-3xl border px-4 py-4 text-left text-sm font-medium transition ${
-                              flow.state.timeSlot === slot
-                                ? "border-blue-500 bg-blue-50 text-blue-700"
-                                : "border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50/50"
-                            }`}
-                            onClick={() => flow.updateState({ timeSlot: slot })}
-                          >
-                            <Clock3 className="inline h-3.5 w-3.5 mr-1.5 opacity-60" />
-                            {slot}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Step 3 – Contact Info */}
-                {flow.step === 3 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-slate-950">Your details</h3>
-                    <p className="text-sm text-slate-500 mt-1">Please provide your contact information so the technician can reach you.</p>
-                    <div className="space-y-3 mt-4">
+                  {/* Step 2 – Date & Time */}
+                  {flow.step === 2 && (
+                    <div className="space-y-5">
                       <div>
-                        <label className="text-sm font-medium text-slate-700 mb-1.5 block">Full Name</label>
-                        <Input
-                          value={flow.state.customerName || ""}
-                          onChange={(event) => flow.updateState({ customerName: event.target.value })}
-                          className="h-12 rounded-2xl"
-                          placeholder="e.g. John Doe"
-                          disabled={!!user?.name}
-                        />
+                        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Select Date</h3>
+                        <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Scheduling is open for the next 4 days.</p>
+                        
+                        <div className="grid gap-2 grid-cols-2 mt-3">
+                          {availableDates.map(({ iso, label }) => {
+                            const isSelected = flow.state.date === iso;
+                            return (
+                              <button
+                                key={iso}
+                                id={`date-${iso}`}
+                                className={`rounded-xl border px-3.5 py-3 text-left text-xs font-semibold transition ${
+                                  isSelected
+                                    ? "border-blue-600 bg-blue-50 text-blue-700 shadow-sm"
+                                    : "border-slate-100 bg-slate-50/50 text-slate-600 hover:border-blue-200 hover:bg-blue-50/30"
+                                }`}
+                                onClick={() => flow.updateState({ date: iso })}
+                              >
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <div>
-                        <label className="text-sm font-medium text-slate-700 mb-1.5 block">Phone Number</label>
-                        <Input
-                          value={flow.state.customerPhone || ""}
-                          onChange={(event) => flow.updateState({ customerPhone: event.target.value })}
-                          className="h-12 rounded-2xl"
-                          placeholder="e.g. 9876543210"
-                          type="tel"
-                          disabled={!!user?.phone}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
 
-                {/* Step 4 – Review */}
-                {flow.step === 4 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-slate-950">Review summary</h3>
-                    <Input
-                      value={flow.state.coupon || ""}
-                      onChange={(event) => flow.updateState({ coupon: event.target.value })}
-                      className="h-12 rounded-2xl"
-                      placeholder="Coupon code (optional)"
-                    />
-                    <div className="space-y-3 rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
-                      <div className="flex items-center justify-between">
-                        <span>Service</span>
-                        <span className="font-semibold text-slate-950">{service.title}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span>Address</span>
-                        <span className="max-w-[16rem] text-right">{flow.state.address || "Not selected"}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span>Visit slot</span>
-                        <span>
-                          {flow.state.date
-                            ? new Date(flow.state.date).toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short" })
-                            : "Date"}{" "}
-                          {flow.state.timeSlot || "Time"}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between border-t border-slate-100 pt-3">
-                        <span>Name</span>
-                        <span className="font-semibold text-slate-950">{flow.state.customerName}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span>Phone</span>
-                        <span className="font-semibold text-slate-950">{flow.state.customerPhone}</span>
-                      </div>
-                      <div className="flex items-center justify-between border-t border-slate-100 pt-3">
-                        <span>Price</span>
-                        <div className="text-right">
-                          {hasCoupon && <span className="line-through text-slate-400 mr-2 text-xs">{service.price}</span>}
-                          <span className="font-semibold text-slate-950">{finalPriceText}</span>
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Select Time Slot</h3>
+                        <div className="grid gap-2 grid-cols-2 mt-3">
+                          {service.timeSlots.map((slot) => {
+                            const isSelected = flow.state.timeSlot === slot;
+                            return (
+                              <button
+                                key={slot}
+                                id={`slot-${slot.replace(/\s/g, "-")}`}
+                                className={`rounded-xl border px-3.5 py-3 text-left text-xs font-semibold transition flex items-center ${
+                                  isSelected
+                                    ? "border-blue-600 bg-blue-50 text-blue-700 shadow-sm"
+                                    : "border-slate-100 bg-slate-50/50 text-slate-600 hover:border-blue-200 hover:bg-blue-50/30"
+                                }`}
+                                onClick={() => flow.updateState({ timeSlot: slot })}
+                              >
+                                <Clock3 className="h-3.5 w-3.5 mr-1.5 text-blue-500 opacity-80 shrink-0" />
+                                <span className="truncate">{slot}</span>
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Step 5 – Confirm */}
-                {flow.step === 5 && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-slate-950">Confirm booking</h3>
-                    {flow.bookingError && (
-                      <div className="rounded-3xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                        {flow.bookingError}
+                  {/* Step 3 – Contact Info */}
+                  {flow.step === 3 && (
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Contact Information</h3>
+                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Technicians will call this number prior to arrival.</p>
+                      
+                      <div className="space-y-3 mt-4">
+                        <label className="grid gap-1.5 text-xs font-bold text-slate-700">
+                          Full Name
+                          <Input
+                            value={flow.state.customerName || ""}
+                            onChange={(event) => flow.updateState({ customerName: event.target.value })}
+                            className="h-10 rounded-xl border-slate-200 bg-slate-50 text-xs focus:ring-blue-500/20"
+                            placeholder="John Doe"
+                            disabled={!!user?.name}
+                          />
+                        </label>
+                        <label className="grid gap-1.5 text-xs font-bold text-slate-700">
+                          Mobile Number
+                          <Input
+                            value={flow.state.customerPhone || ""}
+                            onChange={(event) => flow.updateState({ customerPhone: event.target.value })}
+                            className="h-10 rounded-xl border-slate-200 bg-slate-50 text-xs focus:ring-blue-500/20"
+                            placeholder="9876543210"
+                            type="tel"
+                            disabled={!!user?.phone}
+                          />
+                        </label>
                       </div>
-                    )}
-                    <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-800">
-                      Your booking will be confirmed instantly. An admin will assign a technician and notify you.
                     </div>
-                    <div className="rounded-3xl bg-slate-50 p-5 text-sm leading-6 text-slate-600">
-                      By confirming, you agree to pricing estimates, technician assignment, and communication updates for service completion.
+                  )}
+
+                  {/* Step 4 – Review */}
+                  {flow.step === 4 && (
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Apply Coupon</h3>
+                      <Input
+                        value={flow.state.coupon || ""}
+                        onChange={(event) => flow.updateState({ coupon: event.target.value })}
+                        className="h-11 rounded-xl border-slate-200 bg-slate-50 text-xs focus:ring-blue-500/20"
+                        placeholder="Promo/Coupon code (optional)"
+                      />
+                      
+                      <div className="space-y-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-4.5 text-xs font-semibold text-slate-600">
+                        <div className="flex justify-between">
+                          <span>Service Catalog Item</span>
+                          <span className="text-slate-800">{service.title}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Service Location</span>
+                          <span className="text-slate-800 truncate max-w-[140px]">{flow.state.address || "-"}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Scheduled Visit</span>
+                          <span className="text-slate-800">
+                            {flow.state.date ? flow.state.date : ""} {flow.state.timeSlot || ""}
+                          </span>
+                        </div>
+                        <div className="flex justify-between pt-3.5 border-t border-slate-100/50 text-slate-800 font-bold">
+                          <span>Final Total Price</span>
+                          <span>{finalPriceText}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+
+                  {/* Step 5 – Confirm */}
+                  {flow.step === 5 && (
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Confirm Booking Details</h3>
+                      {flow.bookingError && (
+                        <div className="rounded-xl border border-red-200 bg-red-50 p-3.5 text-xs text-red-700 font-semibold">
+                          {flow.bookingError}
+                        </div>
+                      )}
+                      <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-xs font-semibold text-blue-700 leading-relaxed">
+                        To lock your booking slot, a 50% advance payment is processed via Razorpay. The remaining 50% is due post-service completion.
+                      </div>
+                      <div className="rounded-xl bg-slate-50 p-4 text-[11px] leading-relaxed text-slate-400 font-medium">
+                        By checking out, you authorize Techbes to assign a certified specialist and acknowledge the cancellation and service policies.
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Side: Booking Snapshot */}
+                <div className="min-h-0 overflow-y-auto border-t border-slate-100 bg-slate-50/30 p-5 lg:border-l lg:border-t-0 flex flex-col justify-between">
+                  <Card className="rounded-2xl border-slate-100 bg-white shadow-none">
+                    <CardContent className="space-y-4 p-5">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Snapshot</p>
+                        <h3 className="mt-1 text-sm font-extrabold text-slate-800 line-clamp-1">{service.title}</h3>
+                      </div>
+                      
+                      <div className="space-y-3.5 text-xs font-semibold text-slate-600">
+                        <div className="flex items-start gap-2">
+                          <MapPin className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                          <span className="line-clamp-2 text-slate-700">{flow.state.address || "Address pending"}</span>
+                        </div>
+                        {(flow.state.customerName || flow.state.customerPhone) && (
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-blue-600 shrink-0" />
+                            <span className="truncate text-slate-700">
+                              {flow.state.customerName ? `${flow.state.customerName} · ` : ""}
+                              {flow.state.customerPhone}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Clock3 className="h-4 w-4 text-blue-600 shrink-0" />
+                          <span className="text-slate-700">
+                            {flow.state.date ? flow.state.date : "Select slot"} {flow.state.timeSlot || ""}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <TicketPercent className="h-4 w-4 text-amber-500 shrink-0" />
+                          <span className="text-slate-700">{flow.state.coupon ? `Promo: ${flow.state.coupon}` : "No coupon"}</span>
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl bg-slate-50 p-3.5 border border-slate-100/50 space-y-2 text-xs font-semibold text-slate-500">
+                        <div className="flex justify-between">
+                          <span>Total Amount</span>
+                          <span className="text-slate-800">Rs. {totalAmount}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Advance (50%)</span>
+                          <span className="text-blue-600 font-bold">Rs. {advanceAmount}</span>
+                        </div>
+                        <div className="flex justify-between pt-2 border-t border-slate-200/50">
+                          <span>Remaining</span>
+                          <span className="text-slate-800">Rs. {remainingAmount}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
 
-              {/* Navigation */}
-              <div className="modal-footer sticky bottom-0 z-20 -mx-6 mt-6 flex shrink-0 items-center justify-between gap-3 border-t border-slate-100 bg-white px-6 py-5">
+              {/* Navigation Actions */}
+              <div className="sticky bottom-0 z-20 flex shrink-0 items-center justify-between border-t border-slate-100 bg-white px-6 py-4">
                 <Button
                   variant="outline"
-                  className="relative z-30 rounded-full"
+                  className="rounded-xl h-9 text-xs font-bold"
                   onClick={flow.previousStep}
                   disabled={flow.step === 1}
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4 mr-1" />
                   Back
                 </Button>
+                
                 {flow.step < 5 ? (
                   <Button
-                    className="relative z-30 rounded-full"
+                    className="rounded-xl h-9 text-xs font-bold px-6 bg-blue-600 hover:bg-blue-700 text-white"
                     onClick={flow.nextStep}
                     disabled={
                       (flow.step === 1 && !flow.state.address) ||
@@ -474,75 +500,21 @@ export function BookingModal({
                     }
                   >
                     Continue
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
                 ) : (
                   <Button
-                    className="relative z-30 rounded-full"
+                    className="rounded-xl h-9 text-xs font-bold px-6 bg-blue-600 hover:bg-blue-700 text-white"
                     onClick={handlePaymentFlow}
                     disabled={flow.isSubmitting}
                   >
                     {flow.isSubmitting ? (
-                      <><Loader2 className="h-4 w-4 animate-spin mr-1" /> Processing…</>
+                      <><Loader2 className="h-4 w-4 animate-spin mr-1.5" /> Processing…</>
                     ) : (
-                      "Pay 50% Advance"
+                      "Pay Advance"
                     )}
                   </Button>
                 )}
-              </div>
-            </div>
-
-            {/* ─── RIGHT PANEL – Snapshot ─── */}
-            <div className="min-h-0 overflow-y-auto border-t border-slate-100 bg-slate-50/80 p-6 lg:border-l lg:border-t-0">
-              <Card className="rounded-[28px] border-slate-200 bg-white">
-                <CardContent className="space-y-5 p-6">
-                  <div>
-                    <p className="text-sm font-medium text-slate-500">Booking snapshot</p>
-                    <h3 className="mt-2 text-xl font-semibold text-slate-950">{service.title}</h3>
-                  </div>
-                  <div className="space-y-3 text-sm text-slate-600">
-                    <div className="flex items-center gap-3">
-                      <MapPin className="h-4 w-4 text-emerald-600 shrink-0" />
-                      <span className="line-clamp-2">{flow.state.address || "Address pending"}</span>
-                    </div>
-                    {(flow.state.customerName || flow.state.customerPhone) && (
-                      <div className="flex items-center gap-3">
-                        <Phone className="h-4 w-4 text-indigo-500 shrink-0" />
-                        <span>
-                          {flow.state.customerName && <span className="font-medium mr-2">{flow.state.customerName}</span>}
-                          {flow.state.customerPhone}
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-3">
-                      <Clock3 className="h-4 w-4 text-blue-600 shrink-0" />
-                      {flow.state.date
-                        ? new Date(flow.state.date).toLocaleDateString("en-IN", { weekday: "short", day: "2-digit", month: "short" })
-                        : "Select a date"}{" "}
-                      {flow.state.timeSlot || ""}
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <TicketPercent className="h-4 w-4 text-amber-500 shrink-0" />
-                      {flow.state.coupon ? `Coupon: ${flow.state.coupon}` : "No coupon added"}
-                    </div>
-                  </div>
-                  <div className="rounded-3xl bg-white p-4 border border-slate-100">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm text-slate-500">Total Amount</p>
-                      <p className="font-semibold text-slate-900">Rs. {totalAmount}</p>
-                    </div>
-                    <div className="mt-2 flex items-center justify-between">
-                      <p className="text-sm text-slate-500">Advance (50%)</p>
-                      <p className="font-semibold text-emerald-700">Rs. {advanceAmount}</p>
-                    </div>
-                    <div className="mt-2 flex items-center justify-between border-t border-slate-100 pt-3">
-                      <p className="text-sm text-slate-500">Remaining</p>
-                      <p className="font-semibold text-slate-900">Rs. {remainingAmount}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
               </div>
             </div>
           </div>
@@ -553,10 +525,10 @@ export function BookingModal({
 }
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
-  const steps = ["Address", "Schedule", "Contact", "Review", "Payment"];
+  const steps = ["Address", "Schedule", "Contact", "Review", "Pay"];
 
   return (
-    <div className="flex flex-wrap gap-3">
+    <div className="flex flex-wrap gap-2">
       {steps.map((label, index) => {
         const stepNumber = index + 1;
         const active = currentStep === stepNumber;
@@ -565,12 +537,12 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
         return (
           <div
             key={label}
-            className={`rounded-full px-4 py-2 text-sm font-medium ${
+            className={`rounded-full px-3.5 py-1.5 text-[10px] font-bold uppercase tracking-wider ${
               complete
-                ? "bg-emerald-100 text-emerald-700"
+                ? "bg-blue-50 text-blue-600"
                 : active
-                  ? "bg-slate-950 text-white"
-                  : "bg-slate-100 text-slate-500"
+                  ? "bg-blue-600 text-white shadow-sm"
+                  : "bg-slate-100 text-slate-400"
             }`}
           >
             {stepNumber}. {label}

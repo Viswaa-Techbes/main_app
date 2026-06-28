@@ -1,3 +1,18 @@
+import fs from 'fs';
+import path from 'path';
+
+const srcImage = "C:\\Users\\Viswaas-E\\.gemini\\antigravity-ide\\brain\\db29ece4-ff48-4593-868e-4496edd5188b\\hero_illustration_1782651590484.png";
+const destImage = "c:\\Work\\technician_app\\main_app\\public\\hero-illustration.png";
+
+try {
+  if (fs.existsSync(srcImage)) {
+    fs.copyFileSync(srcImage, destImage);
+    console.log("[Next.js Config] Successfully copied hero-illustration.png to public");
+  }
+} catch (err) {
+  console.error("[Next.js Config] Failed to copy hero image:", err);
+}
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
