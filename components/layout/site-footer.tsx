@@ -1,81 +1,111 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, MapPin, Phone, Github, Twitter, Linkedin, ShieldCheck } from "lucide-react";
-
-const footerGroups = {
-  Services: ["CCTV Installation", "Structured Cabling", "Laptop Repairs", "Server Maintenance"],
-  Platform: ["Home", "Services", "Dashboard", "Electronic Contracts"],
-  Support: ["Help Center", "Privacy Policy", "Terms of Service", "Refund Policy"],
-};
+import { Mail, MapPin, Phone, Github, Twitter, Linkedin, Send } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-slate-800 bg-slate-950 text-slate-200">
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-4 md:grid-cols-2">
-          {/* Logo / Brand Info */}
-          <div className="flex flex-col gap-4">
-            <div className="relative h-9 w-32 shrink-0">
-              <Image src="/logo.png" alt="Techbes" fill className="object-contain object-left brightness-0 invert" />
-            </div>
-            <p className="text-xs leading-6 text-slate-400 max-w-sm">
-              The premier IT services marketplace connecting certified technicians with residential and commercial projects. Instant booking, transparent pricing, and 100% verified fulfillment.
-            </p>
-            <div className="flex items-center gap-3 text-slate-400 mt-2">
-              <Link href="#" className="hover:text-blue-500 transition"><Twitter className="h-4 w-4" /></Link>
-              <Link href="#" className="hover:text-blue-500 transition"><Linkedin className="h-4 w-4" /></Link>
-              <Link href="#" className="hover:text-blue-500 transition"><Github className="h-4 w-4" /></Link>
-            </div>
-          </div>
-
-          {/* Columns */}
-          {Object.entries(footerGroups).map(([group, links]) => (
-            <div key={group}>
-              <h3 className="text-xs font-bold uppercase tracking-[0.24em] text-slate-500">
-                {group}
-              </h3>
-              <ul className="mt-5 flex flex-col gap-3 text-xs text-slate-400">
-                {links.map((label) => (
-                  <li key={label}>
-                    <Link href="/services" className="transition hover:text-white hover:translate-x-0.5 inline-block duration-150">
-                      {label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-
-          {/* Contact Details */}
+    <footer className="border-t border-slate-800/80 bg-slate-950 text-slate-200">
+      
+      {/* Newsletter Banner */}
+      <div className="mx-auto max-w-7xl px-4 pt-16 sm:px-6 lg:px-8">
+        <div className="rounded-2xl bg-gradient-to-r from-blue-950/40 via-slate-900/60 to-blue-950/40 p-6 md:p-10 border border-slate-800/40 flex flex-col md:flex-row items-center justify-between gap-6">
           <div>
-            <h3 className="text-xs font-bold uppercase tracking-[0.24em] text-slate-500">
-              Contact Us
-            </h3>
-            <div className="mt-5 flex flex-col gap-4 text-xs text-slate-400">
-              <div className="flex items-start gap-3">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
-                <span>Bengaluru, Chennai, Hyderabad, Pune, Mumbai</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Phone className="h-4 w-4 shrink-0 text-blue-500" />
-                <a href="tel:+919876543210" className="hover:text-white transition">+91 98765 43210</a>
-              </div>
-              <div className="flex items-center gap-3">
-                <Mail className="h-4 w-4 shrink-0 text-blue-500" />
-                <a href="mailto:hello@techbes.in" className="hover:text-white transition">hello@techbes.in</a>
-              </div>
-              <div className="flex items-center gap-2 rounded-2xl bg-white/5 p-3 mt-1 border border-white/5">
-                <ShieldCheck className="h-4.5 w-4.5 text-blue-500" />
-                <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Secured by Razorpay</span>
-              </div>
-            </div>
+            <h3 className="text-sm font-extrabold text-white uppercase tracking-wider">Stay updated on IT security & audits</h3>
+            <p className="mt-1 text-xs text-slate-400 font-semibold max-w-md">Subscribe to our newsletter for exclusive AMC coupons and proactive IT guides.</p>
+          </div>
+          <div className="flex w-full max-w-sm items-center gap-2">
+            <Input 
+              type="email" 
+              placeholder="Enter your email address" 
+              className="h-10 rounded-xl bg-slate-900 border-slate-800 text-xs text-slate-200 focus:ring-blue-500/20"
+            />
+            <Button className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 shadow-sm flex items-center gap-1.5 shrink-0">
+              Subscribe
+              <Send className="h-3.5 w-3.5" />
+            </Button>
           </div>
         </div>
+
+        {/* Footer grid */}
+        <div className="mt-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 pb-12 border-b border-slate-900">
+          
+          {/* Logo & description (spans 2 cols) */}
+          <div className="col-span-2 flex flex-col gap-4">
+            <div className="relative h-10 w-36 shrink-0">
+              <Image src="/logo.png" alt="Techbes" fill className="object-contain object-left brightness-0 invert" />
+            </div>
+            <p className="text-xs leading-relaxed text-slate-400 max-w-xs font-semibold">
+              The premier IT services marketplace connecting certified tech specialists with residential and enterprise projects. Transparent SLA billing and 100% verified fulfillment.
+            </p>
+            <div className="flex items-center gap-3 text-slate-500 mt-2">
+              <Link href="#" className="hover:text-blue-500 transition-colors"><Twitter className="h-4.5 w-4.5" /></Link>
+              <Link href="#" className="hover:text-blue-500 transition-colors"><Linkedin className="h-4.5 w-4.5" /></Link>
+              <Link href="#" className="hover:text-blue-500 transition-colors"><Github className="h-4.5 w-4.5" /></Link>
+            </div>
+          </div>
+
+          {/* Services Group */}
+          <div>
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Services</h4>
+            <ul className="mt-4.5 space-y-3 text-xs text-slate-400 font-semibold">
+              <li><Link href="/services" className="hover:text-white transition-colors">CCTV Installation</Link></li>
+              <li><Link href="/services" className="hover:text-white transition-colors">Structured Cabling</Link></li>
+              <li><Link href="/services" className="hover:text-white transition-colors">Network Setup</Link></li>
+              <li><Link href="/services" className="hover:text-white transition-colors">Server Maintenance</Link></li>
+            </ul>
+          </div>
+
+          {/* Solutions Group */}
+          <div>
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Solutions</h4>
+            <ul className="mt-4.5 space-y-3 text-xs text-slate-400 font-semibold">
+              <li><Link href="/services" className="hover:text-white transition-colors">Annual Contracts</Link></li>
+              <li><Link href="/services" className="hover:text-white transition-colors">Managed Security</Link></li>
+              <li><Link href="/services" className="hover:text-white transition-colors">Cloud Migration</Link></li>
+              <li><Link href="/services" className="hover:text-white transition-colors">Disaster Recovery</Link></li>
+            </ul>
+          </div>
+
+          {/* Support Group */}
+          <div>
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Support</h4>
+            <ul className="mt-4.5 space-y-3 text-xs text-slate-400 font-semibold">
+              <li><Link href="/services" className="hover:text-white transition-colors">Help Center</Link></li>
+              <li><Link href="/services" className="hover:text-white transition-colors">Refund Policy</Link></li>
+              <li><Link href="/services" className="hover:text-white transition-colors">Technician Portal</Link></li>
+              <li><Link href="/services" className="hover:text-white transition-colors">Contact Support</Link></li>
+            </ul>
+          </div>
+
+          {/* Contact Details */}
+          <div className="col-span-2 lg:col-span-1">
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Contact</h4>
+            <div className="mt-4.5 space-y-3.5 text-xs text-slate-400 font-semibold">
+              <p className="flex items-start gap-2.5">
+                <MapPin className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+                <span>Indiranagar, Bangalore, KA, India</span>
+              </p>
+              <p className="flex items-center gap-2.5">
+                <Phone className="h-4 w-4 text-blue-500 shrink-0" />
+                <a href="tel:+919876543210" className="hover:text-white transition-colors">+91 98765 43210</a>
+              </p>
+              <p className="flex items-center gap-2.5">
+                <Mail className="h-4 w-4 text-blue-500 shrink-0" />
+                <a href="mailto:hello@techbes.in" className="hover:text-white transition-colors">hello@techbes.in</a>
+              </p>
+            </div>
+          </div>
+
+        </div>
       </div>
-      <div className="border-t border-slate-900 bg-slate-950/50 py-6 text-center text-xs text-slate-600">
+
+      {/* Copyright Footer */}
+      <div className="bg-slate-950/80 py-6 text-xs text-slate-500 font-semibold">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© 2026 Techbes. All rights reserved. Built for faster booking and professional IT delivery.</p>
-          <div className="flex gap-4 text-[10px] uppercase tracking-wider font-semibold text-slate-600">
+          <p>© 2026 Techbes India. All rights reserved. Razorpay Secured Gateway.</p>
+          <div className="flex gap-4 text-[10px] uppercase tracking-wider">
             <Link href="/services" className="hover:text-slate-400">Privacy Policy</Link>
             <Link href="/services" className="hover:text-slate-400">Terms of Use</Link>
           </div>
