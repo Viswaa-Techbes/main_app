@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { LockKeyhole, Mail, Phone, UserRound } from "lucide-react";
+import { LockKeyhole, Mail, Phone, UserRound, Eye, EyeOff, ShieldAlert, ArrowRight, Laptop } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { InlineAlert } from "@/shared/components/feedback/inline-alert";
 import { PageStatus } from "@/shared/components/feedback/page-status";
 
 type Mode = "login" | "signup";
+
 export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }) {
   const router = useRouter();
   const { status, login, register, refreshSession } = useAuth();
@@ -28,6 +29,8 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   useEffect(() => {
     if (status === "authenticated") router.replace(redirectTo);
@@ -49,7 +52,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
     setIsSubmitting(true);
     setError("");
     try {
-      await login({ email, password, rememberMe: true });
+      await login({ email, password, rememberMe });
       await refreshSession();
       router.replace(redirectTo);
       router.refresh();
@@ -87,49 +90,169 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12">
-      <Card className="w-full max-w-md border-white/80 bg-white py-0 shadow-lg">
-        <CardHeader className="gap-3 border-b border-slate-100 px-6 py-6 text-center">
-          <div className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-            <LockKeyhole className="h-5 w-5" />
-          </div>
-          <div className="space-y-1">
-            <CardTitle className="text-xl text-slate-950">{mode === "login" ? "Welcome back" : "Create your account"}</CardTitle>
-            <CardDescription className="text-sm leading-6 text-slate-600">
-              {mode === "login" ? "Sign in to continue booking" : "Fill details below to create your account"}
-            </CardDescription>
-          </div>
-          <div className="grid grid-cols-2 gap-2 rounded-lg bg-slate-100 p-1">
-            <Button type="button" variant={mode === "login" ? "default" : "ghost"} className="rounded-md" onClick={() => setMode("login")}>
-              Login
-            </Button>
-            <Button type="button" variant={mode === "signup" ? "default" : "ghost"} className="rounded-md" onClick={() => setMode("signup")}>
-              Signup
-            </Button>
-          </div>
-        </CardHeader>
+    <div className="flex min-h-screen items-stretch bg-slate-50">
+      
+      {/* Left Column: Visual Brand Illustration (Desktop Only) */}
+      <div className="hidden lg:flex lg:w-1/2 bg-slate-900 text-white relative overflow-hidden flex-col justify-between p-12">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.18),transparent_50%)] pointer-events-none" />
+        
+        {/* Brand/Logo header */}
+        <div className="relative z-10 flex items-center gap-2">
+          <div className="h-9 w-9 rounded-xl bg-blue-600 flex items-center justify-center font-black text-white text-lg">T</div>
+          <span className="font-extrabold text-base tracking-tight">Techbes</span>
+        </div>
 
-        <CardContent className="px-6 py-6">
-          {error ? <InlineAlert message={error} /> : null}
-          {message ? <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{message}</div> : null}
+        {/* Hero Copy */}
+        <div className="relative z-10 space-y-4 max-w-md">
+          <h1 className="text-3xl font-extrabold tracking-tight leading-tight">
+            The Premium IT Services Marketplace
+          </h1>
+          <p className="text-xs text-slate-400 font-semibold leading-relaxed">
+            Outsource network installations, CCTV configurations, server management, and AMC audits to certified on-demand experts.
+          </p>
+        </div>
 
+        {/* Legal links */}
+        <div className="relative z-10 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+          © 2026 Techbes India Inc. All rights reserved.
+        </div>
+      </div>
+
+      {/* Right Column: Authentication Card Form */}
+      <div className="flex flex-col justify-center items-center flex-1 px-6 py-12 bg-white">
+        <div className="w-full max-w-sm space-y-6">
+          
+          <div className="space-y-2">
+            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight sm:text-2xl">
+              {mode === "login" ? "Welcome back" : "Create your account"}
+            </h2>
+            <p className="text-xs text-slate-400 font-semibold">
+              {mode === "login" ? "Sign in to manage your active IT bookings." : "Configure parameters and register to book services."}
+            </p>
+          </div>
+
+          {/* Social Logins - UI Only */}
+          <div className="grid grid-cols-2 gap-2 text-xs font-bold text-slate-700">
+            <button type="button" className="h-10 border border-slate-200 hover:bg-slate-50 rounded-xl flex items-center justify-center gap-1.5 transition">
+              Google
+            </button>
+            <button type="button" className="h-10 border border-slate-200 hover:bg-slate-50 rounded-xl flex items-center justify-center gap-1.5 transition">
+              GitHub
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3 text-slate-300 my-4 text-xs font-semibold">
+            <hr className="flex-1 border-slate-100" />
+            <span>or email credentials</span>
+            <hr className="flex-1 border-slate-100" />
+          </div>
+
+          {/* Form alert */}
+          {error && (
+            <div className="flex gap-2 items-center bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold p-3.5 rounded-xl">
+              <ShieldAlert className="h-4 w-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+          {message && (
+            <div className="flex gap-2 items-center bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-semibold p-3.5 rounded-xl">
+              <CheckCircle2 className="h-4 w-4 shrink-0" />
+              <span>{message}</span>
+            </div>
+          )}
+
+          {/* Login/Signup forms */}
           {mode === "login" ? (
             <form className="space-y-4" onSubmit={handleLogin} noValidate>
-              <AuthInput icon={Mail} id="login-email" label="Email" value={email} onChange={setEmail} type="email" autoComplete="email" />
-              <AuthInput id="login-password" label="Password" value={password} onChange={setPassword} type="password" autoComplete="current-password" />
+              <AuthInput icon={Mail} id="login-email" label="Email Address" value={email} onChange={setEmail} type="email" autoComplete="email" />
+              
+              <div className="space-y-1.5 relative">
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="login-password" className="text-xs font-bold text-slate-700">Password</Label>
+                  <button type="button" className="text-[10px] text-blue-600 hover:underline font-bold">Forgot password?</button>
+                </div>
+                <div className="relative">
+                  <Input
+                    id="login-password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-10 rounded-xl border-slate-200 bg-slate-50 text-xs px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Remember Me */}
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                <input 
+                  type="checkbox" 
+                  id="remember-me" 
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="rounded border-slate-350 focus:ring-blue-500/25 h-3.5 w-3.5"
+                />
+                <label htmlFor="remember-me">Remember my credentials</label>
+              </div>
+
               <SubmitButton loading={isSubmitting} label="Login" loadingLabel="Logging in..." />
             </form>
           ) : (
             <form className="space-y-4" onSubmit={handleDirectSignup} noValidate>
               <AuthInput icon={UserRound} id="signup-name" label="Full name" value={name} onChange={setName} autoComplete="name" />
-              <AuthInput icon={Mail} id="signup-email" label="Email" value={email} onChange={setEmail} type="email" autoComplete="email" />
-              <AuthInput icon={Phone} id="signup-phone" label="Phone" value={phone} onChange={setPhone} type="tel" autoComplete="tel" />
-              <AuthInput id="signup-password" label="Password" value={password} onChange={setPassword} type="password" autoComplete="new-password" />
-              <SubmitButton loading={isSubmitting} label="Signup" loadingLabel="Signing up..." />
+              <AuthInput icon={Mail} id="signup-email" label="Email address" value={email} onChange={setEmail} type="email" autoComplete="email" />
+              <AuthInput icon={Phone} id="signup-phone" label="Mobile number" value={phone} onChange={setPhone} type="tel" autoComplete="tel" />
+              
+              <div className="space-y-1.5 relative">
+                <Label htmlFor="signup-password" className="text-xs font-bold text-slate-700">Password</Label>
+                <div className="relative">
+                  <Input
+                    id="signup-password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-10 rounded-xl border-slate-200 bg-slate-50 text-xs px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <SubmitButton loading={isSubmitting} label="Create Account" loadingLabel="Registering..." />
             </form>
           )}
-        </CardContent>
-      </Card>
+
+          {/* Toggle Button */}
+          <div className="text-center text-xs font-semibold text-slate-400">
+            {mode === "login" ? "Don't have an account?" : "Already have an account?"}{" "}
+            <button 
+              type="button" 
+              onClick={() => {
+                setMode(mode === "login" ? "signup" : "login");
+                setError("");
+                setMessage("");
+              }}
+              className="text-blue-600 hover:underline font-bold ml-1"
+            >
+              {mode === "login" ? "Sign up" : "Sign in"}
+            </button>
+          </div>
+
+        </div>
+      </div>
     </div>
   );
 }
@@ -152,16 +275,16 @@ function AuthInput({
   autoComplete?: string;
 }) {
   return (
-    <div>
-      <Label htmlFor={id}>{label}</Label>
-      <div className="relative mt-1">
-        {Icon ? <Icon className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400" /> : null}
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-xs font-bold text-slate-700">{label}</Label>
+      <div className="relative">
+        {Icon ? <Icon className="pointer-events-none absolute left-3 top-3 text-slate-400 h-4 w-4" /> : null}
         <Input
           id={id}
           type={type}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className={`h-12 rounded-lg border-slate-200 ${Icon ? "pl-10" : ""}`}
+          className={`h-10 rounded-xl border-slate-200 bg-slate-50 text-xs focus:ring-blue-500/20 ${Icon ? "pl-9" : "px-3"}`}
           autoComplete={autoComplete}
         />
       </div>
@@ -171,14 +294,17 @@ function AuthInput({
 
 function SubmitButton({ loading, label, loadingLabel }: { loading: boolean; label: string; loadingLabel: string }) {
   return (
-    <Button type="submit" size="lg" className="h-12 w-full rounded-lg" disabled={loading}>
+    <Button type="submit" className="h-10 w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm flex items-center justify-center gap-1.5" disabled={loading}>
       {loading ? (
         <>
-          <Spinner className="h-4 w-4" />
-          <span className="ml-2">{loadingLabel}</span>
+          <Spinner className="h-4 w-4 text-white" />
+          <span>{loadingLabel}</span>
         </>
       ) : (
-        label
+        <>
+          {label}
+          <ArrowRight className="h-4 w-4" />
+        </>
       )}
     </Button>
   );

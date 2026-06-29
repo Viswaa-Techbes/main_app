@@ -14,8 +14,8 @@ const navItems = [
   { label: "Home", href: "/" },
   { label: "Services", href: "/services" },
   { label: "Solutions", href: "/services" },
-  { label: "About Us", href: "/services" },
-  { label: "Contact Us", href: "/services" },
+  { label: "About Us", href: "/about" },
+  { label: "Contact Us", href: "/contact" },
 ];
 
 export function SiteHeader() {
