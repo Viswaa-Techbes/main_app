@@ -39,13 +39,13 @@ export function SiteHeader() {
               <MapPin className="h-3.5 w-3.5 text-blue-600" />
               <span>Bangalore, India</span>
             </div>
-            <a href="tel:+919876543210" className="flex items-center gap-1.5 hover:text-blue-600 transition">
+            <a href="tel:+919164487296" className="flex items-center gap-1.5 hover:text-blue-600 transition">
               <Phone className="h-3.5 w-3.5 text-blue-600" />
-              <span>+91 98765 43210</span>
+              <span>+91 91644 87296</span>
             </a>
-            <a href="mailto:info@techbes.co.in" className="flex items-center gap-1.5 hover:text-blue-600 transition">
+            <a href="mailto:lohith@techbes.co.in" className="flex items-center gap-1.5 hover:text-blue-600 transition">
               <Mail className="h-3.5 w-3.5 text-blue-600" />
-              <span>info@techbes.co.in</span>
+              <span>lohith@techbes.co.in</span>
             </a>
           </div>
           <div className="flex items-center gap-6 text-slate-600">

@@ -85,15 +85,15 @@ export function SiteFooter() {
             <div className="mt-4.5 space-y-3.5 text-xs text-slate-400 font-semibold">
               <p className="flex items-start gap-2.5">
                 <MapPin className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
-                <span>Indiranagar, Bangalore, KA, India</span>
+                <span>Nagarbhavi, Bangalore, KA, India</span>
               </p>
               <p className="flex items-center gap-2.5">
                 <Phone className="h-4 w-4 text-blue-500 shrink-0" />
-                <a href="tel:+919876543210" className="hover:text-white transition-colors">+91 98765 43210</a>
+                <a href="tel:+919164487296" className="hover:text-white transition-colors">+91 91644 87296</a>
               </p>
               <p className="flex items-center gap-2.5">
                 <Mail className="h-4 w-4 text-blue-500 shrink-0" />
-                <a href="mailto:hello@techbes.in" className="hover:text-white transition-colors">hello@techbes.in</a>
+                <a href="mailto:lohith@techbes.co.in" className="hover:text-white transition-colors">lohith@techbes.co.in</a>
               </p>
             </div>
           </div>
