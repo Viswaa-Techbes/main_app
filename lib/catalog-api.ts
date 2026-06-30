@@ -83,6 +83,15 @@ export async function fetchSubcategories(categorySlug: string): Promise<CatalogS
   }
 }
 
+export async function fetchAllSubcategories(): Promise<CatalogSubCategory[]> {
+  try {
+    return await fetchJson<CatalogSubCategory[]>(`${getApiBaseUrl()}/api/v2/catalog/subcategories`);
+  } catch {
+    return [];
+  }
+}
+
+
 export async function fetchSubcategoryDetail(slug: string): Promise<CatalogSubCategory | null> {
   try {
     return await fetchJson<CatalogSubCategory>(`${getApiBaseUrl()}/api/v2/catalog/subcategories/${slug}`);

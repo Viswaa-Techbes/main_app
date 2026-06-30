@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarCheck, FileText, ShoppingCart, Zap } from "lucide-react";
+import { CalendarCheck, FileText, ShoppingCart, Zap, ShieldAlert, CheckCircle2, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { addCctvCartItem } from "@/lib/cctv-cart";
 import { cctvApi, CctvAddon, CctvSubcategory } from "@/lib/cctv-api";
+import { useToast } from "@/hooks/use-toast";
 
 function money(value?: number) {
   return `Rs. ${Math.round(value || 0).toLocaleString("en-IN")}`;
@@ -15,6 +16,7 @@ function money(value?: number) {
 import { getCctvCart } from "@/lib/cctv-cart";
 import dynamic from "next/dynamic";
 const LocationPicker = dynamic(() => import("@/components/booking/LocationPicker"), { ssr: false });
+
 
 export function ServiceBookingConfigModal({
   open,
@@ -30,7 +32,10 @@ export function ServiceBookingConfigModal({
   onRequestQuote?: () => void;
 }) {
   const router = useRouter();
+  const { toast } = useToast();
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [addons, setAddons] = useState<CctvAddon[]>([]);
+
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [optionsError, setOptionsError] = useState("");
   const [configData, setConfigData] = useState<{
@@ -317,13 +322,48 @@ export function ServiceBookingConfigModal({
       if (copy[id]) delete copy[id]; else copy[id] = 1;
       return copy;
     });
+    setValidationErrors((prev) => {
+      const copy = { ...prev };
+      delete copy.requirements;
+      return copy;
+    });
   }
 
   function setMaterialQty(id: string, qty: number) {
     setSelectedMaterials((s) => ({ ...s, [id]: Math.max(0, Math.floor(qty || 0)) }));
   }
 
-  function goNext() { if (step < maxStep) setStep(step + 1); }
+  function goNext() {
+    const currentStepLabel = currentStepDef?.label;
+    const allErrors = getValidationErrors();
+    const currentErrors = allErrors.filter(e => e.stepLabel === currentStepLabel);
+
+    if (currentErrors.length > 0) {
+      const newErrors = { ...validationErrors };
+      currentErrors.forEach(e => {
+        newErrors[e.fieldKey] = e.message;
+      });
+      setValidationErrors(newErrors);
+
+      toast({
+        title: `${currentStepLabel} Incomplete`,
+        description: currentErrors[0].message,
+        variant: "destructive",
+      });
+
+      setTimeout(() => {
+        const element = document.getElementById(currentErrors[0].elementId);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+          element.focus();
+        }
+      }, 100);
+      return;
+    }
+
+    if (step < maxStep) setStep(step + 1);
+  }
+
   function goPrev() { if (step > 1) setStep(step - 1); }
 
   function buildMaterialsArray() {
@@ -349,9 +389,8 @@ export function ServiceBookingConfigModal({
     const payload = {
       id: editItem ? editItem.id : undefined,
       serviceSlug: service.slug,
-      serviceName: service.name,
-      categoryId,
-      subcategoryId: service._id,
+      serviceTitle: service.name,
+      price: priceBreakdown,
       input: {
         serviceType,
         materials: materialsArray,
@@ -359,41 +398,13 @@ export function ServiceBookingConfigModal({
         date,
         time,
         notes,
-        isMaterialsRequired: hasAddonSchema,
         latitude,
         longitude,
         pincode,
         fullAddress,
         city,
-        state: stateName
-      },
-      price: {
-        category: { id: categoryId, name: service.name, slug: service.slug },
-        subcategory: { id: service._id, name: service.name, slug: service.slug },
-        cameraType: { id: serviceType, name: serviceType, slug: serviceType, unitPrice: priceBreakdown.serviceCost },
-        cameraCount: 0,
-        installationArea: "",
-        wireLength: 0,
-        addons: materialsArray.map(m => ({ id: m.addonId || m.id, name: m.name, slug: m.id, price: m.unitPrice, quantity: m.qty, total: m.total })),
-        priceBreakdown: {
-          baseCharge: priceBreakdown.serviceCost,
-          cameraUnitPrice: priceBreakdown.serviceCost,
-          cameraCount: 0,
-          cameraTotal: 0,
-          indoorCharge: 0,
-          outdoorCharge: 0,
-          areaCharge: 0,
-          wireLength: 0,
-          wirePricePerMeter: 0,
-          wireTotal: 0,
-          addonsTotal: priceBreakdown.materialCost + priceBreakdown.labourCost,
-          discountTotal: 0,
-          couponTotal: 0,
-          offerAdjustment: 0,
-          taxableAmount: priceBreakdown.grandTotal,
-          taxTotal: 0,
-          grandTotal: priceBreakdown.grandTotal
-        }
+        state: stateName,
+        addressType: "home",
       },
     };
     addCctvCartItem(payload as any, replaceExisting);
@@ -408,25 +419,50 @@ export function ServiceBookingConfigModal({
     return t && t.trim().length > 0;
   }
 
-  function getValidationErrors(): { field: string; stepLabel: string }[] {
-    const errors: { field: string; stepLabel: string }[] = [];
+  function getValidationErrors(): { fieldKey: string; message: string; stepLabel: string; elementId: string }[] {
+    const errors: { fieldKey: string; message: string; stepLabel: string; elementId: string }[] = [];
     const hasServiceTypeOptions = serviceTypes.length > 0;
     if (hasServiceTypeOptions && (!serviceType || !serviceType.trim())) {
-      errors.push({ field: "Service Type", stepLabel: "Service Type" });
+      errors.push({
+        fieldKey: "serviceType",
+        message: "Please select a service type.",
+        stepLabel: "Service Type",
+        elementId: "service-type-select",
+      });
     }
     const s = service as any;
     const isStep2Required = s.formSchema?.step2?.options && s.formSchema.step2.options.length > 0;
     if (isStep2Required && !Object.keys(selectedMaterials).length) {
-      errors.push({ field: "Materials/Requirements", stepLabel: s.formSchema?.step2?.title || "Requirements" });
+      errors.push({
+        fieldKey: "requirements",
+        message: "Please select at least one requirement/material.",
+        stepLabel: s.formSchema?.step2?.title || "Requirements",
+        elementId: "step2-requirements-container",
+      });
     }
-    if (!mapLink || !isValidMapLink(mapLink)) {
-      errors.push({ field: "Google Maps Link (must start with http)", stepLabel: "Location" });
+    if (!mapLink || !isValidMapLink(mapLink) || !latitude || !longitude) {
+      errors.push({
+        fieldKey: "location",
+        message: "Please pin your location and click Confirm Location.",
+        stepLabel: "Location",
+        elementId: "location-picker-container",
+      });
     }
     if (!date) {
-      errors.push({ field: "Preferred Date", stepLabel: "Schedule" });
+      errors.push({
+        fieldKey: "date",
+        message: "Preferred date is required.",
+        stepLabel: "Schedule",
+        elementId: "schedule-date-input",
+      });
     }
     if (!time || !isValidTime(time)) {
-      errors.push({ field: "Preferred Time", stepLabel: "Schedule" });
+      errors.push({
+        fieldKey: "time",
+        message: "Preferred time is required.",
+        stepLabel: "Schedule",
+        elementId: "schedule-time-input",
+      });
     }
     return errors;
   }
@@ -447,14 +483,37 @@ export function ServiceBookingConfigModal({
     setPendingAction(null);
   }
 
+  function handleValidationFailure(errors: any[]) {
+    const newErrors: Record<string, string> = {};
+    errors.forEach(e => {
+      newErrors[e.fieldKey] = e.message;
+    });
+    setValidationErrors(newErrors);
+
+    toast({
+      title: "Required Fields Missing",
+      description: "Please complete all required fields highlighted in red.",
+      variant: "destructive",
+    });
+
+    const firstError = errors[0];
+    const firstErrorStep = stepsList.find(s => s.label === firstError.stepLabel);
+    if (firstErrorStep) {
+      setStep(firstErrorStep.step);
+      setTimeout(() => {
+        const element = document.getElementById(firstError.elementId);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+          element.focus();
+        }
+      }, 150);
+    }
+  }
+
   function addToCart() {
     const errors = getValidationErrors();
     if (errors.length > 0) {
-      const missing = errors.map(e => `• ${e.field} (go to "${e.stepLabel}" step)`).join("\n");
-      window.alert(`Please complete the following required fields:\n\n${missing}`);
-      // Navigate to the step with the first error
-      const firstErrorStep = stepsList.find(s => s.label === errors[0].stepLabel);
-      if (firstErrorStep) setStep(firstErrorStep.step);
+      handleValidationFailure(errors);
       return;
     }
 
@@ -477,10 +536,7 @@ export function ServiceBookingConfigModal({
   function continueBooking() {
     const errors = getValidationErrors();
     if (errors.length > 0) {
-      const missing = errors.map(e => `• ${e.field} (go to "${e.stepLabel}" step)`).join("\n");
-      window.alert(`Please complete the following required fields:\n\n${missing}`);
-      const firstErrorStep = stepsList.find(s => s.label === errors[0].stepLabel);
-      if (firstErrorStep) setStep(firstErrorStep.step);
+      handleValidationFailure(errors);
       return;
     }
 
@@ -490,6 +546,7 @@ export function ServiceBookingConfigModal({
       router.push("/checkout");
       return;
     }
+
 
     const cartItems = getCctvCart();
     if (cartItems.length > 0) {
@@ -518,16 +575,33 @@ export function ServiceBookingConfigModal({
             {/* Step 1: Dynamic Service Types */}
             {step === 1 && (
               <div>
-                <label className="grid gap-1 text-sm font-medium text-slate-700">
+                <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
                   {s.formSchema?.step1?.title || "Step 1: Service Type"}
+                  <span className="inline-flex items-center rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-700 ring-1 ring-inset ring-rose-600/10">Required</span>
                 </label>
-                <select className="h-11 w-full rounded-md border border-slate-300 px-3 mt-2" value={serviceType} onChange={(e) => setServiceType(e.target.value)}>
+                <select
+                  id="service-type-select"
+                  className={`h-11 w-full rounded-md border px-3 mt-2 text-sm bg-white ${validationErrors.serviceType ? "border-rose-500 bg-rose-50/10 focus:ring-rose-500/20" : "border-slate-300"}`}
+                  value={serviceType}
+                  onChange={(e) => {
+                    setServiceType(e.target.value);
+                    setValidationErrors(prev => {
+                      const copy = { ...prev };
+                      delete copy.serviceType;
+                      return copy;
+                    });
+                  }}
+                >
+                  <option value="">Select Service Type...</option>
                   {serviceTypes.map((t: string) => <option key={t} value={t}>{t}</option>)}
                 </select>
+                {validationErrors.serviceType && (
+                  <p className="text-xs text-rose-500 font-medium mt-1.5 flex items-center gap-1"><ShieldAlert className="h-3.5 w-3.5" /> {validationErrors.serviceType}</p>
+                )}
                 {s.formSchema?.step1?.options && (
                   <div className="mt-4 grid gap-2">
                     {s.formSchema.step1.options.map((opt: any) => (
-                      <div key={opt.name || opt.label} className="text-xs text-slate-500 bg-slate-50 p-2 rounded-md">
+                      <div key={opt.name || opt.label} className="text-xs text-slate-500 bg-slate-50 p-2.5 rounded-md">
                         <strong>{opt.label || opt.name}</strong>: {opt.description || "Basic support"} · Base Price: ₹{opt.price || 0}
                       </div>
                     ))}
@@ -538,20 +612,26 @@ export function ServiceBookingConfigModal({
 
             {/* Step 2: Dynamic Requirements / Materials */}
             {step === 2 && (
-              <div>
-                <p className="text-sm font-medium text-slate-700">{s.formSchema?.step2?.title || "Step 2: Materials Required"}</p>
+              <div id="step2-requirements-container" className={`rounded-xl ${validationErrors.requirements ? "border border-rose-300 p-4 bg-rose-50/5" : ""}`}>
+                <p className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
+                  {s.formSchema?.step2?.title || "Step 2: Materials Required"}
+                  <span className="inline-flex items-center rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-700 ring-1 ring-inset ring-rose-600/10">Required</span>
+                </p>
+                {validationErrors.requirements && (
+                  <p className="text-xs text-rose-500 font-medium mt-1.5 mb-2 flex items-center gap-1"><ShieldAlert className="h-3.5 w-3.5" /> {validationErrors.requirements}</p>
+                )}
                 <div className="mt-3 grid gap-3">
                   {formattedMaterials.map((m: any) => {
                     const hasQty = m.unit !== "none" && m.unit !== "checkbox" && m.unit !== "each";
                     return (
-                      <div key={m.id} className="flex items-center gap-3 rounded-md border border-slate-200 px-3 py-2">
-                        <input type="checkbox" checked={!!selectedMaterials[m.id]} onChange={() => toggleMaterial(m.id)} />
+                      <div key={m.id} className="flex items-center gap-3 rounded-md border border-slate-200 px-3 py-2 bg-white">
+                        <input type="checkbox" checked={!!selectedMaterials[m.id]} onChange={() => toggleMaterial(m.id)} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
                         <div className="flex-1">
-                          <div className="font-medium">{m.name} {m.unit !== "none" && m.unit !== "checkbox" && <span className="text-sm text-slate-500">({m.unit})</span>}</div>
-                          {m.price > 0 && <div className="text-sm text-slate-500">Price: ₹{m.price} {m.unit !== "none" && m.unit !== "checkbox" ? `per ${m.unit}` : ""}</div>}
+                          <div className="font-medium text-xs">{m.name} {m.unit !== "none" && m.unit !== "checkbox" && <span className="text-[10px] text-slate-500">({m.unit})</span>}</div>
+                          {m.price > 0 && <div className="text-[10px] text-slate-500">Price: ₹{m.price} {m.unit !== "none" && m.unit !== "checkbox" ? `per ${m.unit}` : ""}</div>}
                         </div>
                         {selectedMaterials[m.id] && hasQty && (
-                          <input type="number" min={1} value={selectedMaterials[m.id]} onChange={(e) => setMaterialQty(m.id, Number(e.target.value))} className="w-28 rounded-md border px-2 py-1" />
+                          <input type="number" min={1} value={selectedMaterials[m.id]} onChange={(e) => setMaterialQty(m.id, Number(e.target.value))} className="w-20 rounded-md border border-slate-200 px-2 py-1 text-xs text-right" />
                         )}
                       </div>
                     );
@@ -563,19 +643,19 @@ export function ServiceBookingConfigModal({
             {/* Step 3: Dynamic Step 3 Options (Optional) */}
             {currentStepDef?.label === (s.formSchema?.step3?.title || "Options") && (
               <div>
-                <p className="text-sm font-medium text-slate-700">{s.formSchema?.step3?.title || "Step 3: Parts Selection"}</p>
+                <p className="text-sm font-semibold text-slate-700">{s.formSchema?.step3?.title || "Step 3: Parts Selection"}</p>
                 <div className="mt-3 grid gap-3">
                   {formattedStep3Items.map((m: any) => {
                     const hasQty = m.unit !== "none" && m.unit !== "checkbox" && m.unit !== "each";
                     return (
-                      <div key={m.id} className="flex items-center gap-3 rounded-md border border-slate-200 px-3 py-2">
-                        <input type="checkbox" checked={!!selectedMaterials[m.id]} onChange={() => toggleMaterial(m.id)} />
+                      <div key={m.id} className="flex items-center gap-3 rounded-md border border-slate-200 px-3 py-2 bg-white">
+                        <input type="checkbox" checked={!!selectedMaterials[m.id]} onChange={() => toggleMaterial(m.id)} className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
                         <div className="flex-1">
-                          <div className="font-medium">{m.name} {m.unit !== "none" && m.unit !== "checkbox" && <span className="text-sm text-slate-500">({m.unit})</span>}</div>
-                          {m.price > 0 && <div className="text-sm text-slate-500">Price: ₹{m.price} {m.unit !== "none" && m.unit !== "checkbox" ? `per ${m.unit}` : ""}</div>}
+                          <div className="font-medium text-xs">{m.name} {m.unit !== "none" && m.unit !== "checkbox" && <span className="text-[10px] text-slate-500">({m.unit})</span>}</div>
+                          {m.price > 0 && <div className="text-[10px] text-slate-500">Price: ₹{m.price} {m.unit !== "none" && m.unit !== "checkbox" ? `per ${m.unit}` : ""}</div>}
                         </div>
                         {selectedMaterials[m.id] && hasQty && (
-                          <input type="number" min={1} value={selectedMaterials[m.id]} onChange={(e) => setMaterialQty(m.id, Number(e.target.value))} className="w-28 rounded-md border px-2 py-1" />
+                          <input type="number" min={1} value={selectedMaterials[m.id]} onChange={(e) => setMaterialQty(m.id, Number(e.target.value))} className="w-20 rounded-md border border-slate-200 px-2 py-1 text-xs text-right" />
                         )}
                       </div>
                     );
@@ -586,8 +666,16 @@ export function ServiceBookingConfigModal({
 
             {/* Dynamic Step Location */}
             {currentStepDef?.label === "Location" && (
-              <div>
-                <label className="grid gap-1 text-sm font-semibold text-slate-700 mb-2">Locate your service area</label>
+              <div id="location-picker-container" className={`rounded-xl ${validationErrors.location ? "border border-rose-300 p-4 bg-rose-50/5" : ""}`}>
+                <label className="flex flex-col gap-1 text-sm font-semibold text-slate-700 mb-2">
+                  <span className="flex items-center gap-1.5">
+                    Locate your service area
+                    <span className="inline-flex items-center rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-700 ring-1 ring-inset ring-rose-600/10">Required</span>
+                  </span>
+                </label>
+                {validationErrors.location && (
+                  <p className="text-xs text-rose-500 font-medium mb-3 flex items-center gap-1"><ShieldAlert className="h-3.5 w-3.5" /> {validationErrors.location}</p>
+                )}
                 <LocationPicker 
                   onLocationSelected={(data) => {
                     setMapLink(`https://maps.google.com/?q=${data.latitude},${data.longitude}`);
@@ -601,6 +689,23 @@ export function ServiceBookingConfigModal({
                       const prefix = prev ? prev + "\n" : "";
                       return `${prefix}Address selected: ${data.address}`;
                     });
+
+                    // Clear validation error on confirmation
+                    setValidationErrors((prev) => {
+                      const copy = { ...prev };
+                      delete copy.location;
+                      return copy;
+                    });
+
+                    toast({
+                      title: "Location Confirmed",
+                      description: "Your address details have been successfully confirmed. Automatically continuing to schedule details...",
+                    });
+
+                    // Auto-advance step after 500ms
+                    setTimeout(() => {
+                      setStep((s) => Math.min(s + 1, maxStep));
+                    }, 500);
                   }} 
                   initialCoords={latitude && longitude ? { lat: latitude, lng: longitude } : null}
                 />
@@ -609,22 +714,66 @@ export function ServiceBookingConfigModal({
 
             {/* Dynamic Step Schedule */}
             {currentStepDef?.label === "Schedule" && (
-              <div>
-                <label className="grid gap-1 text-sm font-medium text-slate-700">Preferred Date</label>
-                <input className="h-11 w-full rounded-md border border-slate-300 px-3 mt-2" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-                <label className="grid gap-1 text-sm font-medium text-slate-700 mt-4">Preferred Time (24-Hour)</label>
-                <input className="h-11 w-full rounded-md border border-slate-300 px-3 mt-2" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+              <div className="space-y-4">
+                <div>
+                  <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
+                    Preferred Date
+                    <span className="inline-flex items-center rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-700 ring-1 ring-inset ring-rose-600/10">Required</span>
+                  </label>
+                  <input
+                    id="schedule-date-input"
+                    className={`h-11 w-full rounded-md border px-3 mt-2 text-sm bg-white focus:outline-none ${validationErrors.date ? "border-rose-500 bg-rose-50/10 focus:ring-rose-500/20" : "border-slate-300"}`}
+                    type="date"
+                    value={date}
+                    onChange={(e) => {
+                      setDate(e.target.value);
+                      setValidationErrors(prev => {
+                        const copy = { ...prev };
+                        delete copy.date;
+                        return copy;
+                      });
+                    }}
+                  />
+                  {validationErrors.date && (
+                    <p className="text-xs text-rose-500 font-medium mt-1.5 flex items-center gap-1"><ShieldAlert className="h-3.5 w-3.5" /> {validationErrors.date}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
+                    Preferred Time (24-Hour)
+                    <span className="inline-flex items-center rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-700 ring-1 ring-inset ring-rose-600/10">Required</span>
+                  </label>
+                  <input
+                    id="schedule-time-input"
+                    className={`h-11 w-full rounded-md border px-3 mt-2 text-sm bg-white focus:outline-none ${validationErrors.time ? "border-rose-500 bg-rose-50/10 focus:ring-rose-500/20" : "border-slate-300"}`}
+                    type="time"
+                    value={time}
+                    onChange={(e) => {
+                      setTime(e.target.value);
+                      setValidationErrors(prev => {
+                        const copy = { ...prev };
+                        delete copy.time;
+                        return copy;
+                      });
+                    }}
+                  />
+                  {validationErrors.time && (
+                    <p className="text-xs text-rose-500 font-medium mt-1.5 flex items-center gap-1"><ShieldAlert className="h-3.5 w-3.5" /> {validationErrors.time}</p>
+                  )}
+                </div>
               </div>
             )}
 
             {/* Dynamic Step Notes */}
             {currentStepDef?.label === "Notes" && (
               <div>
-                <label className="grid gap-1 text-sm font-medium text-slate-700">Special Notes</label>
-                <textarea className="w-full rounded-md border border-slate-300 px-3 py-2 mt-2" placeholder="Any additional details or requirements" value={notes} onChange={(e) => setNotes(e.target.value)} />
-                <div className="text-sm text-slate-500 mt-2">Example: Any device models, issue descriptions, parking details, or safety directives.</div>
+                <label className="grid gap-1 text-sm font-semibold text-slate-700">Special Notes</label>
+                <textarea className="w-full rounded-md border border-slate-300 px-3 py-2 mt-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white" placeholder="Any additional details or requirements" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
+                <div className="text-xs text-slate-400 mt-2">Example: Any device models, issue descriptions, parking details, or safety directives.</div>
               </div>
             )}
+
 
             <div className="mt-4 flex items-center gap-2">
               {step > 1 && <Button variant="outline" onClick={goPrev}>Back</Button>}

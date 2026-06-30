@@ -6,11 +6,11 @@ import { Search, Sparkles, ShieldCheck, Users, Camera, Network, Laptop, Monitor,
 import { useState } from "react";
 
 const CATEGORY_TILES = [
-  { id: "cctv", label: "CCTV", icon: Camera },
-  { id: "networking", label: "Networking", icon: Network },
-  { id: "laptop", label: "Laptop", icon: Laptop },
-  { id: "desktop", label: "Desktop", icon: Monitor },
-  { id: "website-development", label: "Website Development", icon: Globe },
+  { id: "cctv", label: "CCTV", icon: Camera, subtitle: "Smart surveillance & office security" },
+  { id: "networking", label: "Networking", icon: Network, subtitle: "WiFi setup & structured cabling" },
+  { id: "laptop", label: "Laptop", icon: Laptop, subtitle: "Screen, battery & OS repair" },
+  { id: "desktop", label: "Desktop", icon: Monitor, subtitle: "PC assembly, repairs & upgrades" },
+  { id: "website-development", label: "Website Development", icon: Globe, subtitle: "Custom business websites & SEO" },
 ];
 
 import { Button } from "@/components/ui/button";
@@ -50,12 +50,12 @@ export function HomeHero() {
             {/* Actions & Search */}
             <div className="mt-6 space-y-4">
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button className="h-11 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 shadow-md hover:shadow-lg transition-all" asChild>
+                <Button className="h-11 w-full sm:w-56 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 shadow-md hover:shadow-lg transition-all flex items-center justify-center" asChild>
                   <Link href="/services">
                     Explore Services
                   </Link>
                 </Button>
-                <Button variant="outline" className="h-11 rounded-xl border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 px-6" asChild>
+                <Button variant="outline" className="h-11 w-full sm:w-56 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 px-6 flex items-center justify-center" asChild>
                   <Link href="/services">
                     Book a Free Consultation
                   </Link>
@@ -131,22 +131,23 @@ export function HomeHero() {
 
 
         {/* ── Compact Category Tiles ── */}
-        <div className="mt-8 border-t border-slate-100 pt-6">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Quick Access</p>
-          <div className="flex flex-wrap gap-2">
+        <div className="mt-10 border-t border-slate-100 pt-8">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Quick Access</p>
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
             {CATEGORY_TILES.map((cat) => {
               const Icon = cat.icon;
               return (
-                <a
+                <Link
                   key={cat.id}
                   href={`/services?category=${cat.id}`}
-                  className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-all duration-150 shadow-sm hover:shadow"
+                  className="group flex flex-col items-center text-center p-4 rounded-2xl border border-slate-100 bg-slate-50/30 hover:bg-white hover:border-blue-100 hover:shadow-lg transition-all duration-300"
                 >
-                  <div className="rounded-lg bg-white p-1.5 text-slate-500 group-hover:text-blue-600 transition-colors shadow-sm border border-slate-100">
-                    <Icon className="h-3.5 w-3.5" />
+                  <div className="rounded-xl bg-blue-50 text-blue-600 p-3 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-hover:scale-103 shadow-sm">
+                    <Icon className="h-5 w-5" />
                   </div>
-                  {cat.label}
-                </a>
+                  <h3 className="mt-3 text-xs font-bold text-slate-800 group-hover:text-blue-600 transition-colors truncate w-full">{cat.label}</h3>
+                  <p className="mt-1 text-[9px] leading-relaxed text-slate-400 font-medium line-clamp-2 h-6">{cat.subtitle}</p>
+                </Link>
               );
             })}
           </div>

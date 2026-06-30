@@ -11,13 +11,17 @@ import { CctvSubcategory } from "@/lib/cctv-api";
 import { fetchSubcategoryDetail } from "@/lib/catalog-api";
 import { ServiceBookingConfigModal } from "@/components/booking/service-config-modal";
 import { getRecommendedServices, services } from "@/lib/marketplace-data";
+import { useToast } from "@/hooks/use-toast";
+
 
 function money(value?: number) {
   return `Rs. ${Math.round(value || 0).toLocaleString("en-IN")}`;
 }
 
 export function CctvCartView() {
+  const { toast } = useToast();
   const [items, setItems] = useState<CctvCartItem[]>([]);
+
   
   // Modals & Popups States
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<CctvCartItem | null>(null);
@@ -59,11 +63,16 @@ export function CctvCartView() {
       setEditModalOpen(true);
     } catch (err) {
       console.error("Failed to load service config for editing", err);
-      alert("Unable to edit configuration at this moment.");
+      toast({
+        title: "Edit Failed",
+        description: "Unable to edit configuration at this moment.",
+        variant: "destructive",
+      });
     } finally {
       setLoadingService(false);
     }
   }
+
 
   function handleConfirmDelete() {
     if (deleteConfirmItem) {

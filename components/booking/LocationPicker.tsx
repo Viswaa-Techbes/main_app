@@ -6,6 +6,8 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { MapPin, Navigation, Search, Loader2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+
 
 // Fix default Leaflet icon paths
 const DefaultIcon = L.icon({
@@ -38,10 +40,12 @@ function ChangeMapView({ coords }: { coords: [number, number] }) {
 }
 
 export default function LocationPicker({ onLocationSelected, initialCoords }: LocationPickerProps) {
+  const { toast } = useToast();
   const defaultCenter: [number, number] = [12.9716, 77.5946]; // Bangalore center
   const [position, setPosition] = useState<[number, number]>(
     initialCoords ? [initialCoords.lat, initialCoords.lng] : defaultCenter
   );
+
   
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -138,7 +142,11 @@ export default function LocationPicker({ onLocationSelected, initialCoords }: Lo
   // Use Current Location (Browser Geolocation API)
   function handleUseCurrentLocation() {
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      toast({
+        title: "Geolocation Unsupported",
+        description: "Geolocation is not supported by your browser.",
+        variant: "destructive",
+      });
       return;
     }
     setGeocoding(true);
@@ -150,12 +158,17 @@ export default function LocationPicker({ onLocationSelected, initialCoords }: Lo
       },
       (err) => {
         console.error("Geolocation error:", err);
-        alert("Failed to fetch location. Please check browser GPS permissions.");
+        toast({
+          title: "Location Access Failed",
+          description: "Failed to fetch location. Please check browser GPS permissions.",
+          variant: "destructive",
+        });
         setGeocoding(false);
       },
       { enableHighAccuracy: true, timeout: 5000 }
     );
   }
+
 
   // Handle Drag End on Leaflet Marker
   const eventHandlers = useMemo(

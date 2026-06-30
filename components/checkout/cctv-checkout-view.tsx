@@ -7,6 +7,8 @@ import { MapPin, ArrowLeft, Calendar, Clock, AlertTriangle, ShieldCheck, User, P
 import { AUTH_TOKEN_STORAGE_KEY, getApiBaseUrl } from "@/core/api/config";
 import { cctvApi } from "@/lib/cctv-api";
 import { clearCctvCart, CctvCartItem, getCctvCart } from "@/lib/cctv-cart";
+import { useToast } from "@/hooks/use-toast";
+
 
 import dynamic from "next/dynamic";
 const LocationPicker = dynamic(() => import("@/components/booking/LocationPicker"), { ssr: false });
@@ -57,6 +59,7 @@ function loadRazorpayCheckout() {
 
 export function CctvCheckoutView() {
   const router = useRouter();
+  const { toast } = useToast();
   const [items, setItems] = useState<CctvCartItem[]>([]);
   const [savedAddresses, setSavedAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState("");
@@ -87,10 +90,15 @@ export function CctvCheckoutView() {
     const token = typeof window !== "undefined" ? window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) : null;
     if (!token) {
       console.warn("[Checkout] Unauthenticated. Redirecting to login.");
-      alert("Please log in or register before checking out.");
+      toast({
+        title: "Authentication Required",
+        description: "Please log in or register before checking out.",
+        variant: "destructive",
+      });
       router.push("/login?redirect=/checkout");
       return;
     }
+
 
     // Load Cart Items
     const cartItems = getCctvCart();

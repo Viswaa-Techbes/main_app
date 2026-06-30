@@ -8,7 +8,10 @@ import { ReactNode, useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { categories, MarketplaceService, services } from "@/lib/marketplace-data";
+import { MarketplaceService } from "@/lib/marketplace-data";
+import { fetchCategories, fetchAllSubcategories, CatalogCategory, CatalogSubCategory } from "@/lib/catalog-api";
+import { managedServiceToMarketplaceService } from "@/lib/cctv-api";
+import { Spinner } from "@/components/ui/spinner";
 
 type SortOption = "popular" | "price-low" | "top-rated";
 
@@ -22,7 +25,57 @@ export function ServiceCatalog() {
   const [sortBy, setSortBy] = useState<SortOption>("popular");
   const [showFilters, setShowFilters] = useState(false);
 
-  let filteredServices = services.filter((service) => {
+  // Dynamic Catalog State
+  const [dbCategories, setDbCategories] = useState<CatalogCategory[]>([]);
+  const [dbSubcategories, setDbSubcategories] = useState<CatalogSubCategory[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadCatalog() {
+      try {
+        const [cats, subs] = await Promise.all([
+          fetchCategories(),
+          fetchAllSubcategories(),
+        ]);
+        setDbCategories(cats);
+        setDbSubcategories(subs);
+      } catch (err) {
+        console.error("Failed to load dynamic catalog", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadCatalog();
+  }, []);
+
+  // Map backend subcategories to frontend marketplace service shape
+  const dynamicServices = dbSubcategories.map((sub, index) => {
+    let categoryName = "Other";
+    let categorySlug = "other";
+
+    if (typeof sub.categoryId === "object" && sub.categoryId !== null) {
+      categoryName = (sub.categoryId as any).name || "Other";
+      categorySlug = (sub.categoryId as any).slug || "other";
+    } else if (typeof sub.categoryId === "string") {
+      const foundCat = dbCategories.find(c => c._id === sub.categoryId || c.slug === sub.categoryId);
+      if (foundCat) {
+        categoryName = foundCat.name;
+        categorySlug = foundCat.slug;
+      }
+    }
+
+    return managedServiceToMarketplaceService({
+      ...sub,
+      categoryId: {
+        _id: typeof sub.categoryId === "object" ? (sub.categoryId as any)._id : sub.categoryId,
+        name: categoryName,
+        slug: categorySlug,
+        description: "",
+      }
+    } as any, index);
+  });
+
+  let filteredServices = dynamicServices.filter((service) => {
     const matchesSearch =
       search.length === 0 ||
       service.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -97,11 +150,11 @@ export function ServiceCatalog() {
 
             <FilterGroup label="Category">
               <div className="flex flex-col gap-1">
-                {["all", ...categories.map((category) => category.id)].map((categoryId) => {
+                {["all", ...dbCategories.map((category) => category.slug)].map((categoryId) => {
                   const label =
                     categoryId === "all"
                       ? "All Services"
-                      : categories.find((category) => category.id === categoryId)?.title ?? categoryId;
+                      : dbCategories.find((category) => category.slug === categoryId)?.name ?? categoryId;
                   const isSelected = selectedCategory === categoryId;
                   return (
                     <button
@@ -200,7 +253,11 @@ export function ServiceCatalog() {
             </div>
           </div>
 
-          {filteredServices.length > 0 ? (
+          {loading ? (
+            <div className="flex h-64 items-center justify-center">
+              <Spinner className="h-8 w-8 text-blue-600" />
+            </div>
+          ) : filteredServices.length > 0 ? (
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
               {filteredServices.map((service) => (
                 <CatalogCard key={service.slug} service={service} selectedCategory={selectedCategory} />
@@ -252,7 +309,7 @@ function CatalogCard({ service, selectedCategory }: { service: MarketplaceServic
       href={`/services/${service.slug}${selectedCategory && selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''}`}
       className="group flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-300"
     >
-      <div className="relative h-48 w-full overflow-hidden bg-slate-50">
+      <div className="relative h-40 w-full overflow-hidden bg-slate-50">
         <Image
           src={imgSrc}
           alt={service.title}
@@ -267,19 +324,18 @@ function CatalogCard({ service, selectedCategory }: { service: MarketplaceServic
           </span>
         )}
       </div>
-      
-      <div className="flex flex-1 flex-col p-5">
+
+      <div className="flex flex-1 flex-col p-4">
         <div className="flex items-center justify-between gap-3">
           <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[9px] font-bold text-blue-600 uppercase tracking-wider">{service.category}</span>
           <span className="text-xs font-extrabold text-slate-800">{service.price}</span>
         </div>
-        
-        <div className="mt-3 flex-1">
-          <h3 className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-1">{service.title}</h3>
-          <p className="mt-1.5 text-xs text-slate-400 font-medium line-clamp-2 leading-relaxed">{service.tagline}</p>
+
+        <div className="mt-2.5 flex-1">
+          <h3 className="text-xs font-bold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-1">{service.title}</h3>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between text-[11px] text-slate-400 font-semibold">
+        <div className="mt-3 pt-2.5 border-t border-slate-50 flex items-center justify-between text-[10px] text-slate-400 font-semibold">
           <span className="inline-flex items-center gap-1">
             <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
             <span className="text-slate-700">{service.rating}</span> ({service.reviewCount})
@@ -290,9 +346,9 @@ function CatalogCard({ service, selectedCategory }: { service: MarketplaceServic
           </span>
         </div>
 
-        <div className="mt-4 flex items-center justify-between h-9.5 w-full rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm group-hover:bg-blue-700 transition duration-150 pl-4 pr-3">
+        <div className="mt-3.5 flex items-center justify-between h-8.5 w-full rounded-lg bg-blue-600 text-white text-[11px] font-bold shadow-sm group-hover:bg-blue-700 transition duration-150 pl-3.5 pr-2.5">
           <span>Book Now</span>
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
         </div>
       </div>
     </Link>

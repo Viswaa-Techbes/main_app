@@ -9,13 +9,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { InlineAlert } from "@/shared/components/feedback/inline-alert";
 import { PageStatus } from "@/shared/components/feedback/page-status";
 
+import { useToast } from "@/hooks/use-toast";
+
 import dynamic from "next/dynamic";
 const LocationPicker = dynamic(() => import("@/components/booking/LocationPicker"), { ssr: false });
 
+
 export default function AddressesPage() {
+  const { toast } = useToast();
   const [addresses, setAddresses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
   
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
@@ -115,7 +120,11 @@ export default function AddressesPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.latitude || !form.longitude) {
-      alert("Please locate your address on the map first.");
+      toast({
+        title: "Address Pin Missing",
+        description: "Please locate your address on the map first.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -143,8 +152,16 @@ export default function AddressesPage() {
       
       setModalOpen(false);
       loadAddresses();
+      toast({
+        title: "Address Saved",
+        description: "Address details updated successfully.",
+      });
     } catch (err: any) {
-      alert(err.message || "Failed to save address.");
+      toast({
+        title: "Save Failed",
+        description: err.message || "Failed to save address.",
+        variant: "destructive",
+      });
     }
   }
 
@@ -157,8 +174,16 @@ export default function AddressesPage() {
       });
       if (!res.ok) throw new Error("Failed to update default status.");
       loadAddresses();
+      toast({
+        title: "Default Updated",
+        description: "Your default address has been updated.",
+      });
     } catch (err: any) {
-      alert(err.message || "Failed to update default address.");
+      toast({
+        title: "Update Failed",
+        description: err.message || "Failed to update default address.",
+        variant: "destructive",
+      });
     }
   }
 
@@ -171,10 +196,19 @@ export default function AddressesPage() {
       if (!res.ok) throw new Error("Failed to delete address.");
       setDeleteConfirmId(null);
       loadAddresses();
+      toast({
+        title: "Address Deleted",
+        description: "Saved address has been removed successfully.",
+      });
     } catch (err: any) {
-      alert(err.message || "Failed to delete address.");
+      toast({
+        title: "Delete Failed",
+        description: err.message || "Failed to delete address.",
+        variant: "destructive",
+      });
     }
   }
+
 
   if (loading && !addresses.length) return <PageStatus message="Loading saved addresses..." className="min-h-[70vh]" />;
 
