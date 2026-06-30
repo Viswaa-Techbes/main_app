@@ -2,8 +2,16 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Sparkles, Star, Users, ShieldCheck, CheckCircle, Clock } from "lucide-react";
+import { Search, Sparkles, ShieldCheck, Camera, Network, Laptop, Monitor, Globe } from "lucide-react";
 import { useState } from "react";
+
+const CATEGORY_TILES = [
+  { id: "cctv", label: "CCTV", icon: Camera },
+  { id: "networking", label: "Networking", icon: Network },
+  { id: "laptop", label: "Laptop", icon: Laptop },
+  { id: "desktop", label: "Desktop", icon: Monitor },
+  { id: "website-development", label: "Website Development", icon: Globe },
+];
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -121,12 +129,27 @@ export function HomeHero() {
 
         </div>
 
-        {/* Extended Stats strip below the Hero layout */}
-        <div className="mt-10 border-t border-slate-100 pt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
-          <BadgeStrip icon={Users} value="1000+" label="Happy Customers" />
-          <BadgeStrip icon={ShieldCheck} value="Certified" label="Technicians" />
-          <BadgeStrip icon={CheckCircle} value="Genuine" label="Products" />
-          <BadgeStrip icon={Clock} value="Quick Support" label="On-time Service" />
+
+        {/* ── Compact Category Tiles ── */}
+        <div className="mt-8 border-t border-slate-100 pt-6">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Quick Access</p>
+          <div className="flex flex-wrap gap-2">
+            {CATEGORY_TILES.map((cat) => {
+              const Icon = cat.icon;
+              return (
+                <a
+                  key={cat.id}
+                  href={`/services?category=${cat.id}`}
+                  className="group flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 transition-all duration-150 shadow-sm hover:shadow"
+                >
+                  <div className="rounded-lg bg-white p-1.5 text-slate-500 group-hover:text-blue-600 transition-colors shadow-sm border border-slate-100">
+                    <Icon className="h-3.5 w-3.5" />
+                  </div>
+                  {cat.label}
+                </a>
+              );
+            })}
+          </div>
         </div>
 
       </div>
@@ -134,24 +157,3 @@ export function HomeHero() {
   );
 }
 
-function BadgeStrip({
-  icon: Icon,
-  value,
-  label,
-}: {
-  icon: any;
-  value: string;
-  label: string;
-}) {
-  return (
-    <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-50/50 border border-slate-100/50 text-slate-700">
-      <div className="rounded-lg bg-blue-50 p-2 text-blue-600">
-        <Icon className="h-4 w-4" />
-      </div>
-      <div>
-        <p className="text-xs font-bold text-slate-900">{value}</p>
-        <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{label}</p>
-      </div>
-    </div>
-  );
-}
