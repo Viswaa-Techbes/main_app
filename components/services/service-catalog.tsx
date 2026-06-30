@@ -8,10 +8,11 @@ import { ReactNode, useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MarketplaceService } from "@/lib/marketplace-data";
+import { MarketplaceService, services as fallbackServices } from "@/lib/marketplace-data";
 import { fetchCategories, fetchAllSubcategories, CatalogCategory, CatalogSubCategory } from "@/lib/catalog-api";
-import { managedServiceToMarketplaceService } from "@/lib/cctv-api";
+import { managedServiceToMarketplaceService, normalizeCategoryId } from "@/lib/cctv-api";
 import { Spinner } from "@/components/ui/spinner";
+
 
 type SortOption = "popular" | "price-low" | "top-rated";
 
@@ -29,6 +30,18 @@ export function ServiceCatalog() {
   const [dbCategories, setDbCategories] = useState<CatalogCategory[]>([]);
   const [dbSubcategories, setDbSubcategories] = useState<CatalogSubCategory[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const categoriesToUse = dbCategories.length > 0 ? dbCategories : [
+    { _id: "cctv", name: "CCTV", slug: "cctv", description: "", icon: "Camera", image: "", color: "", gradient: "", isActive: true, sortOrder: 1 },
+    { _id: "networking", name: "Networking", slug: "networking", description: "", icon: "Network", image: "", color: "", gradient: "", isActive: true, sortOrder: 2 },
+    { _id: "laptop", name: "Laptop", slug: "laptop", description: "", icon: "Laptop", image: "", color: "", gradient: "", isActive: true, sortOrder: 3 },
+    { _id: "desktop", name: "Desktop", slug: "desktop", description: "", icon: "Monitor", image: "", color: "", gradient: "", isActive: true, sortOrder: 4 },
+    { _id: "server", name: "Server", slug: "server", description: "", icon: "Server", image: "", color: "", gradient: "", isActive: true, sortOrder: 5 },
+    { _id: "electrical-contract", name: "Electrical Contract", slug: "electrical-contract", description: "", icon: "Zap", image: "", color: "", gradient: "", isActive: true, sortOrder: 6 },
+    { _id: "home-automation", name: "Home Automation", slug: "home-automation", description: "", icon: "Home", image: "", color: "", gradient: "", isActive: true, sortOrder: 7 },
+    { _id: "website-development", name: "Website Development", slug: "website-development", description: "", icon: "Globe", image: "", color: "", gradient: "", isActive: true, sortOrder: 8 },
+    { _id: "software-licensing", name: "Software Licensing", slug: "software-licensing", description: "", icon: "Key", image: "", color: "", gradient: "", isActive: true, sortOrder: 9 },
+  ];
 
   useEffect(() => {
     async function loadCatalog() {
@@ -57,7 +70,7 @@ export function ServiceCatalog() {
       categoryName = (sub.categoryId as any).name || "Other";
       categorySlug = (sub.categoryId as any).slug || "other";
     } else if (typeof sub.categoryId === "string") {
-      const foundCat = dbCategories.find(c => c._id === sub.categoryId || c.slug === sub.categoryId);
+      const foundCat = categoriesToUse.find(c => c._id === sub.categoryId || c.slug === sub.categoryId);
       if (foundCat) {
         categoryName = foundCat.name;
         categorySlug = foundCat.slug;
@@ -75,13 +88,18 @@ export function ServiceCatalog() {
     } as any, index);
   });
 
-  let filteredServices = dynamicServices.filter((service) => {
+  const servicesToUse = dynamicServices.length > 0 ? dynamicServices : fallbackServices;
+
+  let filteredServices = servicesToUse.filter((service) => {
     const matchesSearch =
       search.length === 0 ||
       service.title.toLowerCase().includes(search.toLowerCase()) ||
       service.category.toLowerCase().includes(search.toLowerCase()) ||
       service.tagline.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || service.categoryId === selectedCategory;
+    const matchesCategory =
+      selectedCategory === "all" ||
+      service.categoryId === selectedCategory ||
+      normalizeCategoryId(service.categoryId) === normalizeCategoryId(selectedCategory);
     const matchesRating = service.rating >= minRating;
     const matchesPrice = service.priceValue <= maxPrice;
     const matchesDuration =
@@ -150,11 +168,11 @@ export function ServiceCatalog() {
 
             <FilterGroup label="Category">
               <div className="flex flex-col gap-1">
-                {["all", ...dbCategories.map((category) => category.slug)].map((categoryId) => {
+                {["all", ...categoriesToUse.map((category) => category.slug)].map((categoryId) => {
                   const label =
                     categoryId === "all"
                       ? "All Services"
-                      : dbCategories.find((category) => category.slug === categoryId)?.name ?? categoryId;
+                      : categoriesToUse.find((category) => category.slug === categoryId)?.name ?? categoryId;
                   const isSelected = selectedCategory === categoryId;
                   return (
                     <button
