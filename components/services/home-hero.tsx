@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Sparkles, ShieldCheck, Camera, Network, Laptop, Monitor, Globe } from "lucide-react";
+import { Search, Sparkles, ShieldCheck, Users, Camera, Network, Laptop, Monitor, Globe } from "lucide-react";
 import { useState } from "react";
 
 const CATEGORY_TILES = [
