@@ -12,10 +12,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Card, CardContent } from "@/components/ui/card";
 import { InlineAlert } from "@/shared/components/feedback/inline-alert";
 import { PageStatus } from "@/shared/components/feedback/page-status";
+import { useToast } from "@/hooks/use-toast";
+
 
 const metricIcons = [CalendarDays, PackageOpen, MapPin, Wallet];
 
 export function DashboardOverview() {
+  const { toast } = useToast();
   const { user } = useAuth();
   const { data, error, isLoading, reload } = useDashboardData();
   const [addressModal, setAddressModal] = useState<Partial<UserAddress> | null>(null);
@@ -57,12 +60,21 @@ export function DashboardOverview() {
       setReviewComment("");
       setReviewRating(5);
       reload(); // Reload dashboard data
+      toast({
+        title: "Review Submitted",
+        description: "Thank you! Your feedback has been recorded successfully.",
+      });
     } catch (err: any) {
-      alert(err.message || "Failed to submit review");
+      toast({
+        title: "Submission Failed",
+        description: err.message || "Failed to submit review",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmittingReview(false);
     }
   };
+
 
   if (isLoading) return <PageStatus message="Retrieving your account activities..." className="min-h-[70vh]" />;
   if (error || !data) {

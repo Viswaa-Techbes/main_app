@@ -3,8 +3,11 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ProtectedRoute } from "@/components/auth/protected-route";
+import { useToast } from "@/hooks/use-toast";
+
 
 export default function AdminPaymentsPage() {
+  const { toast } = useToast();
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +34,19 @@ export default function AdminPaymentsPage() {
     const token = window.localStorage.getItem('techbes_backend_token');
     const res = await fetch('/api/v2/payment/admin/refund', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ paymentId }) });
     const j = await res.json();
-    if (j.success) load(); else alert(j.message || 'Refund failed');
+    if (j.success) {
+      load();
+      toast({
+        title: "Refund Initiated",
+        description: "Payment refund has been processed successfully.",
+      });
+    } else {
+      toast({
+        title: "Refund Failed",
+        description: j.message || 'Refund failed',
+        variant: "destructive",
+      });
+    }
   }
 
   async function retry(paymentId: string) {
@@ -39,14 +54,17 @@ export default function AdminPaymentsPage() {
     const res = await fetch('/api/v2/payment/admin/retry', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ paymentId }) });
     const j = await res.json();
     if (j.success) {
-      // Open checkout using new order
       const data = j.data;
-      // Pass back to frontend checkout flow: route to /checkout?paymentId=...
       window.location.href = `/checkout?paymentId=${data.paymentId}`;
     } else {
-      alert(j.message || 'Retry failed');
+      toast({
+        title: "Retry Failed",
+        description: j.message || 'Retry failed',
+        variant: "destructive",
+      });
     }
   }
+
 
   return (
     <ProtectedRoute allowedRoles={["admin"]}>

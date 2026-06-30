@@ -22,8 +22,11 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PageStatus } from "@/shared/components/feedback/page-status";
 import { InlineAlert } from "@/shared/components/feedback/inline-alert";
+import { useToast } from "@/hooks/use-toast";
+
 
 export default function ServiceReportPage() {
+  const { toast } = useToast();
   const params = useParams();
   const router = useRouter();
   const jobId = params.jobId as string;
@@ -62,8 +65,12 @@ export default function ServiceReportPage() {
   const handleShare = () => {
     if (!worksheet?.pdfUrl) return;
     navigator.clipboard.writeText(worksheet.pdfUrl);
-    alert("PDF Report download link copied to clipboard!");
+    toast({
+      title: "Link Copied",
+      description: "PDF Report download link copied to clipboard!",
+    });
   };
+
 
   if (loading) {
     return <PageStatus message="Retrieving Digital Service Worksheet..." className="min-h-[80vh]" />;
