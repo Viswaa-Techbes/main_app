@@ -7,7 +7,8 @@ import { Trash2, Edit3, Info, AlertTriangle, ArrowLeft, ShoppingBag, Plus, Minus
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CctvCartItem, getCctvCart, removeCctvCartItem, clearCctvCart } from "@/lib/cctv-cart";
-import { cctvApi, CctvSubcategory } from "@/lib/cctv-api";
+import { CctvSubcategory } from "@/lib/cctv-api";
+import { fetchSubcategoryDetail } from "@/lib/catalog-api";
 import { ServiceBookingConfigModal } from "@/components/booking/service-config-modal";
 import { getRecommendedServices, services } from "@/lib/marketplace-data";
 
@@ -52,8 +53,8 @@ export function CctvCartView() {
   async function handleEditClick(item: CctvCartItem) {
     try {
       setLoadingService(true);
-      const serviceData = await cctvApi.subcategory(item.serviceSlug);
-      setEditService(serviceData);
+      const serviceData = await fetchSubcategoryDetail(item.serviceSlug);
+      setEditService(serviceData as any);
       setEditingItem(item);
       setEditModalOpen(true);
     } catch (err) {

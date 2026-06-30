@@ -8,19 +8,24 @@ export type CctvSubcategory = {
   categoryId: CctvCategory | string;
   name: string;
   slug: string;
-  shortDescription: string;
-  overview: string;
-  suitableFor: string[];
-  includedServices: string[];
-  excludedServices: string[];
-  cameraTypes: string[];
-  cableTypes: string[];
-  installationProcess: string[];
-  installationTime: string;
-  warranty: string;
-  faqs: { question: string; answer: string }[];
-  pricingStartsFrom: number;
-  image: string;
+  // Legacy CCTV-specific fields (may be absent for non-CCTV services)
+  shortDescription?: string;
+  overview?: string;
+  suitableFor?: string[];
+  includedServices?: string[];
+  excludedServices?: string[];
+  cameraTypes?: string[];
+  cableTypes?: string[];
+  installationProcess?: string[];
+  installationTime?: string;
+  warranty?: string;
+  faqs?: { question: string; answer: string }[];
+  pricingStartsFrom?: number;
+  image?: string;
+  // New catalog API fields
+  description?: string;
+  packages?: { _id: string; name: string; price: number; originalPrice?: number | null; duration?: string; includes?: string[]; isPopular?: boolean }[];
+  bookingQuestions?: { question: string; type: string; options?: string[]; required?: boolean }[];
 };
 
 export type CctvPriceInput = {
@@ -215,29 +220,46 @@ export function managedServiceToMarketplaceService(service: CctvSubcategory, ind
   
   const resolvedImg = getCctvServiceImage(service.slug || service.name, service.image);
 
+  // Support both legacy CCTV fields and new catalog API fields
+  const pricingStartsFrom =
+    service.pricingStartsFrom ||
+    (service.packages && service.packages.length > 0 ? service.packages[0].price : 0) ||
+    499;
+
+  const tagline = service.shortDescription || service.description || service.overview || "";
+  const description = service.overview || service.description || service.shortDescription || "";
+  const features = service.suitableFor || [];
+  const includes = service.includedServices || 
+    (service.packages && service.packages.length > 0 ? service.packages[0].includes || [] : []);
+  const steps = service.installationProcess || [];
+  const faqs = service.faqs || [];
+  const duration = service.installationTime || 
+    (service.packages && service.packages.length > 0 ? service.packages[0].duration || "" : "") ||
+    "On-site visit";
+
   return {
     id: 10000 + index,
     slug: service.slug,
     title: service.name,
     categoryId: normCatId,
     category: normCatName,
-    tagline: service.shortDescription || service.overview,
-    description: service.overview || service.shortDescription,
-    price: `From Rs. ${(service.pricingStartsFrom || 499).toLocaleString("en-IN")}`,
-    priceValue: service.pricingStartsFrom || 499,
+    tagline,
+    description,
+    price: `From Rs. ${pricingStartsFrom.toLocaleString("en-IN")}`,
+    priceValue: pricingStartsFrom,
     rating: 4.8,
     reviewCount: 0,
-    duration: service.installationTime || "On-site visit",
+    duration,
     durationMinutes: 180,
     image: resolvedImg,
     gallery: [resolvedImg],
     badge: "Configurable",
-    features: service.suitableFor || [],
-    includes: service.includedServices || [],
-    steps: service.installationProcess || [],
-    faqs: service.faqs || [],
+    features,
+    includes,
+    steps,
+    faqs,
     reviews: [],
-    recommendedFor: service.suitableFor || [],
+    recommendedFor: features,
     timeSlots: ["09:00 AM", "11:30 AM", "02:00 PM", "04:30 PM"],
     managedService: service,
     configurableType: "cctv",
@@ -286,10 +308,12 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const cctvApi = {
   getConfig: (serviceId: string) => api<any>(`/api/v2/services/${serviceId}/config`),
-  categories: () => api<CctvCategory[]>("/api/v2/cctv/categories"),
+  categories: () => api<CctvCategory[]>("/api/v2/catalog/categories"),
 
-  subcategories: () => api<CctvSubcategory[]>("/api/v2/cctv/subcategories"),
-  subcategory: (slug: string) => api<CctvSubcategory>(`/api/v2/cctv/subcategories/${slug}`),
+  // ─── Catalog API (replaces legacy /api/v2/cctv/* endpoints) ─────────────────
+  // These now fetch from the dynamic catalog, so all categories work correctly.
+  subcategories: () => api<CctvSubcategory[]>("/api/v2/catalog/categories"),
+  subcategory: (slug: string) => api<CctvSubcategory>(`/api/v2/catalog/subcategories/${slug}`),
   cameraTypes: () => api<CctvCameraType[]>("/api/v2/cctv/camera-types"),
   addons: () => api<CctvAddon[]>("/api/v2/cctv/addons"),
   materials: () => api<CctvAddon[]>("/api/v2/materials"),

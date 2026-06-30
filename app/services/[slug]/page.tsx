@@ -2,7 +2,8 @@ import { notFound } from "next/navigation";
 import { PageShell } from "@/components/layout/page-shell";
 import { ServiceDetailView } from "@/components/services/service-detail-view";
 import { getServiceBySlug, services } from "@/lib/marketplace-data";
-import { cctvApi, managedServiceToMarketplaceService } from "@/lib/cctv-api";
+import { managedServiceToMarketplaceService } from "@/lib/cctv-api";
+import { fetchSubcategoryDetail } from "@/lib/catalog-api";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -19,14 +20,16 @@ export async function generateMetadata({ params }: PageProps) {
   const service = getServiceBySlug(slug);
   if (!service) {
     try {
-      const managed = await cctvApi.subcategory(slug);
-      return {
-        title: `${managed.name} | Techbes Marketplace`,
-        description: managed.shortDescription || managed.overview,
-      };
+      const catalogSub = await fetchSubcategoryDetail(slug);
+      if (catalogSub) {
+        return {
+          title: `${catalogSub.name} | Techbes Marketplace`,
+          description: catalogSub.description || catalogSub.name,
+        };
+      }
     } catch {}
   }
-  
+
   if (!service) {
     return {
       title: "Service Not Found | Techbes Marketplace",
@@ -44,20 +47,32 @@ export default async function ServiceDetailsPage({ params }: PageProps) {
   let service = getServiceBySlug(slug) as any;
 
   try {
-    const managed = await cctvApi.subcategory(slug);
-    if (managed) {
+    // Use the new catalog API — works for ALL categories, not just CCTV
+    const catalogSub = await fetchSubcategoryDetail(slug);
+    if (catalogSub) {
       if (!service) {
-        service = managedServiceToMarketplaceService(managed, 0);
+        // Build a full marketplace service from the catalog subcategory
+        service = managedServiceToMarketplaceService(catalogSub as any, 0);
       } else {
+        // Enrich the static service with live catalog data
+        const pricingStartsFrom =
+          (catalogSub.packages && catalogSub.packages.length > 0
+            ? catalogSub.packages[0].price
+            : 0) || service.priceValue;
+
         service = {
           ...service,
-          managedService: managed,
-          priceValue: managed.pricingStartsFrom || service.priceValue,
+          managedService: catalogSub,
+          priceValue: pricingStartsFrom || service.priceValue,
+          price: pricingStartsFrom
+            ? `From Rs. ${pricingStartsFrom.toLocaleString("en-IN")}`
+            : service.price,
         };
       }
     }
   } catch (err) {
-    console.error("Failed to load managed service configurations for slug:", slug, err);
+    // Catalog lookup failed — fall back to static data only (no CCTV endpoint)
+    console.error("Catalog API lookup failed for slug:", slug, err);
   }
 
   if (!service) {
@@ -70,4 +85,3 @@ export default async function ServiceDetailsPage({ params }: PageProps) {
     </PageShell>
   );
 }
-

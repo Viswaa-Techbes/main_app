@@ -1,9 +1,11 @@
 /**
- * Techbes Catalog API — client-side helpers.
- * All functions fetch from the backend catalog endpoints.
+ * Techbes Catalog API — works in both SSR (Server Components) and client.
+ * Uses getApiBaseUrl() which returns the correct absolute URL on server
+ * and "" (relative, proxied) on the client.
  */
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || '';
+import { getApiBaseUrl } from "@/core/api/config";
+
 
 export interface CatalogCategory {
   _id: string;
@@ -63,7 +65,7 @@ async function fetchJson<T>(url: string): Promise<T> {
 
 export async function fetchCategories(): Promise<CatalogCategory[]> {
   try {
-    return await fetchJson<CatalogCategory[]>(`${BASE}/api/v2/catalog/categories`);
+    return await fetchJson<CatalogCategory[]>(`${getApiBaseUrl()}/api/v2/catalog/categories`);
   } catch {
     return [];
   }
@@ -71,9 +73,11 @@ export async function fetchCategories(): Promise<CatalogCategory[]> {
 
 export async function fetchSubcategories(categorySlug: string): Promise<CatalogSubCategory[]> {
   try {
-    const res = await fetchJson<{ data: CatalogSubCategory[] } & { data: any }>(`${BASE}/api/v2/catalog/categories/${categorySlug}/subcategories`);
-    // The endpoint returns { success, data, category } — data is the subcategories
-    return (res as any) as CatalogSubCategory[];
+    // The endpoint returns { success, data: subcategories[], category }
+    const raw = await fetch(`${getApiBaseUrl()}/api/v2/catalog/categories/${categorySlug}/subcategories`, { cache: 'no-store' });
+    if (!raw.ok) return [];
+    const json = await raw.json();
+    return (json.data as CatalogSubCategory[]) || [];
   } catch {
     return [];
   }
@@ -81,7 +85,7 @@ export async function fetchSubcategories(categorySlug: string): Promise<CatalogS
 
 export async function fetchSubcategoryDetail(slug: string): Promise<CatalogSubCategory | null> {
   try {
-    return await fetchJson<CatalogSubCategory>(`${BASE}/api/v2/catalog/subcategories/${slug}`);
+    return await fetchJson<CatalogSubCategory>(`${getApiBaseUrl()}/api/v2/catalog/subcategories/${slug}`);
   } catch {
     return null;
   }
@@ -89,7 +93,7 @@ export async function fetchSubcategoryDetail(slug: string): Promise<CatalogSubCa
 
 export async function fetchPackages(subcategorySlug: string): Promise<CatalogPackage[]> {
   try {
-    return await fetchJson<CatalogPackage[]>(`${BASE}/api/v2/catalog/subcategories/${subcategorySlug}/packages`);
+    return await fetchJson<CatalogPackage[]>(`${getApiBaseUrl()}/api/v2/catalog/subcategories/${subcategorySlug}/packages`);
   } catch {
     return [];
   }
@@ -97,7 +101,7 @@ export async function fetchPackages(subcategorySlug: string): Promise<CatalogPac
 
 export async function fetchBookingQuestions(subcategorySlug: string): Promise<BookingQuestion[]> {
   try {
-    return await fetchJson<BookingQuestion[]>(`${BASE}/api/v2/catalog/subcategories/${subcategorySlug}/questions`);
+    return await fetchJson<BookingQuestion[]>(`${getApiBaseUrl()}/api/v2/catalog/subcategories/${subcategorySlug}/questions`);
   } catch {
     return [];
   }
