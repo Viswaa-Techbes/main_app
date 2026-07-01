@@ -8,10 +8,11 @@ import { ReactNode, useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { MarketplaceService, services as fallbackServices } from "@/lib/marketplace-data";
-import { fetchCategories, fetchAllSubcategories, CatalogCategory, CatalogSubCategory } from "@/lib/catalog-api";
+import { MarketplaceService } from "@/lib/marketplace-data";
+import { fetchCategories, fetchAllSubcategories, fetchSubcategories, CatalogCategory, CatalogSubCategory } from "@/lib/catalog-api";
 import { managedServiceToMarketplaceService, normalizeCategoryId } from "@/lib/cctv-api";
 import { Spinner } from "@/components/ui/spinner";
+
 
 
 type SortOption = "popular" | "price-low" | "top-rated";
@@ -37,29 +38,50 @@ export function ServiceCatalog() {
     { _id: "laptop", name: "Laptop", slug: "laptop", description: "", icon: "Laptop", image: "", color: "", gradient: "", isActive: true, sortOrder: 3 },
     { _id: "desktop", name: "Desktop", slug: "desktop", description: "", icon: "Monitor", image: "", color: "", gradient: "", isActive: true, sortOrder: 4 },
     { _id: "server", name: "Server", slug: "server", description: "", icon: "Server", image: "", color: "", gradient: "", isActive: true, sortOrder: 5 },
-    { _id: "electrical-contract", name: "Electrical Contract", slug: "electrical-contract", description: "", icon: "Zap", image: "", color: "", gradient: "", isActive: true, sortOrder: 6 },
+    { _id: "electronic-contracts", name: "Electronic Contracts", slug: "electronic-contracts", description: "", icon: "Zap", image: "", color: "", gradient: "", isActive: true, sortOrder: 6 },
     { _id: "home-automation", name: "Home Automation", slug: "home-automation", description: "", icon: "Home", image: "", color: "", gradient: "", isActive: true, sortOrder: 7 },
     { _id: "website-development", name: "Website Development", slug: "website-development", description: "", icon: "Globe", image: "", color: "", gradient: "", isActive: true, sortOrder: 8 },
     { _id: "software-licensing", name: "Software Licensing", slug: "software-licensing", description: "", icon: "Key", image: "", color: "", gradient: "", isActive: true, sortOrder: 9 },
+    { _id: "cyber-security", name: "Cyber Security", slug: "cyber-security", description: "", icon: "Shield", image: "", color: "", gradient: "", isActive: true, sortOrder: 10 },
   ];
 
+  // Load categories list on mount
   useEffect(() => {
-    async function loadCatalog() {
+    async function loadCats() {
       try {
-        const [cats, subs] = await Promise.all([
-          fetchCategories(),
-          fetchAllSubcategories(),
-        ]);
-        setDbCategories(cats);
-        setDbSubcategories(subs);
+        const cats = await fetchCategories();
+        if (cats && cats.length > 0) {
+          setDbCategories(cats);
+        }
       } catch (err) {
-        console.error("Failed to load dynamic catalog", err);
+        console.error("Failed to load categories", err);
+      }
+    }
+    loadCats();
+  }, []);
+
+  // Load subcategories dynamically based on selectedCategory selection
+  useEffect(() => {
+    async function loadSubs() {
+      setLoading(true);
+      try {
+        if (selectedCategory === "all") {
+          const subs = await fetchAllSubcategories();
+          setDbSubcategories(subs);
+        } else {
+          const subs = await fetchSubcategories(selectedCategory);
+          setDbSubcategories(subs);
+        }
+      } catch (err) {
+        console.error("Failed to load subcategories for category:", selectedCategory, err);
+        setDbSubcategories([]);
       } finally {
         setLoading(false);
       }
     }
-    loadCatalog();
-  }, []);
+    loadSubs();
+  }, [selectedCategory]);
+
 
   // Map backend subcategories to frontend marketplace service shape
   const dynamicServices = dbSubcategories.map((sub, index) => {
@@ -88,7 +110,7 @@ export function ServiceCatalog() {
     } as any, index);
   });
 
-  const servicesToUse = dynamicServices.length > 0 ? dynamicServices : fallbackServices;
+  const servicesToUse = dynamicServices;
 
   let filteredServices = servicesToUse.filter((service) => {
     const matchesSearch =
@@ -274,6 +296,11 @@ export function ServiceCatalog() {
           {loading ? (
             <div className="flex h-64 items-center justify-center">
               <Spinner className="h-8 w-8 text-blue-600" />
+            </div>
+          ) : dbSubcategories.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-slate-200 bg-white px-8 py-16 text-center">
+              <h3 className="text-base font-bold text-slate-800">No services available under this category</h3>
+              <p className="mt-2 text-xs text-slate-400">Please check back later or choose another category.</p>
             </div>
           ) : filteredServices.length > 0 ? (
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
