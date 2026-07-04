@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { addCctvCartItem } from "@/lib/cctv-cart";
 import { cctvApi, CctvAddon, CctvSubcategory, fallbackAddons } from "@/lib/cctv-api";
+import { useToast } from "@/hooks/use-toast";
 
 function money(value?: number) {
   return `Rs. ${Math.round(value || 0).toLocaleString("en-IN")}`;
@@ -30,6 +31,7 @@ export function CctvBookingConfigModal({
   onRequestQuote?: () => void;
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [addons, setAddons] = useState<CctvAddon[]>([]);
   const [optionsLoading, setOptionsLoading] = useState(true);
   const [optionsError, setOptionsError] = useState("");
@@ -438,7 +440,11 @@ export function CctvBookingConfigModal({
 
   function addToCart() {
     if (!isConfigValid()) {
-      window.alert('Please complete all required configuration fields (requirements/materials, valid Google Map link, date, and time).');
+      toast({
+        title: "Configuration Incomplete",
+        description: "Please complete all required configuration fields (requirements/materials, valid Google Map link, date, and time).",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -460,7 +466,11 @@ export function CctvBookingConfigModal({
 
   function continueBooking() {
     if (!isConfigValid()) {
-      window.alert('Please complete all required configuration fields before booking.');
+      toast({
+        title: "Configuration Incomplete",
+        description: "Please complete all required configuration fields before booking.",
+        variant: "destructive"
+      });
       return;
     }
 

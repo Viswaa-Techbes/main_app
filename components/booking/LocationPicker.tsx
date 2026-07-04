@@ -9,14 +9,13 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 
-// Fix default Leaflet icon paths
-const DefaultIcon = L.icon({
+// Fix default Leaflet icon paths for Next.js / Webpack
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
 });
-L.Marker.prototype.options.icon = DefaultIcon;
 
 interface LocationPickerProps {
   onLocationSelected: (data: {

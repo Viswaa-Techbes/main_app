@@ -45,6 +45,20 @@ export function ServiceBookingConfigModal({
   } | null>(null);
 
   const [step, setStep] = useState(1);
+  const [selectedPackageId, setSelectedPackageId] = useState<string>("");
+  const [questionAnswers, setQuestionAnswers] = useState<Record<string, any>>({});
+
+  const handleAnswerChange = (question: string, value: any) => {
+    setQuestionAnswers(prev => ({
+      ...prev,
+      [question]: value
+    }));
+    setValidationErrors(prev => {
+      const copy = { ...prev };
+      delete copy[question];
+      return copy;
+    });
+  };
 
   // Dynamic Service Types
   const serviceTypes = useMemo(() => {
@@ -118,6 +132,8 @@ export function ServiceBookingConfigModal({
     if (!open) return;
     if (editItem) {
       setServiceType(editItem.input?.serviceType || serviceTypes[0] || "");
+      setSelectedPackageId(editItem.input?.selectedPackageId || "");
+      setQuestionAnswers(editItem.input?.questionAnswers || {});
       
       const matMap: Record<string, number> = {};
       (editItem.input?.materials || []).forEach((m: any) => {
@@ -137,6 +153,8 @@ export function ServiceBookingConfigModal({
       setStep(1);
     } else {
       setServiceType(serviceTypes[0] || "");
+      setSelectedPackageId("");
+      setQuestionAnswers({});
       setSelectedMaterials({});
       setMapLink("");
       setDate("");
@@ -194,6 +212,27 @@ export function ServiceBookingConfigModal({
   // Dynamic step structure definition
   const stepsList = useMemo(() => {
     const s = service as any;
+
+    const isGeneralCatalogService = (s.packages && s.packages.length > 0) || (s.bookingQuestions && s.bookingQuestions.length > 0);
+    if (isGeneralCatalogService) {
+      const list = [];
+      let currentStep = 1;
+      if (s.packages && s.packages.length > 0) {
+        list.push({ step: currentStep, label: "Package Selection" });
+        currentStep++;
+      }
+      if (s.bookingQuestions && s.bookingQuestions.length > 0) {
+        list.push({ step: currentStep, label: "Custom Questions" });
+        currentStep++;
+      }
+      list.push({ step: currentStep, label: "Location" });
+      currentStep++;
+      list.push({ step: currentStep, label: "Schedule" });
+      currentStep++;
+      list.push({ step: currentStep, label: "Notes" });
+      return list;
+    }
+
     const list = [
       { step: 1, label: s.formSchema?.step1?.title || "Service Type" },
       { step: 2, label: s.formSchema?.step2?.title || "Requirements" }
@@ -288,33 +327,45 @@ export function ServiceBookingConfigModal({
 
     let serviceCost = 499;
     const s = service as any;
-    if (s.serviceTypes && s.serviceTypes.length > 0) {
-      const found = s.serviceTypes.find((t: any) => t.name === serviceType);
-      if (found) serviceCost = found.price;
-    } else if (s.formSchema?.step1?.options) {
-      const found = s.formSchema.step1.options.find((opt: any) => (opt.label || opt.name) === serviceType);
-      if (found && typeof found.price === "number") serviceCost = found.price;
-    } else if (service.pricingStartsFrom) {
-      serviceCost = service.pricingStartsFrom;
+    const isGeneralCatalogService = (s.packages && s.packages.length > 0) || (s.bookingQuestions && s.bookingQuestions.length > 0);
+
+    if (isGeneralCatalogService) {
+      if (s.packages && s.packages.length > 0) {
+        const found = s.packages.find((p: any) => p._id === selectedPackageId);
+        if (found) serviceCost = found.price;
+        else serviceCost = 0;
+      } else {
+        serviceCost = service.pricingStartsFrom || 499;
+      }
     } else {
-      const serviceCostMap: Record<string, number> = {
-        "Wired Camera Installation": 499,
-        "Wireless Camera Installation": 599,
-        "Dome Camera Installation": 549,
-        "Bullet Camera Installation": 529,
-        "PTZ Camera Installation": 1299,
-        "DVR Installation": 799,
-        "NVR Installation": 899,
-        "CCTV Repair": 399,
-        "CCTV Maintenance": 299,
-      };
-      serviceCost = serviceCostMap[serviceType] || 499;
+      if (s.serviceTypes && s.serviceTypes.length > 0) {
+        const found = s.serviceTypes.find((t: any) => t.name === serviceType);
+        if (found) serviceCost = found.price;
+      } else if (s.formSchema?.step1?.options) {
+        const found = s.formSchema.step1.options.find((opt: any) => (opt.label || opt.name) === serviceType);
+        if (found && typeof found.price === "number") serviceCost = found.price;
+      } else if (service.pricingStartsFrom) {
+        serviceCost = service.pricingStartsFrom;
+      } else {
+        const serviceCostMap: Record<string, number> = {
+          "Wired Camera Installation": 499,
+          "Wireless Camera Installation": 599,
+          "Dome Camera Installation": 549,
+          "Bullet Camera Installation": 529,
+          "PTZ Camera Installation": 1299,
+          "DVR Installation": 799,
+          "NVR Installation": 899,
+          "CCTV Repair": 399,
+          "CCTV Maintenance": 299,
+        };
+        serviceCost = serviceCostMap[serviceType] || 499;
+      }
     }
 
     let baseCharge = s.pricingRules?.baseCharge ?? serviceCost;
     const grandTotal = baseCharge + materialCost + labourCost;
     setPriceBreakdown({ serviceCost: baseCharge, materialCost, labourCost, grandTotal });
-  }, [selectedMaterials, serviceType, addons, service, allAvailableFormattedItems]);
+  }, [selectedMaterials, serviceType, selectedPackageId, addons, service, allAvailableFormattedItems]);
 
   function toggleMaterial(id: string) {
     setSelectedMaterials((s) => {
@@ -393,6 +444,8 @@ export function ServiceBookingConfigModal({
       price: priceBreakdown,
       input: {
         serviceType,
+        selectedPackageId,
+        questionAnswers,
         materials: materialsArray,
         mapLink,
         date,
@@ -421,25 +474,52 @@ export function ServiceBookingConfigModal({
 
   function getValidationErrors(): { fieldKey: string; message: string; stepLabel: string; elementId: string }[] {
     const errors: { fieldKey: string; message: string; stepLabel: string; elementId: string }[] = [];
-    const hasServiceTypeOptions = serviceTypes.length > 0;
-    if (hasServiceTypeOptions && (!serviceType || !serviceType.trim())) {
-      errors.push({
-        fieldKey: "serviceType",
-        message: "Please select a service type.",
-        stepLabel: "Service Type",
-        elementId: "service-type-select",
-      });
-    }
     const s = service as any;
-    const isStep2Required = s.formSchema?.step2?.options && s.formSchema.step2.options.length > 0;
-    if (isStep2Required && !Object.keys(selectedMaterials).length) {
-      errors.push({
-        fieldKey: "requirements",
-        message: "Please select at least one requirement/material.",
-        stepLabel: s.formSchema?.step2?.title || "Requirements",
-        elementId: "step2-requirements-container",
-      });
+
+    const isGeneralCatalogService = (s.packages && s.packages.length > 0) || (s.bookingQuestions && s.bookingQuestions.length > 0);
+    if (isGeneralCatalogService) {
+      if (s.packages && s.packages.length > 0 && !selectedPackageId) {
+        errors.push({
+          fieldKey: "package",
+          message: "Please select a service package.",
+          stepLabel: "Package Selection",
+          elementId: "package-selection-container",
+        });
+      }
+      if (s.bookingQuestions && s.bookingQuestions.length > 0) {
+        s.bookingQuestions.forEach((q: any) => {
+          const val = questionAnswers[q.question];
+          if (q.required && (!val || (typeof val === "string" && !val.trim()) || (Array.isArray(val) && val.length === 0))) {
+            errors.push({
+              fieldKey: q.question,
+              message: `${q.question} is required.`,
+              stepLabel: "Custom Questions",
+              elementId: `question-input-${q.question.replace(/\s+/g, "-")}`,
+            });
+          }
+        });
+      }
+    } else {
+      const hasServiceTypeOptions = serviceTypes.length > 0;
+      if (hasServiceTypeOptions && (!serviceType || !serviceType.trim())) {
+        errors.push({
+          fieldKey: "serviceType",
+          message: "Please select a service type.",
+          stepLabel: "Service Type",
+          elementId: "service-type-select",
+        });
+      }
+      const isStep2Required = s.formSchema?.step2?.options && s.formSchema.step2.options.length > 0;
+      if (isStep2Required && !Object.keys(selectedMaterials).length) {
+        errors.push({
+          fieldKey: "requirements",
+          message: "Please select at least one requirement/material.",
+          stepLabel: s.formSchema?.step2?.title || "Requirements",
+          elementId: "step2-requirements-container",
+        });
+      }
     }
+
     if (!mapLink || !isValidMapLink(mapLink) || !latitude || !longitude) {
       errors.push({
         fieldKey: "location",
@@ -572,8 +652,120 @@ export function ServiceBookingConfigModal({
         <div className="grid gap-5 lg:grid-cols-[1fr,320px]">
           <div className="grid gap-4">
             
+            {/* Step: Package Selection */}
+            {isGeneralCatalogService && currentStepDef?.label === "Package Selection" && (
+              <div id="package-selection-container">
+                <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
+                  Select a Service Package
+                  <span className="inline-flex items-center rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-700 ring-1 ring-inset ring-rose-600/10">Required</span>
+                </label>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {(s.packages || []).map((pkg: any) => {
+                    const isSelected = selectedPackageId === pkg._id;
+                    return (
+                      <div
+                        key={pkg._id}
+                        onClick={() => {
+                          setSelectedPackageId(pkg._id);
+                          setServiceType(pkg.name);
+                          setValidationErrors(prev => {
+                            const copy = { ...prev };
+                            delete copy.package;
+                            return copy;
+                          });
+                        }}
+                        className={`cursor-pointer rounded-xl border p-4 transition-all hover:shadow-sm ${isSelected ? "border-blue-600 bg-blue-50/10 ring-1 ring-blue-600" : "border-slate-200 bg-white"}`}
+                      >
+                        <div className="flex justify-between items-start gap-2">
+                          <h4 className="font-bold text-sm text-slate-900">{pkg.name}</h4>
+                          <span className="font-black text-blue-600 text-sm">₹{pkg.price}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">{pkg.description}</p>
+                        {pkg.duration && (
+                          <div className="text-[10px] text-slate-400 mt-2 font-medium">Duration: {pkg.duration}</div>
+                        )}
+                        {pkg.includes && pkg.includes.length > 0 && (
+                          <ul className="text-[10px] text-slate-500 mt-2 space-y-1 list-disc pl-4">
+                            {pkg.includes.map((inc: string, idx: number) => (
+                              <li key={idx}>{inc}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {validationErrors.package && (
+                  <p className="text-xs text-rose-500 font-medium mt-1.5 flex items-center gap-1"><ShieldAlert className="h-3.5 w-3.5" /> {validationErrors.package}</p>
+                )}
+              </div>
+            )}
+
+            {/* Step: Custom Questions */}
+            {isGeneralCatalogService && currentStepDef?.label === "Custom Questions" && (
+              <div className="space-y-4">
+                <p className="text-sm font-semibold text-slate-700">Please answer the following booking details</p>
+                {(s.bookingQuestions || []).map((q: any, index: number) => {
+                  const val = questionAnswers[q.question] || "";
+                  const inputId = `question-input-${q.question.replace(/\s+/g, "-")}`;
+                  return (
+                    <div key={index} className="space-y-2">
+                      <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        {q.question}
+                        {q.required && <span className="inline-flex items-center rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-medium text-rose-700 ring-1 ring-inset ring-rose-600/10">Required</span>}
+                      </label>
+                      {q.type === "select" ? (
+                        <select
+                          id={inputId}
+                          className={`h-11 w-full rounded-md border px-3 text-sm bg-white focus:outline-none ${validationErrors[q.question] ? "border-rose-500 bg-rose-50/10 focus:ring-rose-500/20" : "border-slate-300"}`}
+                          value={val}
+                          onChange={(e) => handleAnswerChange(q.question, e.target.value)}
+                        >
+                          <option value="">{q.placeholder || "Select option..."}</option>
+                          {q.options.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
+                        </select>
+                      ) : q.type === "multiselect" ? (
+                        <div id={inputId} className={`grid gap-2 sm:grid-cols-2 rounded-xl p-2 ${validationErrors[q.question] ? "border border-rose-300 bg-rose-50/5" : ""}`}>
+                          {q.options.map((opt: string) => {
+                            const list = Array.isArray(val) ? val : [];
+                            const checked = list.includes(opt);
+                            return (
+                              <label key={opt} className="flex items-center gap-2 rounded-md border border-slate-200 px-3 py-2 bg-white text-xs cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => {
+                                    const nextList = checked ? list.filter(x => x !== opt) : [...list, opt];
+                                    handleAnswerChange(q.question, nextList);
+                                  }}
+                                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                {opt}
+                              </label>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <input
+                          id={inputId}
+                          type={q.type === "number" ? "number" : "text"}
+                          placeholder={q.placeholder || "Enter details..."}
+                          className={`h-11 w-full rounded-md border px-3 text-sm bg-white focus:outline-none ${validationErrors[q.question] ? "border-rose-500 bg-rose-50/10 focus:ring-rose-500/20" : "border-slate-300"}`}
+                          value={val}
+                          onChange={(e) => handleAnswerChange(q.question, e.target.value)}
+                        />
+                      )}
+                      {validationErrors[q.question] && (
+                        <p className="text-xs text-rose-500 font-medium flex items-center gap-1"><ShieldAlert className="h-3.5 w-3.5" /> {validationErrors[q.question]}</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Step 1: Dynamic Service Types */}
-            {step === 1 && (
+            {!isGeneralCatalogService && step === 1 && (
               <div>
                 <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
                   {s.formSchema?.step1?.title || "Step 1: Service Type"}
@@ -611,7 +803,7 @@ export function ServiceBookingConfigModal({
             )}
 
             {/* Step 2: Dynamic Requirements / Materials */}
-            {step === 2 && (
+            {!isGeneralCatalogService && step === 2 && (
               <div id="step2-requirements-container" className={`rounded-xl ${validationErrors.requirements ? "border border-rose-300 p-4 bg-rose-50/5" : ""}`}>
                 <p className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
                   {s.formSchema?.step2?.title || "Step 2: Materials Required"}

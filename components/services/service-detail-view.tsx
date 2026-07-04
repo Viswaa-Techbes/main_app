@@ -38,12 +38,11 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
     setImgSrc(nextImg);
   }, [service.image, service.gallery]);
 
-  const cctvService = service.configurableType === "cctv"
-    ? (service.managedService || {
+  const cctvService = service.managedService || {
         _id: service.slug,
         slug: service.slug,
         name: service.title,
-        categoryId: service.categoryId || "cctv",
+        categoryId: service.categoryId || "general",
         shortDescription: service.tagline,
         overview: service.description,
         suitableFor: service.recommendedFor,
@@ -60,8 +59,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
         supportedAddons: (service as any).supportedAddons || [],
         supportedProducts: (service as any).supportedProducts || [],
         supportedSpareParts: (service as any).supportedSpareParts || [],
-      })
-    : null;
+      };
 
   function openBooking() {
     if (!isAuthenticated) {
@@ -138,7 +136,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                   </div>
 
                   <div className="mt-6 flex flex-wrap gap-2">
-                    <Button className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 shadow-sm" onClick={cctvService ? () => setConfigOpen(true) : openBooking}>Book Now</Button>
+                    <Button className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 shadow-sm" onClick={openBooking}>Book Now</Button>
                     {cctvService && <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold px-4" onClick={() => setConfigOpen(true)}>Add To Cart</Button>}
                     <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold px-4" onClick={() => setQuoteOpen(true)}>Request Quote</Button>
                   </div>
@@ -223,7 +221,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                 </div>
 
                 <div className="grid gap-2 pt-2">
-                  <Button className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs" onClick={cctvService ? () => setConfigOpen(true) : openBooking}>Book Now</Button>
+                  <Button className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs" onClick={openBooking}>Book Now</Button>
                   {cctvService && <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold" onClick={() => setConfigOpen(true)}>Add To Cart</Button>}
                   <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold" onClick={() => setQuoteOpen(true)}>Request Quote</Button>
                 </div>
