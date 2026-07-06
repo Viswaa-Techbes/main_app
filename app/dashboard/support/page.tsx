@@ -159,7 +159,7 @@ export default function SupportPage() {
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gray-50/30">
-          {activeTicket.messages.map((msg: any, i: number) => {
+          {(activeTicket.messages || []).map((msg: any, i: number) => {
             const isMe = msg.sender === user?._id || msg.sender === user?.id;
             return (
               <div key={i} className={`flex \${isMe ? 'justify-end' : 'justify-start'}`}>
