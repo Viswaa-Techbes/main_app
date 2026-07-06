@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Search, SlidersHorizontal, Star, Clock, ArrowRight } from "lucide-react";
+import { Search, SlidersHorizontal, Star, Clock, ArrowRight, Camera, Network, Laptop, Monitor, Server, Zap, Home, Globe, Key, Shield, Settings } from "lucide-react";
 import { ReactNode, useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -303,7 +303,7 @@ export function ServiceCatalog() {
               <p className="mt-2 text-xs text-slate-400">Please check back later or choose another category.</p>
             </div>
           ) : filteredServices.length > 0 ? (
-            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
               {filteredServices.map((service) => (
                 <CatalogCard key={service.slug} service={service} selectedCategory={selectedCategory} />
               ))}
@@ -342,60 +342,32 @@ function FilterGroup({ label, children }: { label: string; children: ReactNode }
   );
 }
 
-function CatalogCard({ service, selectedCategory }: { service: MarketplaceService; selectedCategory?: string }) {
-  const [imgSrc, setImgSrc] = useState(service.image || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80");
+const categoryIcons: Record<string, any> = {
+  cctv: Camera,
+  networking: Network,
+  laptop: Laptop,
+  desktop: Monitor,
+  server: Server,
+  "electronic-contracts": Zap,
+  "home-automation": Home,
+  "website-development": Globe,
+  "software-licensing": Key,
+  "cyber-security": Shield,
+};
 
-  useEffect(() => {
-    setImgSrc(service.image || "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80");
-  }, [service.image]);
+function CatalogCard({ service, selectedCategory }: { service: MarketplaceService; selectedCategory?: string }) {
+  const Icon = categoryIcons[service.categoryId] || Settings;
 
   return (
     <Link
       href={`/services/${service.slug}${selectedCategory && selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-300"
+      className="group flex flex-col items-center text-center p-4 rounded-2xl border border-slate-100 bg-slate-50/30 hover:bg-white hover:border-blue-100 hover:shadow-lg transition-all duration-300"
     >
-      <div className="relative h-40 w-full overflow-hidden bg-slate-50">
-        <Image
-          src={imgSrc}
-          alt={service.title}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-103"
-          onError={() => setImgSrc("https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80")}
-          loading="lazy"
-        />
-        {service.badge && (
-          <span className="absolute left-3 top-3 rounded-full bg-slate-900/90 backdrop-blur-sm px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">
-            {service.badge}
-          </span>
-        )}
+      <div className="rounded-xl bg-blue-50 text-blue-600 p-3 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-hover:scale-103 shadow-sm">
+        <Icon className="h-5 w-5" />
       </div>
-
-      <div className="flex flex-1 flex-col p-4">
-        <div className="flex items-center justify-between gap-3">
-          <span className="rounded-full bg-blue-50 px-2.5 py-0.5 text-[9px] font-bold text-blue-600 uppercase tracking-wider">{service.category}</span>
-          <span className="text-xs font-extrabold text-slate-800">{service.price}</span>
-        </div>
-
-        <div className="mt-2.5 flex-1">
-          <h3 className="text-xs font-bold text-slate-800 group-hover:text-blue-600 transition-colors line-clamp-1">{service.title}</h3>
-        </div>
-
-        <div className="mt-3 pt-2.5 border-t border-slate-50 flex items-center justify-between text-[10px] text-slate-400 font-semibold">
-          <span className="inline-flex items-center gap-1">
-            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-            <span className="text-slate-700">{service.rating}</span> ({service.reviewCount})
-          </span>
-          <span className="flex items-center gap-1">
-            <Clock className="h-3.5 w-3.5 text-slate-300" />
-            {service.duration}
-          </span>
-        </div>
-
-        <div className="mt-3.5 flex items-center justify-between h-8.5 w-full rounded-lg bg-blue-600 text-white text-[11px] font-bold shadow-sm group-hover:bg-blue-700 transition duration-150 pl-3.5 pr-2.5">
-          <span>Book Now</span>
-          <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-        </div>
-      </div>
+      <h3 className="mt-3 text-xs font-bold text-slate-800 group-hover:text-blue-600 transition-colors truncate w-full">{service.title}</h3>
+      <p className="mt-1 text-[9px] leading-relaxed text-slate-400 font-medium line-clamp-2 h-6">{service.tagline || service.description}</p>
     </Link>
   );
 }

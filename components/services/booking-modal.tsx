@@ -22,6 +22,7 @@ import { MarketplaceService } from "@/lib/marketplace-data";
 import { useBookingFlow } from "@/hooks/use-booking-flow";
 import { getApiBaseUrl, AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
 import { useAuth } from "@/features/auth/context/auth-context";
+import { useToast } from "@/hooks/use-toast";
 
 /** Returns today + next 3 days as formatted strings */
 function getAvailableDates(): { iso: string; label: string }[] {
@@ -56,6 +57,7 @@ export function BookingModal({
   const router = useRouter();
   const pathname = usePathname();
   const { isAuthenticated, user } = useAuth();
+  const { toast } = useToast();
   const availableDates = getAvailableDates();
 
   // Prefill details if user is authenticated
@@ -188,7 +190,7 @@ export function BookingModal({
               redirectToLogin();
               return;
             }
-            alert(payload.message || 'Payment verification failed.');
+            toast({ title: "Payment Failed", description: payload.message || 'Payment verification failed.', variant: "destructive" });
             return;
           }
 
@@ -197,7 +199,7 @@ export function BookingModal({
           onOpenChange(false);
           // Redirect to dashboard
           router.push("/dashboard");
-          alert('Payment successful. Booking confirmed!');
+          toast({ title: "Booking Confirmed", description: 'Payment successful. Your booking has been confirmed!' });
         },
         prefill: {
           name: flow.state.customerName,
@@ -211,7 +213,7 @@ export function BookingModal({
       rzp.open();
     } catch (err: any) {
       console.error('Payment flow failed', err);
-      alert(err.message || 'Payment failed.');
+      toast({ title: "Payment Error", description: err.message || 'Payment failed.', variant: "destructive" });
     }
   }
 

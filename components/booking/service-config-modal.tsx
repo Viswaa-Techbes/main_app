@@ -641,6 +641,7 @@ export function ServiceBookingConfigModal({
 
   const s = service as any;
   const currentStepDef = stepsList.find((x) => x.step === step);
+  const isGeneralCatalogService = (s.packages && s.packages.length > 0) || (s.bookingQuestions && s.bookingQuestions.length > 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

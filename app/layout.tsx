@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
 
 import { AppProviders } from "@/providers/app-providers";
+import { AIAssistantWidget } from "@/components/AIAssistantWidget";
 
 import "./globals.css";
 
@@ -25,7 +26,10 @@ export default function RootLayout({
   return (
     <html lang="en" data-scroll-behavior="smooth">
       <body className="font-sans antialiased">
-        <AppProviders>{children}</AppProviders>
+        <AppProviders>
+          {children}
+          <AIAssistantWidget />
+        </AppProviders>
         <Analytics />
         <Script
           src="https://checkout.razorpay.com/v1/checkout.js"
