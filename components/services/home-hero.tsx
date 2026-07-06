@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Sparkles, ShieldCheck, Users, Camera, Network, Laptop, Monitor, Globe } from "lucide-react";
+import { Search, Sparkles, ShieldCheck, Users, Camera, Network, Laptop, Monitor, Globe, Crown } from "lucide-react";
 import { useState } from "react";
 
 const CATEGORY_TILES = [
@@ -27,6 +27,15 @@ export function HomeHero() {
     <section className="relative overflow-hidden rounded-3xl bg-white border border-slate-100 shadow-sm">
       {/* Abstract radial grids for premium look */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.06),transparent_40%),radial-gradient(circle_at_bottom_left,rgba(16,185,129,0.04),transparent_35%)] pointer-events-none" />
+
+      {/* Subscribe Button - Top Right */}
+      <a 
+        href="https://members.techbes.co.in" 
+        className="absolute top-5 right-5 lg:top-7 lg:right-7 z-20 inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-1.5 text-[11px] font-bold tracking-wide text-white shadow-sm transition-all hover:scale-105 hover:shadow-md"
+      >
+        <Crown className="h-3 w-3 text-blue-200" />
+        Subscribe
+      </a>
 
       <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-16">
         <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
@@ -140,13 +149,16 @@ export function HomeHero() {
                 <Link
                   key={cat.id}
                   href={`/services?category=${cat.id}`}
-                  className="group flex flex-col items-center text-center p-4 rounded-2xl border border-slate-100 bg-slate-50/30 hover:bg-white hover:border-blue-100 hover:shadow-lg transition-all duration-300"
+                  className="group relative flex flex-col items-center text-center p-4 rounded-[18px] border border-slate-200 bg-white shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:-translate-y-[6px] hover:border-blue-600 hover:shadow-[0_14px_30px_rgba(37,99,235,0.18)] transition-all duration-300 ease-out"
                 >
-                  <div className="rounded-xl bg-blue-50 text-blue-600 p-3 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-hover:scale-103 shadow-sm">
-                    <Icon className="h-5 w-5" />
+                  <div className="absolute inset-0 rounded-[18px] opacity-0 group-hover:opacity-100 bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.08),transparent_60%)] pointer-events-none transition-opacity duration-300" />
+                  
+                  <div className="relative z-10 rounded-full bg-blue-50 text-blue-600 p-3.5 transition-transform duration-300 group-hover:scale-[1.08] shadow-sm">
+                    <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 bg-blue-400/20 blur-md transition-opacity duration-300" />
+                    <Icon className="relative z-10 h-6 w-6" />
                   </div>
-                  <h3 className="mt-3 text-xs font-bold text-slate-800 group-hover:text-blue-600 transition-colors truncate w-full">{cat.label}</h3>
-                  <p className="mt-1 text-[9px] leading-relaxed text-slate-400 font-medium line-clamp-2 h-6">{cat.subtitle}</p>
+                  <h3 className="relative z-10 mt-3 text-[13px] font-[700] text-slate-900 transition-colors truncate w-full">{cat.label}</h3>
+                  <p className="relative z-10 mt-1 text-[10px] leading-relaxed text-slate-600 font-medium line-clamp-2 h-7">{cat.subtitle}</p>
                 </Link>
               );
             })}

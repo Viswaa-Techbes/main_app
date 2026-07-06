@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Search, SlidersHorizontal, Star, Clock, ArrowRight, Camera, Network, Laptop, Monitor, Server, Zap, Home, Globe, Key, Shield, Settings } from "lucide-react";
+import { Search, SlidersHorizontal, Star, Clock, ArrowRight, Camera, Network, Laptop, Monitor, Server, Zap, Home, Globe, Key, Shield, Settings, CheckCircle2, Rocket } from "lucide-react";
 import { ReactNode, useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -275,6 +275,24 @@ export function ServiceCatalog() {
 
         {/* Catalog Grid */}
         <div className="min-w-0 flex-1">
+          {selectedCategory !== "all" && !["cctv", "networking", "laptop", "desktop", "electrical", "home-automation"].includes(selectedCategory) ? (
+            <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-100 bg-white px-8 py-20 text-center shadow-sm">
+              <div className="rounded-full bg-blue-50 p-6 mb-6">
+                <Rocket className="h-10 w-10 text-blue-600" />
+              </div>
+              <h2 className="text-xl font-extrabold text-slate-900">Launching Soon</h2>
+              <p className="mt-3 max-w-sm text-sm text-slate-500">
+                We're currently preparing services for this category. They'll be available very soon.
+              </p>
+              <Button 
+                className="mt-8 rounded-xl font-bold"
+                onClick={() => setSelectedCategory("all")}
+              >
+                Browse Other Services
+              </Button>
+            </div>
+          ) : (
+            <>
           <div className="mb-4 flex items-center justify-between rounded-2xl border border-slate-100 bg-white px-5 py-3 shadow-sm">
             <p className="text-xs text-slate-500 font-semibold">
               Showing <span className="text-slate-800 font-bold">{filteredServices.length}</span> services
@@ -327,6 +345,8 @@ export function ServiceCatalog() {
               </Button>
             </div>
           )}
+            </>
+          )}
         </div>
       </div>
     </section>
@@ -355,19 +375,36 @@ const categoryIcons: Record<string, any> = {
   "cyber-security": Shield,
 };
 
-function CatalogCard({ service, selectedCategory }: { service: MarketplaceService; selectedCategory?: string }) {
+function CatalogCard({ service, selectedCategory, isActive = false }: { service: MarketplaceService; selectedCategory?: string, isActive?: boolean }) {
   const Icon = categoryIcons[service.categoryId] || Settings;
 
   return (
     <Link
       href={`/services/${service.slug}${selectedCategory && selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''}`}
-      className="group flex flex-col items-center text-center p-4 rounded-2xl border border-slate-100 bg-slate-50/30 hover:bg-white hover:border-blue-100 hover:shadow-lg transition-all duration-300"
+      className={`group relative flex flex-col items-center text-center p-4 rounded-[18px] border transition-all duration-300 ease-out hover:-translate-y-[6px] ${
+        isActive 
+          ? "border-blue-600 bg-blue-50 shadow-[0_4px_12px_rgba(15,23,42,0.06)]" 
+          : "border-slate-200 bg-white shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:border-blue-600 hover:shadow-[0_14px_30px_rgba(37,99,235,0.18)]"
+      }`}
     >
-      <div className="rounded-xl bg-blue-50 text-blue-600 p-3 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-hover:scale-103 shadow-sm">
-        <Icon className="h-5 w-5" />
+      {/* Background glow on hover */}
+      <div className="absolute inset-0 rounded-[18px] opacity-0 group-hover:opacity-100 bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.08),transparent_60%)] pointer-events-none transition-opacity duration-300" />
+      
+      {/* Active Indicator */}
+      {isActive && (
+        <div className="absolute top-3 right-3 h-5 w-5 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-sm">
+          <CheckCircle2 className="h-3 w-3" />
+        </div>
+      )}
+
+      {/* Icon Container */}
+      <div className="relative z-10 rounded-full bg-blue-50 text-blue-600 p-3.5 transition-transform duration-300 group-hover:scale-[1.08] shadow-sm">
+        <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 bg-blue-400/20 blur-md transition-opacity duration-300" />
+        <Icon className="relative z-10 h-6 w-6" />
       </div>
-      <h3 className="mt-3 text-xs font-bold text-slate-800 group-hover:text-blue-600 transition-colors truncate w-full">{service.title}</h3>
-      <p className="mt-1 text-[9px] leading-relaxed text-slate-400 font-medium line-clamp-2 h-6">{service.tagline || service.description}</p>
+
+      <h3 className="relative z-10 mt-3 text-[13px] font-[700] text-slate-900 transition-colors truncate w-full">{service.title}</h3>
+      <p className="relative z-10 mt-1 text-[10px] leading-relaxed text-slate-600 font-medium line-clamp-2 h-7">{service.tagline || service.description}</p>
     </Link>
   );
 }
