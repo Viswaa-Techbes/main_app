@@ -69,13 +69,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                           key={item.href} 
                           href={item.href}
                           onClick={() => setMobileMenuOpen(false)}
-                          className={`group flex items-center gap-3 px-4 py-3 min-h-[48px] rounded-xl border transition-all duration-200 cursor-pointer hover:shadow-md \${
+                          className={`flex items-center gap-3 px-4 py-3 min-h-[48px] rounded-xl border transition-all duration-200 cursor-pointer hover:shadow-md \${
                             isActive 
                               ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white font-semibold border-transparent shadow-md shadow-blue-200/50" 
                               : "bg-white text-slate-700 font-medium border-slate-200 shadow-sm hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100"
                           }`}
                         >
-                          <Icon size={20} className={`shrink-0 transition-colors duration-200 \${isActive ? "text-white" : "text-slate-600 group-hover:text-blue-600"}`} />
+                          <Icon size={20} className={`shrink-0 transition-colors duration-200 \${isActive ? "text-white" : "text-slate-600"}`} />
                           {item.label}
                         </Link>
                       );
