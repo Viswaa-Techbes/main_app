@@ -18,6 +18,11 @@ export async function fetchAuthApi(endpoint: string, options: RequestInit = {}) 
 
   // We might want to return the raw response if it's not JSON, but let's assume JSON for now
   if (!res.ok) {
+    if (res.status === 401 && typeof window !== 'undefined') {
+      localStorage.removeItem('token')
+      localStorage.removeItem('accessToken')
+      window.location.href = '/auth'
+    }
     const errorData = await res.json().catch(() => ({}))
     throw new Error(errorData.message || `API Error: ${res.statusText}`)
   }
