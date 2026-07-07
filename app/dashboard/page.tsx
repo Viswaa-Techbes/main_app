@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { fetchAuthApi } from "@/lib/api";
 import { Card } from "@/components/ui/card";
-import { Activity, Wallet, Calendar, CheckCircle, Package, ArrowRight } from "lucide-react";
+import { Activity, Wallet, Calendar, CheckCircle, Package, ArrowRight, MessageSquare, FileText, MapPin, User } from "lucide-react";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
 import { useAuth } from "@/features/auth/context/auth-context";
