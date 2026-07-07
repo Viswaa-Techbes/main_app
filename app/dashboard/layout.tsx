@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/bookings", label: "My Bookings", icon: ListOrdered },
   { href: "/dashboard/wallet", label: "Wallet & Points", icon: Wallet },
   { href: "/dashboard/support", label: "Support Tickets", icon: MessageSquare },
+  { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
   { href: "/dashboard/addresses", label: "Saved Addresses", icon: MapPin },
   { href: "/dashboard/invoices", label: "Invoices", icon: FileText },
   { href: "/dashboard/reviews", label: "My Reviews", icon: Star },
