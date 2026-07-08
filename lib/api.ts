@@ -21,7 +21,7 @@ export async function fetchAuthApi(endpoint: string, options: RequestInit = {}) 
     if (res.status === 401 && typeof window !== 'undefined') {
       localStorage.removeItem('token')
       localStorage.removeItem('accessToken')
-      window.location.href = '/auth'
+      window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`
     }
     const errorData = await res.json().catch(() => ({}))
     throw new Error(errorData.message || `API Error: ${res.statusText}`)
