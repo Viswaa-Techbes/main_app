@@ -179,7 +179,7 @@ function StatCard({ icon, title, value, bg, link }: any) {
             <p className="text-sm font-medium text-gray-500 mb-1">{title}</p>
             <h3 className="text-2xl font-black text-gray-900">{value}</h3>
           </div>
-          <div className={`w-12 h-12 rounded-full \${bg} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+          <div className={`w-12 h-12 rounded-full ${bg} flex items-center justify-center group-hover:scale-110 transition-transform`}>
             {icon}
           </div>
         </div>
@@ -191,7 +191,7 @@ function StatCard({ icon, title, value, bg, link }: any) {
 function QuickActionLink({ icon, title, href, color, bg }: any) {
   return (
     <Link href={href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition group">
-      <div className={`w-10 h-10 rounded-lg \${bg} \${color} flex items-center justify-center`}>
+      <div className={`w-10 h-10 rounded-lg ${bg} ${color} flex items-center justify-center`}>
         {icon}
       </div>
       <span className="font-medium text-gray-700 group-hover:text-gray-900">{title}</span>

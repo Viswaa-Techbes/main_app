@@ -253,7 +253,7 @@ export default function WalletPage() {
                 return (
                   <div key={tx._id} className="p-4 sm:p-6 hover:bg-gray-50 transition flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 \${isCredit ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
+                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${isCredit ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}>
                         {isCredit ? <ArrowDownRight size={24} /> : <ArrowUpRight size={24} />}
                       </div>
                       <div>
@@ -267,7 +267,7 @@ export default function WalletPage() {
                         </div>
                       </div>
                     </div>
-                    <div className={`text-lg font-black \${isCredit ? 'text-emerald-600' : 'text-gray-900'}`}>
+                    <div className={`text-lg font-black ${isCredit ? 'text-emerald-600' : 'text-gray-900'}`}>
                       {isCredit ? '+' : '-'}{formatCurrency(tx.amount)}
                     </div>
                   </div>

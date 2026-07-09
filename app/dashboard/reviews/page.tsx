@@ -49,7 +49,7 @@ export default function ReviewsPage() {
       <div className="flex border-b border-gray-200">
         <button
           onClick={() => setActiveTab('pending')}
-          className={`pb-4 px-6 font-bold text-sm transition-all border-b-2 \${
+          className={`pb-4 px-6 font-bold text-sm transition-all border-b-2 ${
             activeTab === 'pending'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-800'
@@ -59,7 +59,7 @@ export default function ReviewsPage() {
         </button>
         <button
           onClick={() => setActiveTab('submitted')}
-          className={`pb-4 px-6 font-bold text-sm transition-all border-b-2 \${
+          className={`pb-4 px-6 font-bold text-sm transition-all border-b-2 ${
             activeTab === 'submitted'
               ? 'border-blue-600 text-blue-600'
               : 'border-transparent text-gray-500 hover:text-gray-800'
@@ -97,7 +97,7 @@ export default function ReviewsPage() {
                     <div className="bg-gray-50 p-4 rounded-xl mt-4 border border-gray-100">
                       <div className="flex items-center gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
-                          <Star key={i} size={16} className={`\${i < (booking.rating || 5) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`} />
+                          <Star key={i} size={16} className={`${i < (booking.rating || 5) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`} />
                         ))}
                       </div>
                       <p className="text-sm text-gray-700 italic">"{booking.reviewText || 'Great service, highly recommended!'}"</p>

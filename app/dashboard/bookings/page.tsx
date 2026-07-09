@@ -54,7 +54,7 @@ export default function BookingsPage() {
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`px-4 py-2 rounded-full text-sm font-bold capitalize whitespace-nowrap transition \${
+            className={`px-4 py-2 rounded-full text-sm font-bold capitalize whitespace-nowrap transition ${
               filter === f ? 'bg-blue-900 text-white shadow-md' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
             }`}
           >

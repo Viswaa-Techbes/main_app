@@ -69,7 +69,7 @@ export default function SupportPage() {
     if (!replyText || !activeTicket) return;
 
     try {
-      const res = await fetchAuthApi(`/api/v2/customer/tickets/\${activeTicket._id}/reply`, {
+      const res = await fetchAuthApi(`/api/v2/customer/tickets/${activeTicket._id}/reply`, {
         method: "PUT",
         body: JSON.stringify({ text: replyText })
       });
@@ -150,7 +150,7 @@ export default function SupportPage() {
               <p className="text-sm text-gray-500">Ticket #{activeTicket._id.slice(-6).toUpperCase()} • {activeTicket.category}</p>
             </div>
           </div>
-          <span className={`px-3 py-1 rounded-full text-xs font-bold \${
+          <span className={`px-3 py-1 rounded-full text-xs font-bold ${
             activeTicket.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
           }`}>
             {activeTicket.status}
@@ -162,12 +162,12 @@ export default function SupportPage() {
           {(activeTicket.messages || []).map((msg: any, i: number) => {
             const isMe = msg.sender === user?._id || msg.sender === user?.id;
             return (
-              <div key={i} className={`flex \${isMe ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] rounded-2xl p-4 \${
+              <div key={i} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] rounded-2xl p-4 ${
                   isMe ? 'bg-blue-600 text-white rounded-tr-sm shadow-md shadow-blue-200' : 'bg-white border border-gray-100 text-gray-800 rounded-tl-sm shadow-sm'
                 }`}>
                   <p className="whitespace-pre-wrap">{msg.text}</p>
-                  <p className={`text-[11px] mt-2 \${isMe ? 'text-blue-200' : 'text-gray-400'}`}>
+                  <p className={`text-[11px] mt-2 ${isMe ? 'text-blue-200' : 'text-gray-400'}`}>
                     {formatDateTime(msg.createdAt)}
                   </p>
                 </div>
@@ -221,7 +221,7 @@ export default function SupportPage() {
                 <div>
                   <div className="flex items-center gap-3 mb-1">
                     <h3 className="font-bold text-gray-900">{t.subject}</h3>
-                    <span className={`px-2 py-0.5 rounded text-xs font-bold \${
+                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${
                       t.status === 'Resolved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                     }`}>
                       {t.status}
