@@ -145,12 +145,18 @@ export function HomeHero() {
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
             {CATEGORY_TILES.map((cat) => {
               const Icon = cat.icon;
+              const isLaunchingSoon = cat.id !== "cctv";
               return (
                 <Link
                   key={cat.id}
                   href={`/services?category=${cat.id}`}
                   className="group relative flex flex-col items-center text-center p-4 rounded-[18px] border border-slate-200 bg-white shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:-translate-y-[6px] hover:border-blue-600 hover:shadow-[0_14px_30px_rgba(37,99,235,0.18)] transition-all duration-300 ease-out"
                 >
+                  {isLaunchingSoon && (
+                    <span className="absolute top-2 right-2 bg-slate-100 text-slate-500 text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider z-20">
+                      Soon
+                    </span>
+                  )}
                   <div className="absolute inset-0 rounded-[18px] opacity-0 group-hover:opacity-100 bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.08),transparent_60%)] pointer-events-none transition-opacity duration-300" />
                   
                   <div className="relative z-10 rounded-full bg-blue-50 text-blue-600 p-3.5 transition-transform duration-300 group-hover:scale-[1.08] shadow-sm">

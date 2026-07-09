@@ -119,9 +119,9 @@ export function ServiceCatalog() {
       service.category.toLowerCase().includes(search.toLowerCase()) ||
       service.tagline.toLowerCase().includes(search.toLowerCase());
     const matchesCategory =
-      selectedCategory === "all" ||
-      service.categoryId === selectedCategory ||
-      normalizeCategoryId(service.categoryId) === normalizeCategoryId(selectedCategory);
+      selectedCategory === "all"
+        ? (service.categoryId === "cctv" || normalizeCategoryId(service.categoryId) === "cctv")
+        : (service.categoryId === selectedCategory || normalizeCategoryId(service.categoryId) === normalizeCategoryId(selectedCategory));
     const matchesRating = service.rating >= minRating;
     const matchesPrice = service.priceValue <= maxPrice;
     const matchesDuration =
@@ -191,10 +191,11 @@ export function ServiceCatalog() {
             <FilterGroup label="Category">
               <div className="flex flex-col gap-1">
                 {["all", ...categoriesToUse.map((category) => category.slug)].map((categoryId) => {
+                  const isLaunchingSoon = categoryId !== "all" && categoryId !== "cctv";
                   const label =
                     categoryId === "all"
                       ? "All Services"
-                      : categoriesToUse.find((category) => category.slug === categoryId)?.name ?? categoryId;
+                      : `${categoriesToUse.find((category) => category.slug === categoryId)?.name ?? categoryId}${isLaunchingSoon ? " (Soon)" : ""}`;
                   const isSelected = selectedCategory === categoryId;
                   return (
                     <button
@@ -275,7 +276,7 @@ export function ServiceCatalog() {
 
         {/* Catalog Grid */}
         <div className="min-w-0 flex-1">
-          {selectedCategory !== "all" && !["cctv", "networking", "laptop", "desktop", "electrical", "home-automation"].includes(selectedCategory) ? (
+          {selectedCategory !== "all" && selectedCategory !== "cctv" ? (
             <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-100 bg-white px-8 py-20 text-center shadow-sm">
               <div className="rounded-full bg-blue-50 p-6 mb-6">
                 <Rocket className="h-10 w-10 text-blue-600" />

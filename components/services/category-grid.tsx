@@ -13,12 +13,18 @@ export function CategoryGrid() {
       <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
         {categories.map((category) => {
           const Icon = category.icon;
+          const isLaunchingSoon = category.id !== "cctv";
           return (
             <Link
               key={category.id}
               href={`/services?category=${category.id}`}
-              className="group flex flex-col items-center text-center p-5 rounded-2xl border border-slate-100 bg-slate-50/30 hover:bg-white hover:border-blue-100 hover:shadow-lg transition-all duration-300"
+              className="relative group flex flex-col items-center text-center p-5 rounded-2xl border border-slate-100 bg-slate-50/30 hover:bg-white hover:border-blue-100 hover:shadow-lg transition-all duration-300"
             >
+              {isLaunchingSoon && (
+                <span className="absolute top-2.5 right-2.5 bg-slate-200 text-slate-700 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Soon
+                </span>
+              )}
               <div className="rounded-2xl bg-blue-50 text-blue-600 p-4 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-hover:scale-103 shadow-sm">
                 <Icon className="h-6 w-6" />
               </div>

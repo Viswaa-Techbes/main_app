@@ -31,6 +31,11 @@ export function CategorySection() {
               href={`/services?category=${category.id}`}
               className="group relative bg-card rounded-2xl p-5 md:p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300"
             >
+              {category.id !== "cctv" && (
+                <span className="absolute top-3.5 right-3.5 bg-slate-100 text-slate-500 text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                  Soon
+                </span>
+              )}
               {/* Icon */}
               <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl ${category.color} flex items-center justify-center mb-4`}>
                 <category.icon className="w-6 h-6 md:w-7 md:h-7" />

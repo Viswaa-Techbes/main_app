@@ -63,7 +63,14 @@ export function CategorySidebar() {
                     <Icon className="h-4 w-4" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs leading-none font-semibold truncate">{cat.title}</p>
+                    <p className="text-xs leading-none font-semibold truncate flex items-center gap-1.5">
+                      {cat.title}
+                      {cat.id !== "cctv" && (
+                        <span className="text-[8px] font-bold text-slate-400 bg-slate-100 px-1 py-0.5 rounded-sm uppercase tracking-wide">
+                          Soon
+                        </span>
+                      )}
+                    </p>
                     <p className="mt-1 text-[10px] text-slate-400 font-medium truncate max-w-[160px]">{cat.subtitle}</p>
                   </div>
                 </div>
