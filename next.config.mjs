@@ -66,7 +66,7 @@ async function runSeederFromConfig() {
 runSeederFromConfig();
 
 async function wakeUpBackend() {
-  const backendUrl = process.env.BACKEND_API_URL || 'https://technician-app.onrender.com';
+  const backendUrl = process.env.BACKEND_API_URL || 'https://api.techbes.co.in';
   if (backendUrl && !backendUrl.includes('localhost') && !backendUrl.includes('127.0.0.1')) {
     console.log(`[Next.js Config] Triggering backend wake-up ping to ${backendUrl}...`);
     const client = backendUrl.startsWith('https') ? https : http;
@@ -102,7 +102,7 @@ const nextConfig = {
     ],
   },
   async rewrites() {
-    const backendUrl = process.env.BACKEND_API_URL || 'https://technician-app.onrender.com';
+    const backendUrl = process.env.BACKEND_API_URL || 'https://api.techbes.co.in';
     return [
       {
         source: '/api/v2/:path*',

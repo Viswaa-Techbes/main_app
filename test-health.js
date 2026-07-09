@@ -1,7 +1,7 @@
 const https = require('https');
 
 console.log("Checking categories endpoint...");
-https.get('https://technician-app.onrender.com/api/v2/catalog/categories', (res) => {
+https.get('https://api.techbes.co.in/api/v2/catalog/categories', (res) => {
   console.log('Categories Status code:', res.statusCode);
   let body = '';
   res.on('data', (d) => { body += d; });
@@ -13,7 +13,7 @@ https.get('https://technician-app.onrender.com/api/v2/catalog/categories', (res)
 });
 
 console.log("Checking health endpoint...");
-https.get('https://technician-app.onrender.com/health', (res) => {
+https.get('https://api.techbes.co.in/health', (res) => {
   console.log('Health Status code:', res.statusCode);
   let body = '';
   res.on('data', (d) => { body += d; });

@@ -1,5 +1,5 @@
 const getFallbackUrl = () => {
-  return "https://technician-app.onrender.com";
+  return "https://api.techbes.co.in";
 };
 
 export function getApiBaseUrl() {
@@ -13,7 +13,7 @@ export function getApiBaseUrl() {
     process.env.BACKEND_API_URL ||
     process.env.NEXT_PUBLIC_API_URL ||
     process.env.NEXT_PUBLIC_API_BASE_URL ||
-    "https://technician-app.onrender.com"
+    "https://api.techbes.co.in"
   );
 }
 
@@ -21,11 +21,11 @@ export const API_BASE_URL = typeof window !== "undefined" ? "" : (
   process.env.BACKEND_API_URL ||
   process.env.NEXT_PUBLIC_API_URL ||
   process.env.NEXT_PUBLIC_API_BASE_URL ||
-  "https://technician-app.onrender.com"
+  "https://api.techbes.co.in"
 );
 
 export function getBackendApiUrl(path: string) {
-  const base = (process.env.BACKEND_API_URL || getApiBaseUrl() || "https://technician-app.onrender.com").replace(/\/$/, "");
+  const base = (process.env.BACKEND_API_URL || getApiBaseUrl() || "https://api.techbes.co.in").replace(/\/$/, "");
   const nextPath = path.startsWith("/") ? path : `/${path}`;
   return `${base}${nextPath}`;
 }
