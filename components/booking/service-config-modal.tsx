@@ -2,13 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CalendarCheck, FileText, ShoppingCart, Zap, ShieldAlert, CheckCircle2, Info, Loader2, Upload, MapPin, Check, Wallet } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cctvApi, CctvSubcategory } from "@/lib/cctv-api";
 import { useToast } from "@/hooks/use-toast";
 import dynamic from "next/dynamic";
 import { fetchAuthApi } from "@/lib/api";
+import { AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
 
 const LocationPicker = dynamic(() => import("@/components/booking/LocationPicker"), { ssr: false });
 
@@ -26,6 +27,7 @@ export function ServiceBookingConfigModal({
   onRequestQuote?: () => void;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { toast } = useToast();
 
   const [step, setStep] = useState(1);
@@ -64,10 +66,11 @@ export function ServiceBookingConfigModal({
   useEffect(() => {
     if (!open) return;
 
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") || localStorage.getItem("accessToken") : null;
+    const token = typeof window !== "undefined" ? localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || localStorage.getItem("token") || localStorage.getItem("accessToken") : null;
     if (!token) {
       toast({ title: "Session Expired", description: "Please login to proceed with booking.", variant: "destructive" });
-      router.push("/login");
+      onOpenChange(false);
+      router.push(`/login?redirect=${encodeURIComponent(pathname || "/services")}`);
       return;
     }
 
@@ -138,7 +141,7 @@ export function ServiceBookingConfigModal({
     const files = e.target.files;
     if (!files || files.length === 0) return;
     setUploading(true);
-    const token = localStorage.getItem("token") || localStorage.getItem("accessToken") || "";
+    const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || localStorage.getItem("token") || localStorage.getItem("accessToken") || "";
     try {
       const file = files[0];
       const formData = new FormData();
@@ -265,7 +268,7 @@ export function ServiceBookingConfigModal({
   // Checkout submission handler
   const handleCheckoutSubmit = async () => {
     setSubmitting(true);
-    const token = localStorage.getItem("token") || localStorage.getItem("accessToken") || "";
+    const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || localStorage.getItem("token") || localStorage.getItem("accessToken") || "";
 
     const bookingAnswers = Object.entries(questionAnswers).map(([q, a]) => ({ question: q, answer: a }));
     const payload = {

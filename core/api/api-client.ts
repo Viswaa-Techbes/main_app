@@ -1,16 +1,23 @@
 import { AppError } from "@/core/errors/app-error";
 import { logger } from "@/core/logging/logger";
+import { AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
 
 type RequestOptions = RequestInit & {
   parseAs?: "json" | "text";
 };
 
 export async function apiClient<T>(input: RequestInfo | URL, init?: RequestOptions): Promise<T> {
+  let token = null;
+  if (typeof window !== "undefined") {
+    token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || localStorage.getItem("token") || localStorage.getItem("accessToken");
+  }
+
   const response = await fetch(input, {
     credentials: "include",
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(init?.headers ?? {}),
     },
   });
