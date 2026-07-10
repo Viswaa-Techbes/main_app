@@ -31,12 +31,26 @@ export type CctvSubcategory = {
 export type CctvPriceInput = {
   categoryId?: string;
   subcategoryId?: string;
-  cameraTypeId: string;
-  cameraCount: number;
-  installationArea: "indoor" | "outdoor";
-  wireLength: number;
-  addonIds: string[];
+  subcategorySlug?: string;
+  cameraTypeId?: string;
+  cameraCount?: number;
+  installationArea?: "indoor" | "outdoor";
+  wireLength?: number;
+  addonIds?: string[];
   couponCode?: string;
+
+  // Custom Install CCTV fields
+  propertyType?: string;
+  cameraTypes?: { type: string; quantity: number }[];
+  installationType?: string;
+  wiringRequired?: boolean;
+  cableLength?: number;
+  existingCable?: boolean;
+  dvrRequired?: boolean;
+  dvrChannels?: number;
+  networkRack?: boolean;
+  monitorMounting?: boolean;
+  discountPercent?: number;
 };
 
 export type CctvPriceResult = {

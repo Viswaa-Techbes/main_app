@@ -76,12 +76,30 @@ export function ServiceBookingConfigModal({
 
   // CCTV Redesign States
   const isBuyCctvProducts = service.slug === "buy-cctv-products";
+  const isInstallNewCctv = service.slug === "install-new-cctv";
   const isCctvServiceRequest = ["install-new-cctv", "repair-existing-cctv", "maintenance-amc", "upgrade-existing-cctv", "free-site-survey"].includes(service.slug);
 
   const [availableProducts, setAvailableProducts] = useState<any[]>([]);
   const [selectedProductsCheckboxes, setSelectedProductsCheckboxes] = useState<Record<string, boolean>>({});
   const [selectedProductQuantities, setSelectedProductQuantities] = useState<Record<string, number>>({});
   const [selectedProductVariants, setSelectedProductVariants] = useState<Record<string, string>>({});
+
+  // Install New CCTV custom states
+  const [cctvPropertyType, setCctvPropertyType] = useState<string>("");
+  const [cctvSelectedCameraTypes, setCctvSelectedCameraTypes] = useState<Record<string, boolean>>({});
+  const [cctvCameraQuantities, setCctvCameraQuantities] = useState<Record<string, number>>({});
+  const [cctvInstallationType, setCctvInstallationType] = useState<string>("");
+  const [cctvWiringRequired, setCctvWiringRequired] = useState<string>(""); // "Yes" | "No"
+  const [cctvCableLength, setCctvCableLength] = useState<number>(0);
+  const [cctvUseExistingCable, setCctvUseExistingCable] = useState<boolean>(false);
+  const [cctvDvrRequired, setCctvDvrRequired] = useState<boolean>(false);
+  const [cctvDvrChannels, setCctvDvrChannels] = useState<number>(4);
+  const [cctvNetworkRack, setCctvNetworkRack] = useState<boolean>(false);
+  const [cctvMonitorMounting, setCctvMonitorMounting] = useState<boolean>(false);
+
+  // State for calculated price breakdown from backend
+  const [cctvCalculatedPrice, setCctvCalculatedPrice] = useState<any>(null);
+  const [cctvCalculating, setCctvCalculating] = useState<boolean>(false);
 
   // Reset state when opening/closing
   useEffect(() => {
@@ -96,6 +114,20 @@ export function ServiceBookingConfigModal({
       setSelectedProductsCheckboxes({});
       setSelectedProductQuantities({});
       setSelectedProductVariants({});
+      
+      // Reset install-new-cctv states
+      setCctvPropertyType("");
+      setCctvSelectedCameraTypes({});
+      setCctvCameraQuantities({});
+      setCctvInstallationType("");
+      setCctvWiringRequired("");
+      setCctvCableLength(0);
+      setCctvUseExistingCable(false);
+      setCctvDvrRequired(false);
+      setCctvDvrChannels(4);
+      setCctvNetworkRack(false);
+      setCctvMonitorMounting(false);
+      setCctvCalculatedPrice(null);
     }
   }, [open]);
 
@@ -159,6 +191,79 @@ export function ServiceBookingConfigModal({
         .catch((err) => console.error("Products load error:", err));
     }
   }, [open, router, toast, pathname, isBuyCctvProducts]);
+
+  // Call backend price calculation API whenever fields change for Install New CCTV
+  useEffect(() => {
+    if (!open || service.slug !== "install-new-cctv") return;
+    
+    // Check if property type, camera types selection, and installation type are completed
+    const hasCameraSelected = Object.values(cctvSelectedCameraTypes).some(v => v);
+    if (!cctvPropertyType || !hasCameraSelected || !cctvInstallationType) {
+      setCctvCalculatedPrice(null);
+      return;
+    }
+    
+    // Check custom wiring if Custom Installation is chosen
+    if (cctvInstallationType === "Custom Installation") {
+      if (!cctvWiringRequired) {
+        setCctvCalculatedPrice(null);
+        return;
+      }
+    }
+    
+    const cameraTypesPayload = Object.entries(cctvSelectedCameraTypes)
+      .filter(([_, checked]) => checked)
+      .map(([type]) => ({
+        type,
+        quantity: cctvCameraQuantities[type] || 1
+      }));
+      
+    const payload = {
+      subcategoryId: service._id,
+      subcategorySlug: service.slug,
+      propertyType: cctvPropertyType,
+      cameraTypes: cameraTypesPayload,
+      installationType: cctvInstallationType,
+      wiringRequired: cctvWiringRequired === "Yes",
+      cableLength: cctvCableLength,
+      existingCable: cctvUseExistingCable || cctvWiringRequired === "No",
+      dvrRequired: cctvDvrRequired,
+      dvrChannels: cctvDvrChannels,
+      networkRack: cctvNetworkRack,
+      monitorMounting: cctvMonitorMounting,
+      couponCode,
+      discountPercent
+    };
+    
+    setCctvCalculating(true);
+    cctvApi.calculate(payload)
+      .then((data: any) => {
+        setCctvCalculatedPrice(data);
+      })
+      .catch((err) => {
+        console.error("Price calculation error:", err);
+      })
+      .finally(() => {
+        setCctvCalculating(false);
+      });
+  }, [
+    open,
+    service._id,
+    service.slug,
+    cctvPropertyType,
+    cctvSelectedCameraTypes,
+    cctvCameraQuantities,
+    cctvInstallationType,
+    cctvWiringRequired,
+    cctvCableLength,
+    cctvUseExistingCable,
+    cctvDvrRequired,
+    cctvDvrChannels,
+    cctvNetworkRack,
+    cctvMonitorMounting,
+    couponCode,
+    discountPercent
+  ]);
 
   // Handle saved address changes
   const handleAddressChange = (addrId: string, addressList = savedAddresses) => {
@@ -343,7 +448,28 @@ export function ServiceBookingConfigModal({
 
   // Price calculations
   const prices = useMemo(() => {
-    if (isBuyCctvProducts) {
+    if (isInstallNewCctv) {
+      const pb = cctvCalculatedPrice?.priceBreakdown;
+      const cameraInst = pb?.cameraInstallation || 0;
+      const cableChg = pb?.cableCharge || 0;
+      const dvrChg = pb?.dvrCharge || 0;
+      const rackChg = pb?.rackCharge || 0;
+      const monChg = pb?.monitorCharge || 0;
+      
+      const discount = pb?.discount || 0;
+      const gst = pb?.gst || 0;
+      const grandTotal = pb?.grandTotal || 0;
+      
+      return {
+        packageCost: cameraInst,
+        visitCharge: 0,
+        labourCost: cableChg + dvrChg + rackChg + monChg,
+        discount,
+        gst,
+        grandTotal,
+        rawBreakdown: pb
+      };
+    } else if (isBuyCctvProducts) {
       const productsTotal = selectedProductsList.reduce((sum, p) => sum + p.total, 0);
       const deliveryCharge = 199;
       const baseTotal = productsTotal + deliveryCharge;
@@ -379,7 +505,7 @@ export function ServiceBookingConfigModal({
 
       return { packageCost, visitCharge, labourCost, discount, gst, grandTotal };
     }
-  }, [isBuyCctvProducts, selectedProductsList, service, selectedPackageId, discountPercent]);
+  }, [isInstallNewCctv, cctvCalculatedPrice, isBuyCctvProducts, selectedProductsList, service, selectedPackageId, discountPercent]);
 
   // Apply discount coupon code
   const handleApplyCoupon = () => {
@@ -408,6 +534,18 @@ export function ServiceBookingConfigModal({
         { step: 7, label: "Checkout & Pay" }
       ];
     } else if (isCctvServiceRequest) {
+      if (isInstallNewCctv) {
+        const steps = [
+          { step: 1, label: "Details & Questions" },
+          { step: 2, label: "Date & Time" }
+        ];
+        let currentStep = 3;
+        steps.push({ step: currentStep++, label: "Upload Images" });
+        steps.push({ step: currentStep++, label: "Service Location" });
+        steps.push({ step: currentStep++, label: "Review Estimate" });
+        steps.push({ step: currentStep++, label: "Checkout & Pay" });
+        return steps.map((s, idx) => ({ ...s, step: idx + 1 }));
+      }
       const steps = [
         { step: 1, label: "Details & Questions" },
         { step: 2, label: "Choose Package" },
@@ -433,7 +571,7 @@ export function ServiceBookingConfigModal({
         { step: 7, label: "Checkout & Pay" }
       ];
     }
-  }, [service.slug, isBuyCctvProducts, isCctvServiceRequest]);
+  }, [service.slug, isBuyCctvProducts, isInstallNewCctv, isCctvServiceRequest]);
 
   const currentStepLabel = stepsList[step - 1]?.label || "";
 
@@ -451,11 +589,31 @@ export function ServiceBookingConfigModal({
       }
     }
     if (currentStepLabel === "Details & Questions") {
-      const questions = service.bookingQuestions || [];
-      for (const q of questions) {
-        if (q.required && !questionAnswers[q.question]) {
-          toast({ title: "Incomplete Form", description: `${q.question} is required.`, variant: "destructive" });
+      if (isInstallNewCctv) {
+        const hasCameraSelected = Object.values(cctvSelectedCameraTypes).some(v => v);
+        if (!cctvPropertyType) {
+          toast({ title: "Property Type Required", description: "Please select a property type.", variant: "destructive" });
           return;
+        }
+        if (!hasCameraSelected) {
+          toast({ title: "Camera Type Required", description: "Please select at least one camera type.", variant: "destructive" });
+          return;
+        }
+        if (!cctvInstallationType) {
+          toast({ title: "Installation Type Required", description: "Please select an installation type.", variant: "destructive" });
+          return;
+        }
+        if (cctvInstallationType === "Custom Installation" && !cctvWiringRequired) {
+          toast({ title: "Wiring Choice Required", description: "Please select whether wiring is required.", variant: "destructive" });
+          return;
+        }
+      } else {
+        const questions = service.bookingQuestions || [];
+        for (const q of questions) {
+          if (q.required && !questionAnswers[q.question]) {
+            toast({ title: "Incomplete Form", description: `${q.question} is required.`, variant: "destructive" });
+            return;
+          }
         }
       }
     }
@@ -569,9 +727,26 @@ export function ServiceBookingConfigModal({
       cctvDetails: {
         category: { name: "CCTV", slug: "cctv" },
         subcategory: { id: service._id, name: service.name, slug: service.slug },
-        priceBreakdown: prices,
+        priceBreakdown: isInstallNewCctv ? (prices.rawBreakdown || prices) : prices,
         notes,
-        products: isBuyCctvProducts ? selectedProductsList : undefined
+        products: isBuyCctvProducts ? selectedProductsList : undefined,
+        ...(isInstallNewCctv ? {
+          propertyType: cctvPropertyType,
+          cameraTypes: Object.entries(cctvSelectedCameraTypes)
+            .filter(([_, checked]) => checked)
+            .map(([type]) => ({
+              type,
+              quantity: cctvCameraQuantities[type] || 1
+            })),
+          installationType: cctvInstallationType,
+          wiringRequired: cctvWiringRequired === "Yes",
+          cableLength: cctvCableLength,
+          existingCable: cctvUseExistingCable || cctvWiringRequired === "No",
+          dvrRequired: cctvDvrRequired,
+          dvrChannels: cctvDvrChannels,
+          networkRack: cctvNetworkRack,
+          monitorMounting: cctvMonitorMounting
+        } : {})
       }
     };
 
@@ -840,86 +1015,384 @@ export function ServiceBookingConfigModal({
 
               {currentStepLabel === "Details & Questions" && (
                 <div className="space-y-4">
-                  <div className="flex gap-1 items-start flex-col">
-                    <h3 className="text-base font-black text-slate-800">Job Specifications</h3>
-                    <p className="text-xs text-slate-400 font-medium">Please answer the questions below to customize your estimate</p>
-                  </div>
-                  {(service.bookingQuestions || []).length > 0 ? (
-                    <div className="space-y-4">
-                      {service.bookingQuestions?.map((q: any, idx: number) => {
-                        const val = questionAnswers[q.question] || "";
-                        const inputId = `q-${idx}`;
-                        return (
-                          <div key={idx} className="space-y-2">
-                            <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5 flex-wrap">
-                              {q.question}
-                              {q.required && (
-                                <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[8px] font-bold text-rose-700 ring-1 ring-inset ring-rose-600/10">Required</span>
-                              )}
-                            </label>
+                  {isInstallNewCctv ? (
+                    <div className="space-y-6">
+                      <div className="flex gap-1 items-start flex-col">
+                        <h3 className="text-base font-black text-slate-800">Dynamic Installation Specifications</h3>
+                        <p className="text-xs text-slate-400 font-medium">Specify your security camera installation preferences to calculate dynamic pricing.</p>
+                      </div>
 
-                            {q.type === "select" ? (
-                              <select
-                                id={inputId}
-                                value={val}
-                                onChange={(e) => handleAnswerChange(q.question, e.target.value)}
-                                className="h-11 w-full rounded-xl border border-slate-200 px-3 bg-slate-50 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      {/* 1. Property Type */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                          Property Type <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[8px] font-bold text-rose-700 ring-1 ring-inset ring-rose-600/10">Required</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {["Home", "Apartment", "Office", "Shop", "Warehouse", "Factory", "Other"].map((t) => {
+                            const isSelected = cctvPropertyType === t;
+                            return (
+                              <button
+                                type="button"
+                                key={t}
+                                onClick={() => setCctvPropertyType(t)}
+                                className={`px-4 py-2 text-xs font-bold rounded-xl border transition ${
+                                  isSelected
+                                    ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                    : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                                }`}
                               >
-                                <option value="">{q.placeholder || "Select option..."}</option>
-                                {q.options?.map((opt: string) => (
-                                  <option key={opt} value={opt}>{opt}</option>
-                                ))}
-                              </select>
-                            ) : q.type === "multiselect" ? (
-                              <div className="grid gap-2 sm:grid-cols-2 rounded-2xl border border-slate-100 p-3 bg-slate-50/50">
-                                {q.options?.map((opt: string) => {
-                                  const list = Array.isArray(val) ? val : [];
-                                  const checked = list.includes(opt);
-                                  return (
-                                    <label key={opt} className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 bg-white text-xs cursor-pointer select-none">
-                                      <input
-                                        type="checkbox"
-                                        checked={checked}
-                                        onChange={() => {
-                                          const nextList = checked ? list.filter((x) => x !== opt) : [...list, opt];
-                                          handleAnswerChange(q.question, nextList);
-                                        }}
-                                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                                      />
-                                      {opt}
-                                    </label>
-                                  );
-                                })}
+                                {t}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 2. Camera Type Selection */}
+                      <div className="space-y-2.5">
+                        <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                          Select Camera Types <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[8px] font-bold text-rose-700 ring-1 ring-inset ring-rose-600/10">Required</span>
+                        </label>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {["IP Camera", "Analog Camera", "WiFi Indoor Camera", "WiFi Outdoor Camera", "4G Camera"].map((type) => {
+                            const checked = cctvSelectedCameraTypes[type] || false;
+                            return (
+                              <div
+                                key={type}
+                                onClick={() => {
+                                  setCctvSelectedCameraTypes(prev => {
+                                    const next = !prev[type];
+                                    if (next && !cctvCameraQuantities[type]) {
+                                      setCctvCameraQuantities(q => ({ ...q, [type]: 1 }));
+                                    }
+                                    return { ...prev, [type]: next };
+                                  });
+                                }}
+                                className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer select-none transition ${
+                                  checked ? "border-blue-600 bg-blue-50/10 ring-1 ring-blue-600" : "border-slate-200 bg-white hover:shadow-xs"
+                                }`}
+                              >
+                                <div className="flex items-center gap-2.5">
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() => {}}
+                                    className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                  />
+                                  <span className="font-bold text-xs text-slate-800">{type}</span>
+                                </div>
                               </div>
-                            ) : q.type === "image" ? (
-                              <div className="flex items-center gap-4">
-                                <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-4 py-2.5 text-xs font-bold cursor-pointer transition">
-                                  <Upload className="h-4 w-4 text-slate-500" />
-                                  {val ? "Replace Picture" : "Choose File"}
-                                  <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, q.question)} />
-                                </label>
-                                {val && (
-                                  <div className="relative h-12 w-12 rounded-xl overflow-hidden border border-slate-200">
-                                    <img src={val} alt="Uploaded preview" className="object-cover h-full w-full" />
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 3. Camera Count */}
+                      {Object.entries(cctvSelectedCameraTypes).filter(([_, checked]) => checked).length > 0 && (
+                        <div className="space-y-3 bg-slate-50/50 rounded-2xl p-4 border border-slate-100">
+                          <label className="text-xs font-bold text-slate-700">Specify Camera Quantities</label>
+                          <div className="space-y-3 divide-y divide-slate-100">
+                            {Object.entries(cctvSelectedCameraTypes)
+                              .filter(([_, checked]) => checked)
+                              .map(([type]) => {
+                                const qty = cctvCameraQuantities[type] || 1;
+                                return (
+                                  <div key={type} className="flex justify-between items-center py-2 first:pt-0 last:pb-0">
+                                    <span className="text-xs font-bold text-slate-700">{type}</span>
+                                    <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white">
+                                      <button
+                                        type="button"
+                                        onClick={() => setCctvCameraQuantities(prev => ({ ...prev, [type]: Math.max((prev[type] || 1) - 1, 1) }))}
+                                        className="h-8 w-8 text-xs font-bold text-slate-600 hover:bg-slate-50 active:bg-slate-100 transition"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="w-8 text-center text-xs font-bold text-slate-700">{qty}</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => setCctvCameraQuantities(prev => ({ ...prev, [type]: (prev[type] || 1) + 1 }))}
+                                        className="h-8 w-8 text-xs font-bold text-slate-600 hover:bg-slate-50 active:bg-slate-100 transition"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
                                   </div>
-                                )}
-                              </div>
-                            ) : (
-                              <input
-                                id={inputId}
-                                type={q.type === "number" ? "number" : "text"}
-                                value={val}
-                                placeholder={q.placeholder || "Enter details..."}
-                                onChange={(e) => handleAnswerChange(q.question, e.target.value)}
-                                className="h-11 w-full rounded-xl border border-slate-200 px-3 bg-slate-50 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                              />
-                            )}
+                                );
+                              })}
                           </div>
-                        );
-                      })}
+                        </div>
+                      )}
+
+                      {/* 4. Installation Type */}
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                          Installation Type <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[8px] font-bold text-rose-700 ring-1 ring-inset ring-rose-600/10">Required</span>
+                        </label>
+                        <div className="grid gap-2.5 sm:grid-cols-3">
+                          {["Standard Installation", "Premium Installation", "Custom Installation"].map((t) => {
+                            const isSelected = cctvInstallationType === t;
+                            return (
+                              <div
+                                key={t}
+                                onClick={() => setCctvInstallationType(t)}
+                                className={`flex flex-col p-4 rounded-xl border text-xs cursor-pointer transition select-none ${
+                                  isSelected
+                                    ? "border-blue-600 bg-blue-50/10 ring-1 ring-blue-600"
+                                    : "border-slate-200 bg-white hover:border-slate-300"
+                                }`}
+                              >
+                                <span className="font-extrabold text-slate-800">{t}</span>
+                                <span className="text-[10px] text-slate-400 mt-1 font-semibold">
+                                  {t === "Standard Installation" && "Standard mounting & basic configuration"}
+                                  {t === "Premium Installation" && "Hidden conduit fitting & advanced settings"}
+                                  {t === "Custom Installation" && "Custom wiring runs and custom layout"}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 5. Custom Installation options */}
+                      {cctvInstallationType === "Custom Installation" && (
+                        <div className="space-y-4 bg-slate-50/80 rounded-2xl p-4 border border-slate-100">
+                          <h4 className="text-xs font-bold text-slate-800">Custom Installation Details</h4>
+                          
+                          {/* Wiring Required? */}
+                          <div className="space-y-2">
+                            <label className="text-[11px] font-bold text-slate-600">Wiring Required?</label>
+                            <div className="flex gap-2">
+                              {["Yes", "No"].map((choice) => {
+                                const isSelected = cctvWiringRequired === choice;
+                                return (
+                                  <button
+                                    type="button"
+                                    key={choice}
+                                    onClick={() => {
+                                      setCctvWiringRequired(choice);
+                                      if (choice === "No") {
+                                        setCctvUseExistingCable(true);
+                                      } else {
+                                        setCctvUseExistingCable(false);
+                                      }
+                                    }}
+                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition ${
+                                      isSelected
+                                        ? "bg-slate-900 text-white border-slate-900"
+                                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                                    }`}
+                                  >
+                                    {choice}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {cctvWiringRequired === "Yes" && (
+                            <div className="space-y-1.5 animate-fadeIn">
+                              <label className="text-[11px] font-bold text-slate-600">Cable Length (Meters)</label>
+                              <div className="flex items-center gap-3">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={cctvCableLength || ""}
+                                  onChange={(e) => setCctvCableLength(Math.max(Number(e.target.value) || 0, 0))}
+                                  placeholder="e.g. 50"
+                                  className="h-10 w-28 rounded-xl border border-slate-200 px-3 bg-white text-xs font-bold text-slate-700 focus:outline-none"
+                                />
+                                <span className="text-[11px] text-slate-400 font-semibold">(Charged at ₹60 × meter)</span>
+                              </div>
+                            </div>
+                          )}
+
+                          {cctvWiringRequired === "No" && (
+                            <div className="space-y-3 animate-fadeIn">
+                              <label className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 bg-white text-xs cursor-pointer select-none">
+                                <input
+                                  type="checkbox"
+                                  checked={cctvUseExistingCable}
+                                  onChange={(e) => setCctvUseExistingCable(e.target.checked)}
+                                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className="font-bold text-slate-700">Use Existing Cable (Yes)</span>
+                              </label>
+
+                              {cctvUseExistingCable && (
+                                <div className="space-y-1.5">
+                                  <label className="text-[11px] font-bold text-slate-600">Existing Cable Length (Meters)</label>
+                                  <div className="flex items-center gap-3">
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      value={cctvCableLength || ""}
+                                      onChange={(e) => setCctvCableLength(Math.max(Number(e.target.value) || 0, 0))}
+                                      placeholder="e.g. 40"
+                                      className="h-10 w-28 rounded-xl border border-slate-200 px-3 bg-white text-xs font-bold text-slate-700 focus:outline-none"
+                                    />
+                                    <span className="text-[11px] text-slate-400 font-semibold">(Charged at ₹25 × meter)</span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* 6. DVR / NVR Installation */}
+                      <div className="space-y-3 bg-slate-50/50 rounded-2xl p-4 border border-slate-100">
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={cctvDvrRequired}
+                            onChange={(e) => setCctvDvrRequired(e.target.checked)}
+                            className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="font-bold text-xs text-slate-800">Need DVR / NVR Installation?</span>
+                        </label>
+
+                        {cctvDvrRequired && (
+                          <div className="space-y-2 pt-2 border-t border-slate-100 animate-fadeIn">
+                            <label className="text-[11px] font-bold text-slate-600">Select Channel Count</label>
+                            <div className="flex flex-wrap gap-2">
+                              {[4, 8, 16, 32, 64].map((ch) => {
+                                const isSelected = cctvDvrChannels === ch;
+                                return (
+                                  <button
+                                    type="button"
+                                    key={ch}
+                                    onClick={() => setCctvDvrChannels(ch)}
+                                    className={`px-4 py-1.5 text-xs font-bold rounded-lg border transition ${
+                                      isSelected
+                                        ? "bg-blue-600 text-white border-blue-600"
+                                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                                    }`}
+                                  >
+                                    {ch} Ch
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <p className="text-[10px] text-slate-400 font-medium">
+                              (Pricing: Up to 16 Ch is ₹1,000 | Above 16 Ch is ₹2,500)
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 7 & 8. Additional Mountings */}
+                      <div className="space-y-2 bg-slate-50/50 rounded-2xl p-4 border border-slate-100">
+                        <label className="text-xs font-bold text-slate-700">Optional Add-ons</label>
+                        <div className="space-y-2.5 pt-2">
+                          <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={cctvNetworkRack}
+                              onChange={(e) => setCctvNetworkRack(e.target.checked)}
+                              className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <div className="text-xs">
+                              <span className="font-bold text-slate-800">Network Rack Mounting</span>
+                              <span className="text-[10px] text-slate-400 font-bold ml-1.5">(+ ₹500)</span>
+                            </div>
+                          </label>
+
+                          <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                              type="checkbox"
+                              checked={cctvMonitorMounting}
+                              onChange={(e) => setCctvMonitorMounting(e.target.checked)}
+                              className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <div className="text-xs">
+                              <span className="font-bold text-slate-800">Monitor Mounting</span>
+                              <span className="text-[10px] text-slate-400 font-bold ml-1.5">(+ ₹350)</span>
+                            </div>
+                          </label>
+                        </div>
+                      </div>
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-500 font-semibold bg-slate-50 p-4 rounded-xl">No custom specifications required for this subcategory. Please continue.</p>
+                    // Default questions render
+                    <div className="space-y-4">
+                      {(service.bookingQuestions || []).length > 0 ? (
+                        <div className="space-y-4">
+                          {service.bookingQuestions?.map((q: any, idx: number) => {
+                            const val = questionAnswers[q.question] || "";
+                            const inputId = `q-${idx}`;
+                            return (
+                              <div key={idx} className="space-y-2">
+                                <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5 flex-wrap">
+                                  {q.question}
+                                  {q.required && (
+                                    <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[8px] font-bold text-rose-700 ring-1 ring-inset ring-rose-600/10">Required</span>
+                                  )}
+                                </label>
+
+                                {q.type === "select" ? (
+                                  <select
+                                    id={inputId}
+                                    value={val}
+                                    onChange={(e) => handleAnswerChange(q.question, e.target.value)}
+                                    className="h-11 w-full rounded-xl border border-slate-200 px-3 bg-slate-50 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                  >
+                                    <option value="">{q.placeholder || "Select option..."}</option>
+                                    {q.options?.map((opt: string) => (
+                                      <option key={opt} value={opt}>{opt}</option>
+                                    ))}
+                                  </select>
+                                ) : q.type === "multiselect" ? (
+                                  <div className="grid gap-2 sm:grid-cols-2 rounded-2xl border border-slate-100 p-3 bg-slate-50/50">
+                                    {q.options?.map((opt: string) => {
+                                      const list = Array.isArray(val) ? val : [];
+                                      const checked = list.includes(opt);
+                                      return (
+                                        <label key={opt} className="flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 bg-white text-xs cursor-pointer select-none">
+                                          <input
+                                            type="checkbox"
+                                            checked={checked}
+                                            onChange={() => {
+                                              const nextList = checked ? list.filter((x) => x !== opt) : [...list, opt];
+                                              handleAnswerChange(q.question, nextList);
+                                            }}
+                                            className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                          />
+                                          {opt}
+                                        </label>
+                                      );
+                                    })}
+                                  </div>
+                                ) : q.type === "image" ? (
+                                  <div className="flex items-center gap-4">
+                                    <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 px-4 py-2.5 text-xs font-bold cursor-pointer transition">
+                                      <Upload className="h-4 w-4 text-slate-500" />
+                                      {val ? "Replace Picture" : "Choose File"}
+                                      <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e, q.question)} />
+                                    </label>
+                                    {val && (
+                                      <div className="relative h-12 w-12 rounded-xl overflow-hidden border border-slate-200">
+                                        <img src={val} alt="Uploaded preview" className="object-cover h-full w-full" />
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <input
+                                    id={inputId}
+                                    type={q.type === "number" ? "number" : "text"}
+                                    value={val}
+                                    placeholder={q.placeholder || "Enter details..."}
+                                    onChange={(e) => handleAnswerChange(q.question, e.target.value)}
+                                    className="h-11 w-full rounded-xl border border-slate-200 px-3 bg-slate-50 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-slate-500 font-semibold bg-slate-50 p-4 rounded-xl">No custom specifications required for this subcategory. Please continue.</p>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
@@ -1211,7 +1684,86 @@ export function ServiceBookingConfigModal({
                     </p>
                   </div>
 
-                  {isBuyCctvProducts ? (
+                  {isInstallNewCctv ? (
+                    <div className="space-y-4">
+                      {/* Selected Cameras Summary */}
+                      <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-3.5 space-y-1.5">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Property & Cameras</span>
+                        <div className="text-xs font-semibold text-slate-700">
+                          Property Type: <span className="font-extrabold text-slate-900">{cctvPropertyType}</span>
+                        </div>
+                        <div className="text-xs text-slate-600 space-y-1 mt-1 border-t border-slate-200/50 pt-2">
+                          {Object.entries(cctvSelectedCameraTypes)
+                            .filter(([_, checked]) => checked)
+                            .map(([type]) => (
+                              <div key={type} className="flex justify-between font-medium">
+                                <span>{type}</span>
+                                <span className="font-bold text-slate-800">Qty: {cctvCameraQuantities[type] || 1}</span>
+                              </div>
+                            ))}
+                        </div>
+                      </div>
+
+                      {/* Itemized pricing breakdown */}
+                      <div className="rounded-2xl border border-slate-100 bg-white divide-y divide-slate-100 overflow-hidden shadow-sm">
+                        <div className="p-4 space-y-2.5">
+                          <div className="flex justify-between text-xs text-slate-600 font-semibold">
+                            <span>Camera Installation ({Object.entries(cctvSelectedCameraTypes).filter(([_, checked]) => checked).reduce((sum, [type]) => sum + (cctvCameraQuantities[type] || 1), 0)} × ₹400)</span>
+                            <span className="font-black text-slate-800">{money(prices.rawBreakdown?.cameraInstallation || 0)}</span>
+                          </div>
+
+                          {(prices.rawBreakdown?.cableCharge || 0) > 0 && (
+                            <div className="flex justify-between text-xs text-slate-600 font-semibold">
+                              <span>Cable charge ({cctvCableLength}m × {cctvWiringRequired === "Yes" ? "₹60" : "₹25"})</span>
+                              <span className="font-black text-slate-800">{money(prices.rawBreakdown.cableCharge)}</span>
+                            </div>
+                          )}
+
+                          {(prices.rawBreakdown?.dvrCharge || 0) > 0 && (
+                            <div className="flex justify-between text-xs text-slate-600 font-semibold">
+                              <span>DVR/NVR Installation ({cctvDvrChannels} Ch)</span>
+                              <span className="font-black text-slate-800">{money(prices.rawBreakdown.dvrCharge)}</span>
+                            </div>
+                          )}
+
+                          {(prices.rawBreakdown?.rackCharge || 0) > 0 && (
+                            <div className="flex justify-between text-xs text-slate-600 font-semibold">
+                              <span>Network Rack Mounting</span>
+                              <span className="font-black text-slate-800">{money(prices.rawBreakdown.rackCharge)}</span>
+                            </div>
+                          )}
+
+                          {(prices.rawBreakdown?.monitorCharge || 0) > 0 && (
+                            <div className="flex justify-between text-xs text-slate-600 font-semibold">
+                              <span>Monitor Mounting</span>
+                              <span className="font-black text-slate-800">{money(prices.rawBreakdown.monitorCharge)}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="p-4 bg-slate-50/50 space-y-2.5">
+                          <div className="flex justify-between text-xs font-medium text-slate-600">
+                            <span>Subtotal</span>
+                            <span>{money((prices.rawBreakdown?.cameraInstallation || 0) + (prices.rawBreakdown?.cableCharge || 0) + (prices.rawBreakdown?.dvrCharge || 0) + (prices.rawBreakdown?.rackCharge || 0) + (prices.rawBreakdown?.monitorCharge || 0))}</span>
+                          </div>
+                          {prices.discount > 0 && (
+                            <div className="flex justify-between text-xs font-bold text-emerald-600">
+                              <span>Promo discount</span>
+                              <span>-{money(prices.discount)}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between text-xs font-medium text-slate-600">
+                            <span>GST (18%)</span>
+                            <span>{money(prices.gst)}</span>
+                          </div>
+                          <div className="flex justify-between text-sm font-black text-slate-900 border-t border-slate-200 pt-2.5">
+                            <span>Grand Total</span>
+                            <span>{money(prices.grandTotal)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : isBuyCctvProducts ? (
                     <div className="rounded-2xl border border-slate-100 bg-white divide-y divide-slate-100 overflow-hidden shadow-sm">
                       {selectedProductsList.map((item) => (
                         <div key={item.product} className="p-4 flex justify-between items-center text-xs">
@@ -1400,7 +1952,24 @@ export function ServiceBookingConfigModal({
               <Zap className="h-4 w-4 text-emerald-600" />
             </div>
 
-            {isBuyCctvProducts ? (
+            {isInstallNewCctv ? (
+              <div className="mt-4 space-y-3.5 border-b border-slate-200 pb-4 text-xs font-medium text-slate-500 max-h-[220px] overflow-y-auto pr-1">
+                <div className="flex justify-between items-center">
+                  <span>Property</span>
+                  <span className="font-bold text-slate-800">{cctvPropertyType || "—"}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Installation</span>
+                  <span className="font-bold text-slate-800">{cctvInstallationType || "—"}</span>
+                </div>
+                {Object.entries(cctvSelectedCameraTypes).filter(([_, checked]) => checked).map(([type]) => (
+                  <div key={type} className="flex justify-between items-center">
+                    <span>{type}</span>
+                    <span className="font-bold text-slate-800">Qty: {cctvCameraQuantities[type] || 1}</span>
+                  </div>
+                ))}
+              </div>
+            ) : isBuyCctvProducts ? (
               <div className="mt-4 space-y-3.5 border-b border-slate-200 pb-4 text-xs font-medium text-slate-500 max-h-[220px] overflow-y-auto pr-1">
                 {selectedProductsList.length === 0 ? (
                   <p className="text-[11px] text-slate-400 italic">No products selected yet</p>
@@ -1449,10 +2018,19 @@ export function ServiceBookingConfigModal({
             )}
 
             <div className="mt-4 space-y-2.5 text-xs">
-              <Line label={isBuyCctvProducts ? "Delivery Cost" : "Base Cost"} value={isBuyCctvProducts ? prices.visitCharge : prices.packageCost} />
-              {!isBuyCctvProducts && <Line label="Visit Charge" value={prices.visitCharge} />}
-              {isBuyCctvProducts && selectedProductsList.length > 0 && (
-                <Line label="Items Cost" value={prices.packageCost} />
+              {isInstallNewCctv ? (
+                <>
+                  <Line label="Fitting Cost" value={prices.packageCost} />
+                  {prices.labourCost > 0 && <Line label="Cabling/DVR/Mounts" value={prices.labourCost} />}
+                </>
+              ) : (
+                <>
+                  <Line label={isBuyCctvProducts ? "Delivery Cost" : "Base Cost"} value={isBuyCctvProducts ? prices.visitCharge : prices.packageCost} />
+                  {!isBuyCctvProducts && <Line label="Visit Charge" value={prices.visitCharge} />}
+                  {isBuyCctvProducts && selectedProductsList.length > 0 && (
+                    <Line label="Items Cost" value={prices.packageCost} />
+                  )}
+                </>
               )}
               {prices.discount > 0 && (
                 <div className="flex justify-between items-center">
