@@ -120,6 +120,10 @@ const nextConfig = {
         source: '/leads/:path*',
         destination: `${backendUrl}/leads/:path*`,
       },
+      {
+        source: '/api/auth/:path*',
+        destination: `${backendUrl}/api/auth/:path*`,
+      },
     ];
   },
 }

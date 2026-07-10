@@ -50,6 +50,18 @@ export function ServiceBookingConfigModal({
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
 
+  // Structured and manual address details
+  const [houseNumber, setHouseNumber] = useState("");
+  const [street, setStreet] = useState("");
+  const [area, setArea] = useState("");
+  const [landmark, setLandmark] = useState("");
+  const [district, setDistrict] = useState("");
+  const [country, setCountry] = useState("");
+  const [floor, setFloor] = useState("");
+  const [apartmentName, setApartmentName] = useState("");
+  const [deliveryInstructions, setDeliveryInstructions] = useState("");
+  const [formattedAddress, setFormattedAddress] = useState("");
+
   // Coupon states
   const [couponCode, setCouponCode] = useState("");
   const [discountPercent, setDiscountPercent] = useState(0); // 0 or 10%
@@ -111,7 +123,7 @@ export function ServiceBookingConfigModal({
         }
       })
       .catch((err) => console.error("Wallet load error:", err));
-  }, [open, router, toast]);
+  }, [open, router, toast, pathname]);
 
   // Handle saved address changes
   const handleAddressChange = (addrId: string, addressList = savedAddresses) => {
@@ -123,16 +135,37 @@ export function ServiceBookingConfigModal({
       setPincode("");
       setLatitude(null);
       setLongitude(null);
+      setHouseNumber("");
+      setStreet("");
+      setArea("");
+      setLandmark("");
+      setDistrict("");
+      setCountry("");
+      setFloor("");
+      setApartmentName("");
+      setDeliveryInstructions("");
+      setFormattedAddress("");
       return;
     }
     const found = addressList.find((a) => a._id === addrId);
     if (found) {
-      setAddress(found.address || [found.addressLine1, found.addressLine2].filter(Boolean).join(", "));
+      const displayAddr = found.formattedAddress || found.address || [found.addressLine1, found.addressLine2].filter(Boolean).join(", ");
+      setAddress(displayAddr);
       setCity(found.city || "");
       setStateName(found.state || "");
       setPincode(found.pincode || "");
       setLatitude(found.latitude || null);
       setLongitude(found.longitude || null);
+      setHouseNumber(found.houseNumber || "");
+      setStreet(found.street || "");
+      setArea(found.area || "");
+      setLandmark(found.landmark || "");
+      setDistrict(found.district || "");
+      setCountry(found.country || "");
+      setFloor(found.floor || "");
+      setApartmentName(found.apartmentName || "");
+      setDeliveryInstructions(found.deliveryInstructions || found.manualNotes || "");
+      setFormattedAddress(displayAddr);
     }
   };
 
@@ -270,12 +303,50 @@ export function ServiceBookingConfigModal({
     setSubmitting(true);
     const token = localStorage.getItem(AUTH_TOKEN_STORAGE_KEY) || localStorage.getItem("token") || localStorage.getItem("accessToken") || "";
 
+    let finalAddressId = selectedAddressId;
+    if (selectedAddressId === "new" || !selectedAddressId) {
+      try {
+        const addrRes = await fetch("/api/user/address", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            name: "Service Location",
+            mobile: customerPhone,
+            address: formattedAddress || address,
+            landmark,
+            city,
+            state: stateName,
+            pincode,
+            latitude,
+            longitude,
+            houseNumber,
+            street,
+            area,
+            district,
+            country,
+            manualNotes: `Floor: ${floor || '—'}, Apartment: ${apartmentName || '—'}. Instructions: ${deliveryInstructions || '—'}`,
+            formattedAddress: formattedAddress || address,
+            isDefault: savedAddresses.length === 0
+          })
+        });
+        const addrJson = await addrRes.json();
+        if (addrJson.success && addrJson.data?._id) {
+          finalAddressId = addrJson.data._id;
+        }
+      } catch (e) {
+        console.error("Failed to save address dynamically:", e);
+      }
+    }
+
     const bookingAnswers = Object.entries(questionAnswers).map(([q, a]) => ({ question: q, answer: a }));
     const payload = {
       service: service.name,
       serviceId: service._id,
       serviceName: service.name,
-      address,
+      address: formattedAddress || address,
       description: notes || "Booking requested",
       date,
       timeSlot: time,
@@ -283,7 +354,7 @@ export function ServiceBookingConfigModal({
       customerPhone,
       totalAmount: prices.grandTotal,
       serviceType: service.slug.includes("repair") ? "repair" : "installation",
-      addressId: selectedAddressId !== "new" ? selectedAddressId : undefined,
+      addressId: finalAddressId !== "new" && finalAddressId ? finalAddressId : undefined,
       latitude,
       longitude,
       city,
@@ -291,6 +362,18 @@ export function ServiceBookingConfigModal({
       pincode,
       bookingAnswers,
       uploadedImages,
+      // Structured address fields
+      houseNumber,
+      street,
+      area,
+      landmark,
+      district,
+      country,
+      floor,
+      apartmentName,
+      deliveryInstructions,
+      manualNotes: `Floor: ${floor || '—'}, Apartment: ${apartmentName || '—'}. Instructions: ${deliveryInstructions || '—'}`,
+      formattedAddress: formattedAddress || address,
       cctvDetails: {
         category: { name: "CCTV", slug: "cctv" },
         subcategory: { id: service._id, name: service.name, slug: service.slug },
@@ -626,18 +709,48 @@ export function ServiceBookingConfigModal({
                     </div>
                   )}
 
-                  <div className="rounded-2xl overflow-hidden border border-slate-200 h-[260px] relative">
+                  <div className="rounded-2xl border border-slate-200/80 p-2 bg-white relative">
                     <LocationPicker
-                      onLocationSelected={(data) => {
+                      onLocationSelected={(data: any) => {
                         setAddress(data.address);
                         setCity(data.city);
                         setStateName(data.state);
                         setPincode(data.pincode);
                         setLatitude(data.latitude);
                         setLongitude(data.longitude);
+                        setHouseNumber(data.houseNumber || "");
+                        setStreet(data.street || "");
+                        setArea(data.area || "");
+                        setLandmark(data.landmark || "");
+                        setDistrict(data.district || "");
+                        setCountry(data.country || "");
+                        setFloor(data.floor || "");
+                        setApartmentName(data.apartmentName || "");
+                        setDeliveryInstructions(data.deliveryInstructions || "");
+                        setFormattedAddress(data.formattedAddress || "");
                         toast({ title: "Location Confirmed", description: "Pinned address successfully." });
+                        goNext();
                       }}
                       initialCoords={latitude && longitude ? { lat: latitude, lng: longitude } : null}
+                      initialAddressData={
+                        selectedAddressId !== "new" && selectedAddressId
+                          ? savedAddresses.find((a) => a._id === selectedAddressId)
+                          : {
+                              houseNumber,
+                              street,
+                              area,
+                              landmark,
+                              city,
+                              district,
+                              state: stateName,
+                              pincode,
+                              country,
+                              floor,
+                              apartmentName,
+                              deliveryInstructions,
+                              formattedAddress
+                            }
+                      }
                     />
                   </div>
 
