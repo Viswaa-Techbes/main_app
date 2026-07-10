@@ -646,7 +646,7 @@ export function ServiceBookingConfigModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[95vh] overflow-y-auto sm:max-w-5xl rounded-3xl p-6 bg-slate-50/50">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-5xl rounded-[24px] p-6 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.12)] border border-slate-100/80">
         <DialogHeader>
           <DialogTitle className="text-2xl font-black text-slate-900">
             {isBuyCctvProducts ? `Purchase ${service.name}` : `Book ${service.name}`}
@@ -659,21 +659,45 @@ export function ServiceBookingConfigModal({
         </DialogHeader>
 
         {/* Stepper Progress Bar */}
-        <div className="flex flex-wrap gap-1.5 pb-4 border-b border-slate-100 items-center">
-          {stepsList.map((sDef) => (
-            <div
-              key={sDef.step}
-              className={`rounded-full px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider transition ${
-                step === sDef.step
-                  ? "bg-blue-600 text-white shadow-sm shadow-blue-500/20"
-                  : step > sDef.step
-                  ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
-                  : "bg-slate-100 text-slate-400"
-              }`}
-            >
-              {sDef.step}. {sDef.label}
-            </div>
-          ))}
+        <div className="flex flex-wrap gap-2 pb-4 border-b border-slate-100 items-center">
+          {stepsList.map((sDef) => {
+            const isActive = step === sDef.step;
+            const isCompleted = step > sDef.step;
+            
+            if (isCompleted) {
+              return (
+                <div
+                  key={sDef.step}
+                  className="rounded-full px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider transition bg-emerald-600 text-white border border-emerald-700 shadow-sm flex items-center gap-1.5"
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                  <span>{sDef.label}</span>
+                </div>
+              );
+            }
+            
+            if (isActive) {
+              return (
+                <div
+                  key={sDef.step}
+                  className="rounded-full px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider transition bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-500/20 flex items-center gap-1.5"
+                >
+                  <span className="h-4 w-4 rounded-full bg-white text-blue-600 flex items-center justify-center text-[9px] font-black">{sDef.step}</span>
+                  <span>{sDef.label}</span>
+                </div>
+              );
+            }
+            
+            return (
+              <div
+                key={sDef.step}
+                className="rounded-full px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-wider transition bg-slate-100 text-slate-400 border border-slate-200/50 flex items-center gap-1.5"
+              >
+                <span className="h-4 w-4 rounded-full bg-slate-200 text-slate-400 flex items-center justify-center text-[9px] font-bold">{sDef.step}</span>
+                <span>{sDef.label}</span>
+              </div>
+            );
+          })}
         </div>
 
         <div className="grid gap-6 mt-4 lg:grid-cols-[1fr,340px]">
