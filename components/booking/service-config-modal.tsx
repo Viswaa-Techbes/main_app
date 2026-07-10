@@ -74,6 +74,31 @@ export function ServiceBookingConfigModal({
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
 
+  // CCTV Redesign States
+  const isBuyCctvProducts = service.slug === "buy-cctv-products";
+  const isCctvServiceRequest = ["install-new-cctv", "repair-existing-cctv", "maintenance-amc", "upgrade-existing-cctv", "free-site-survey"].includes(service.slug);
+
+  const [availableProducts, setAvailableProducts] = useState<any[]>([]);
+  const [selectedProductsCheckboxes, setSelectedProductsCheckboxes] = useState<Record<string, boolean>>({});
+  const [selectedProductQuantities, setSelectedProductQuantities] = useState<Record<string, number>>({});
+  const [selectedProductVariants, setSelectedProductVariants] = useState<Record<string, string>>({});
+
+  // Reset state when opening/closing
+  useEffect(() => {
+    if (!open) {
+      setStep(1);
+      setSelectedPackageId("");
+      setQuestionAnswers({});
+      setUploadedImages([]);
+      setDate("");
+      setTime("");
+      setNotes("");
+      setSelectedProductsCheckboxes({});
+      setSelectedProductQuantities({});
+      setSelectedProductVariants({});
+    }
+  }, [open]);
+
   // Load Saved Addresses, User details, and Wallet balance
   useEffect(() => {
     if (!open) return;
@@ -123,7 +148,17 @@ export function ServiceBookingConfigModal({
         }
       })
       .catch((err) => console.error("Wallet load error:", err));
-  }, [open, router, toast, pathname]);
+
+    // Load CCTV products for purchase flow
+    if (isBuyCctvProducts) {
+      cctvApi.products()
+        .then((json: any) => {
+          const list = Array.isArray(json) ? json : (json?.data || []);
+          setAvailableProducts(list);
+        })
+        .catch((err) => console.error("Products load error:", err));
+    }
+  }, [open, router, toast, pathname, isBuyCctvProducts]);
 
   // Handle saved address changes
   const handleAddressChange = (addrId: string, addressList = savedAddresses) => {
@@ -207,27 +242,144 @@ export function ServiceBookingConfigModal({
     setQuestionAnswers((prev) => ({ ...prev, [question]: val }));
   };
 
+  const selectedProductsList = useMemo(() => {
+    const list: Array<{ product: string; variant?: string; quantity: number; unitPrice: number; total: number }> = [];
+    
+    Object.entries(selectedProductsCheckboxes).forEach(([prodName, checked]) => {
+      if (!checked) return;
+      
+      const quantity = selectedProductQuantities[prodName] || 1;
+      const variantName = selectedProductVariants[prodName] || "";
+      
+      const dbProd = availableProducts.find(p => p.name === prodName);
+      let unitPrice = dbProd ? dbProd.price : 800; // default/fallback
+      let finalVariant = "";
+      
+      if (dbProd && dbProd.variants && dbProd.variants.length > 0) {
+        const variantObj = dbProd.variants.find((v: any) => v.name === variantName) || dbProd.variants[0];
+        if (variantObj) {
+          unitPrice = variantObj.price;
+          finalVariant = variantObj.name;
+        }
+      }
+      
+      list.push({
+        product: prodName,
+        variant: finalVariant || undefined,
+        quantity,
+        unitPrice,
+        total: unitPrice * quantity
+      });
+    });
+    
+    return list;
+  }, [selectedProductsCheckboxes, selectedProductQuantities, selectedProductVariants, availableProducts]);
+
+  const toggleProductSelection = (prodName: string) => {
+    setSelectedProductsCheckboxes(prev => {
+      const nextChecked = !prev[prodName];
+      if (nextChecked) {
+        setSelectedProductQuantities(q => ({ ...q, [prodName]: 1 }));
+        const dbProd = availableProducts.find(p => p.name === prodName);
+        if (dbProd && dbProd.variants && dbProd.variants.length > 0) {
+          setSelectedProductVariants(v => ({ ...v, [prodName]: dbProd.variants[0].name }));
+        }
+      }
+      return { ...prev, [prodName]: nextChecked };
+    });
+  };
+
+  const recommendedPkg = useMemo(() => {
+    if (!isCctvServiceRequest || !service.packages || service.packages.length === 0) return null;
+    
+    let name = service.packages[0].name;
+    
+    if (service.slug === "install-new-cctv") {
+      const propType = questionAnswers["Select Property Type"];
+      const numCam = questionAnswers["How many Cameras"];
+      const packageChoice = questionAnswers["Installation Package"];
+      
+      if (packageChoice === "Basic" || numCam === "2" || numCam === "4") {
+        name = "Basic Setup";
+      } else if (packageChoice === "Premium" || numCam === "6" || numCam === "8") {
+        name = "Premium Setup";
+      } else if (packageChoice === "Custom" || numCam === "16+" || numCam === "Custom" || ["Warehouse", "Factory"].includes(propType)) {
+        name = "Custom Setup";
+      } else {
+        name = "Basic Setup";
+      }
+    } else if (service.slug === "repair-existing-cctv") {
+      name = "CCTV Diagnosis & Repair";
+    } else if (service.slug === "maintenance-amc") {
+      const plan = questionAnswers["Choose AMC Plan"];
+      if (plan === "One Time") name = "One Time Support";
+      else if (plan === "Quarterly") name = "Quarterly AMC";
+      else if (plan === "Half Yearly") name = "Half Yearly AMC";
+      else if (plan === "Annual") name = "Annual AMC";
+      else name = "Annual AMC";
+    } else if (service.slug === "upgrade-existing-cctv") {
+      name = "CCTV Upgrade Consultation";
+    } else if (service.slug === "free-site-survey") {
+      name = "Free Site Survey";
+    }
+    
+    return service.packages.find(p => p.name.toLowerCase() === name.toLowerCase()) || service.packages[0];
+  }, [service, questionAnswers, isCctvServiceRequest]);
+
+  // Automatically select the recommended package if none is selected manually
+  useEffect(() => {
+    if (isCctvServiceRequest && recommendedPkg && !selectedPackageId) {
+      setSelectedPackageId(recommendedPkg._id);
+    }
+  }, [recommendedPkg, selectedPackageId, isCctvServiceRequest]);
+
+  // Automatically select delivery package for Buy CCTV Products
+  useEffect(() => {
+    if (isBuyCctvProducts && service.packages && service.packages.length > 0 && !selectedPackageId) {
+      setSelectedPackageId(service.packages[0]._id);
+      handleAnswerChange("Selected Package", service.packages[0].name);
+    }
+  }, [isBuyCctvProducts, service.packages, selectedPackageId]);
+
   // Price calculations
   const prices = useMemo(() => {
-    const s = service as any;
-    let packageCost = 0;
-    if (s.packages && s.packages.length > 0) {
-      const found = s.packages.find((p: any) => p._id === selectedPackageId);
-      if (found) packageCost = found.price;
+    if (isBuyCctvProducts) {
+      const productsTotal = selectedProductsList.reduce((sum, p) => sum + p.total, 0);
+      const deliveryCharge = 199;
+      const baseTotal = productsTotal + deliveryCharge;
+      const discount = Math.round(baseTotal * (discountPercent / 100));
+      const totalBeforeTax = baseTotal - discount;
+      const gst = Math.round(totalBeforeTax * 0.18);
+      const grandTotal = totalBeforeTax + gst;
+      return {
+        packageCost: productsTotal,
+        visitCharge: deliveryCharge,
+        labourCost: 0,
+        discount,
+        gst,
+        grandTotal
+      };
     } else {
-      packageCost = s.pricingStartsFrom || 0;
+      const s = service as any;
+      let packageCost = 0;
+      if (s.packages && s.packages.length > 0) {
+        const found = s.packages.find((p: any) => p._id === selectedPackageId);
+        if (found) packageCost = found.price;
+      } else {
+        packageCost = s.pricingStartsFrom || 0;
+      }
+
+      const visitCharge = service.slug === "free-site-survey" ? 0 : 499;
+      const labourCost = 0;
+      const baseTotal = packageCost + visitCharge + labourCost;
+      const discount = Math.round(baseTotal * (discountPercent / 100));
+      const totalBeforeTax = baseTotal - discount;
+      const gst = Math.round(totalBeforeTax * 0.18);
+      const grandTotal = totalBeforeTax + gst;
+
+      return { packageCost, visitCharge, labourCost, discount, gst, grandTotal };
     }
-
-    const visitCharge = service.slug === "free-site-survey" ? 0 : 499;
-    const labourCost = 0;
-    const baseTotal = packageCost + visitCharge + labourCost;
-    const discount = Math.round(baseTotal * (discountPercent / 100));
-    const totalBeforeTax = baseTotal - discount;
-    const gst = Math.round(totalBeforeTax * 0.18);
-    const grandTotal = totalBeforeTax + gst;
-
-    return { packageCost, visitCharge, labourCost, discount, gst, grandTotal };
-  }, [service, selectedPackageId, discountPercent]);
+  }, [isBuyCctvProducts, selectedProductsList, service, selectedPackageId, discountPercent]);
 
   // Apply discount coupon code
   const handleApplyCoupon = () => {
@@ -244,22 +396,61 @@ export function ServiceBookingConfigModal({
   };
 
   // Step names list
-  const stepsList = [
-    { step: 1, label: "Choose Package" },
-    { step: 2, label: "Details & Questions" },
-    { step: 3, label: "Date & Time" },
-    { step: 4, label: "Upload Images" },
-    { step: 5, label: "Service Location" },
-    { step: 6, label: "Review Estimate" },
-    { step: 7, label: "Checkout & Pay" }
-  ];
+  const stepsList = useMemo(() => {
+    if (isBuyCctvProducts) {
+      return [
+        { step: 1, label: "Choose Package" },
+        { step: 2, label: "Select Products" },
+        { step: 3, label: "Quantity & Variants" },
+        { step: 4, label: "Delivery Date" },
+        { step: 5, label: "Delivery Address" },
+        { step: 6, label: "Review Cart" },
+        { step: 7, label: "Checkout & Pay" }
+      ];
+    } else if (isCctvServiceRequest) {
+      const steps = [
+        { step: 1, label: "Details & Questions" },
+        { step: 2, label: "Choose Package" },
+        { step: 3, label: "Date & Time" }
+      ];
+      let currentStep = 4;
+      const hasUpload = ["install-new-cctv", "repair-existing-cctv"].includes(service.slug);
+      if (hasUpload) {
+        steps.push({ step: currentStep++, label: "Upload Images" });
+      }
+      steps.push({ step: currentStep++, label: "Service Location" });
+      steps.push({ step: currentStep++, label: "Review Estimate" });
+      steps.push({ step: currentStep++, label: "Checkout & Pay" });
+      return steps.map((s, idx) => ({ ...s, step: idx + 1 }));
+    } else {
+      return [
+        { step: 1, label: "Choose Package" },
+        { step: 2, label: "Details & Questions" },
+        { step: 3, label: "Date & Time" },
+        { step: 4, label: "Upload Images" },
+        { step: 5, label: "Service Location" },
+        { step: 6, label: "Review Estimate" },
+        { step: 7, label: "Checkout & Pay" }
+      ];
+    }
+  }, [service.slug, isBuyCctvProducts, isCctvServiceRequest]);
+
+  const currentStepLabel = stepsList[step - 1]?.label || "";
 
   const goNext = () => {
-    if (step === 1 && service.packages && service.packages.length > 0 && !selectedPackageId) {
-      toast({ title: "Required Choice", description: "Please select an installation or service package.", variant: "destructive" });
-      return;
+    if (currentStepLabel === "Choose Package") {
+      if (service.packages && service.packages.length > 0 && !selectedPackageId) {
+        toast({ title: "Required Choice", description: "Please select a service package.", variant: "destructive" });
+        return;
+      }
     }
-    if (step === 2) {
+    if (currentStepLabel === "Select Products") {
+      if (selectedProductsList.length === 0) {
+        toast({ title: "Product Required", description: "Please select at least one product to purchase.", variant: "destructive" });
+        return;
+      }
+    }
+    if (currentStepLabel === "Details & Questions") {
       const questions = service.bookingQuestions || [];
       for (const q of questions) {
         if (q.required && !questionAnswers[q.question]) {
@@ -268,11 +459,11 @@ export function ServiceBookingConfigModal({
         }
       }
     }
-    if (step === 3 && (!date || !time)) {
-      toast({ title: "Schedule Required", description: "Please pick both preferred date and time slot.", variant: "destructive" });
+    if ((currentStepLabel === "Date & Time" || currentStepLabel === "Delivery Date") && (!date || (currentStepLabel === "Date & Time" && !time))) {
+      toast({ title: "Schedule Required", description: "Please choose your preferred slot details.", variant: "destructive" });
       return;
     }
-    if (step === 5 && (!address || !latitude || !longitude)) {
+    if ((currentStepLabel === "Service Location" || currentStepLabel === "Delivery Address") && (!address || !latitude || !longitude)) {
       toast({ title: "Location Required", description: "Please pin your location on the map to proceed.", variant: "destructive" });
       return;
     }
@@ -349,11 +540,11 @@ export function ServiceBookingConfigModal({
       address: formattedAddress || address,
       description: notes || "Booking requested",
       date,
-      timeSlot: time,
+      timeSlot: isBuyCctvProducts ? undefined : time,
       customerName,
       customerPhone,
       totalAmount: prices.grandTotal,
-      serviceType: service.slug.includes("repair") ? "repair" : "installation",
+      serviceType: isBuyCctvProducts ? "other" : (service.slug.includes("repair") ? "repair" : "installation"),
       addressId: finalAddressId !== "new" && finalAddressId ? finalAddressId : undefined,
       latitude,
       longitude,
@@ -361,7 +552,8 @@ export function ServiceBookingConfigModal({
       state: stateName,
       pincode,
       bookingAnswers,
-      uploadedImages,
+      uploadedImages: isBuyCctvProducts ? [] : uploadedImages,
+      products: isBuyCctvProducts ? selectedProductsList : undefined,
       // Structured address fields
       houseNumber,
       street,
@@ -378,7 +570,8 @@ export function ServiceBookingConfigModal({
         category: { name: "CCTV", slug: "cctv" },
         subcategory: { id: service._id, name: service.name, slug: service.slug },
         priceBreakdown: prices,
-        notes
+        notes,
+        products: isBuyCctvProducts ? selectedProductsList : undefined
       }
     };
 
@@ -455,9 +648,13 @@ export function ServiceBookingConfigModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[95vh] overflow-y-auto sm:max-w-5xl rounded-3xl p-6 bg-slate-50/50">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black text-slate-900">Book {service.name}</DialogTitle>
+          <DialogTitle className="text-2xl font-black text-slate-900">
+            {isBuyCctvProducts ? `Purchase ${service.name}` : `Book ${service.name}`}
+          </DialogTitle>
           <DialogDescription className="text-xs text-slate-500 font-semibold">
-            Complete the form selection to request security camera installation & setup.
+            {isBuyCctvProducts
+              ? "Select products, quantities, and schedule delivery address."
+              : "Complete the form selection to request security camera installation & setup."}
           </DialogDescription>
         </DialogHeader>
 
@@ -483,59 +680,141 @@ export function ServiceBookingConfigModal({
           {/* Main Step Wizard Form */}
           <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm min-h-[350px] flex flex-col justify-between">
             <div>
-              {/* Step 1: Package Selection */}
-              {step === 1 && (
+              {/* Render Steps dynamically based on label */}
+              {currentStepLabel === "Choose Package" && (
                 <div className="space-y-4">
-                  <div className="flex gap-2 items-start flex-col">
-                    <h3 className="text-base font-black text-slate-800">Select a Service Package</h3>
-                    <p className="text-xs text-slate-400 font-medium">Choose a setup tier optimized for your property</p>
-                  </div>
-                  {service.packages && service.packages.length > 0 ? (
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {service.packages.map((pkg: any) => {
-                        const isSelected = selectedPackageId === pkg._id;
-                        return (
-                          <div
-                            key={pkg._id}
-                            onClick={() => {
-                              setSelectedPackageId(pkg._id);
-                              handleAnswerChange("Selected Package", pkg.name);
-                            }}
-                            className={`cursor-pointer rounded-2xl border p-4 transition-all hover:shadow-md ${
-                              isSelected ? "border-blue-600 bg-blue-50/10 ring-1 ring-blue-600" : "border-slate-200 bg-white"
-                            }`}
-                          >
-                            <div className="flex justify-between items-start gap-2">
-                              <h4 className="font-bold text-sm text-slate-900">{pkg.name}</h4>
-                              <span className="font-black text-blue-600 text-sm">₹{pkg.price}</span>
-                            </div>
-                            <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{pkg.description}</p>
-                            {pkg.duration && (
-                              <div className="text-[10px] text-slate-400 mt-2.5 font-bold">Duration: {pkg.duration}</div>
-                            )}
-                            {pkg.includes && pkg.includes.length > 0 && (
-                              <ul className="text-[10px] text-slate-500 mt-2 space-y-1 list-disc pl-4">
-                                {pkg.includes.map((inc: string, idx: number) => (
-                                  <li key={idx}>{inc}</li>
-                                ))}
-                              </ul>
-                            )}
+                  {isCctvServiceRequest && recommendedPkg ? (
+                    <div className="space-y-5">
+                      <div className="flex gap-2 items-start flex-col">
+                        <h3 className="text-base font-black text-slate-800">Recommended Package</h3>
+                        <p className="text-xs text-slate-400 font-medium">We calculated this package based on your questionnaire responses</p>
+                      </div>
+
+                      {/* Prominent Recommended Package Card */}
+                      <div
+                        onClick={() => {
+                          setSelectedPackageId(recommendedPkg._id);
+                          handleAnswerChange("Selected Package", recommendedPkg.name);
+                        }}
+                        className={`cursor-pointer rounded-2xl border-2 p-5 transition-all relative overflow-hidden bg-gradient-to-br from-blue-50/20 to-sky-50/10 shadow-sm ${
+                          selectedPackageId === recommendedPkg._id
+                            ? "border-blue-600 ring-1 ring-blue-600 bg-blue-50/20"
+                            : "border-slate-200 hover:border-blue-200 bg-white"
+                        }`}
+                      >
+                        <span className="absolute top-0 right-0 bg-blue-600 text-white text-[9px] font-black uppercase px-3 py-1 rounded-bl-xl tracking-wider shadow-sm font-sans">
+                          Auto Recommended
+                        </span>
+                        
+                        <div className="flex justify-between items-start gap-2">
+                          <h4 className="font-extrabold text-base text-slate-900">{recommendedPkg.name}</h4>
+                          <span className="font-black text-blue-600 text-base">₹{recommendedPkg.price}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-2 leading-relaxed">{recommendedPkg.description}</p>
+                        {recommendedPkg.duration && (
+                          <div className="text-[10px] text-slate-400 mt-3 font-bold">Estimated duration: {recommendedPkg.duration}</div>
+                        )}
+                        {recommendedPkg.includes && recommendedPkg.includes.length > 0 && (
+                          <div className="mt-3.5 pt-3.5 border-t border-slate-100">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">What's Included:</span>
+                            <ul className="text-[11px] text-slate-600 mt-2 space-y-1.5 list-disc pl-4 font-medium">
+                              {recommendedPkg.includes.map((inc: string, idx: number) => (
+                                <li key={idx}>{inc}</li>
+                              ))}
+                            </ul>
                           </div>
-                        );
-                      })}
+                        )}
+                      </div>
+
+                      {/* Other Packages section */}
+                      {service.packages && service.packages.length > 1 && (
+                        <div className="space-y-3 pt-3 border-t border-slate-100">
+                          <h4 className="text-xs font-bold text-slate-700">Other Available Packages</h4>
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            {service.packages
+                              .filter((p: any) => p._id !== recommendedPkg._id)
+                              .map((pkg: any) => {
+                                const isSelected = selectedPackageId === pkg._id;
+                                return (
+                                  <div
+                                    key={pkg._id}
+                                    onClick={() => {
+                                      setSelectedPackageId(pkg._id);
+                                      handleAnswerChange("Selected Package", pkg.name);
+                                    }}
+                                    className={`cursor-pointer rounded-2xl border p-4 transition-all hover:shadow-md ${
+                                      isSelected ? "border-blue-600 bg-blue-50/10 ring-1 ring-blue-600" : "border-slate-200 bg-white"
+                                    }`}
+                                  >
+                                    <div className="flex justify-between items-start gap-2">
+                                      <h5 className="font-bold text-sm text-slate-900">{pkg.name}</h5>
+                                      <span className="font-black text-blue-600 text-sm">₹{pkg.price}</span>
+                                    </div>
+                                    <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{pkg.description}</p>
+                                    {pkg.duration && (
+                                      <div className="text-[10px] text-slate-400 mt-2.5 font-bold">Duration: {pkg.duration}</div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-6 text-center">
-                      <Info className="h-6 w-6 text-slate-400 mx-auto mb-2" />
-                      <p className="text-xs text-slate-500 font-semibold">This service uses dynamic cost calculation. Please continue to custom questions.</p>
-                      <Button className="mt-3 bg-blue-600 text-white font-bold text-xs" onClick={() => setStep(2)}>Continue</Button>
+                    // Original Choose Package list for non-CCTV (or Buy CCTV Products demonstration package)
+                    <div className="space-y-4">
+                      <div className="flex gap-2 items-start flex-col">
+                        <h3 className="text-base font-black text-slate-800">Select a Service Package</h3>
+                        <p className="text-xs text-slate-400 font-medium">Choose a setup tier optimized for your requirements</p>
+                      </div>
+                      {service.packages && service.packages.length > 0 ? (
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {service.packages.map((pkg: any) => {
+                            const isSelected = selectedPackageId === pkg._id;
+                            return (
+                              <div
+                                key={pkg._id}
+                                onClick={() => {
+                                  setSelectedPackageId(pkg._id);
+                                  handleAnswerChange("Selected Package", pkg.name);
+                                }}
+                                className={`cursor-pointer rounded-2xl border p-4 transition-all hover:shadow-md ${
+                                  isSelected ? "border-blue-600 bg-blue-50/10 ring-1 ring-blue-600" : "border-slate-200 bg-white"
+                                }`}
+                              >
+                                <div className="flex justify-between items-start gap-2">
+                                  <h4 className="font-bold text-sm text-slate-900">{pkg.name}</h4>
+                                  <span className="font-black text-blue-600 text-sm">₹{pkg.price}</span>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">{pkg.description}</p>
+                                {pkg.duration && (
+                                  <div className="text-[10px] text-slate-400 mt-2.5 font-bold">Duration: {pkg.duration}</div>
+                                )}
+                                {pkg.includes && pkg.includes.length > 0 && (
+                                  <ul className="text-[10px] text-slate-500 mt-2 space-y-1 list-disc pl-4">
+                                    {pkg.includes.map((inc: string, idx: number) => (
+                                      <li key={idx}>{inc}</li>
+                                    ))}
+                                  </ul>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-6 text-center">
+                          <Info className="h-6 w-6 text-slate-400 mx-auto mb-2" />
+                          <p className="text-xs text-slate-500 font-semibold">This service uses dynamic cost calculation. Please continue to custom questions.</p>
+                          <Button className="mt-3 bg-blue-600 text-white font-bold text-xs" onClick={() => setStep(2)}>Continue</Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Step 2: Dynamic Questions */}
-              {step === 2 && (
+              {currentStepLabel === "Details & Questions" && (
                 <div className="space-y-4">
                   <div className="flex gap-1 items-start flex-col">
                     <h3 className="text-base font-black text-slate-800">Job Specifications</h3>
@@ -548,7 +827,7 @@ export function ServiceBookingConfigModal({
                         const inputId = `q-${idx}`;
                         return (
                           <div key={idx} className="space-y-2">
-                            <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                            <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5 flex-wrap">
                               {q.question}
                               {q.required && (
                                 <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[8px] font-bold text-rose-700 ring-1 ring-inset ring-rose-600/10">Required</span>
@@ -621,16 +900,143 @@ export function ServiceBookingConfigModal({
                 </div>
               )}
 
-              {/* Step 3: Date & Time */}
-              {step === 3 && (
+              {currentStepLabel === "Select Products" && (
+                <div className="space-y-4">
+                  <div className="flex gap-2 items-start flex-col">
+                    <h3 className="text-base font-black text-slate-800">Select CCTV Products</h3>
+                    <p className="text-xs text-slate-400 font-medium">Choose multiple products to add to your purchase order</p>
+                  </div>
+                  <div className="grid gap-2.5 sm:grid-cols-2 mt-4">
+                    {["Camera", "DVR", "NVR", "Hard Disk", "Cable", "Connector", "Power Supply", "Accessories", "Complete CCTV Kit"].map((prodName) => {
+                      const checked = selectedProductsCheckboxes[prodName] || false;
+                      return (
+                        <div
+                          key={prodName}
+                          onClick={() => toggleProductSelection(prodName)}
+                          className={`flex items-center justify-between p-4 rounded-2xl border transition cursor-pointer select-none ${
+                            checked ? "border-blue-600 bg-blue-50/10 ring-1 ring-blue-600" : "border-slate-200 bg-white hover:shadow-sm"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => {}} // handled by parent div click
+                              className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span className="font-bold text-xs text-slate-800">{prodName}</span>
+                          </div>
+                          {checked && <Check className="h-4 w-4 text-blue-600" />}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {currentStepLabel === "Quantity & Variants" && (
+                <div className="space-y-6">
+                  <div className="flex gap-2 items-start flex-col">
+                    <h3 className="text-base font-black text-slate-800">Choose Quantity & Variants</h3>
+                    <p className="text-xs text-slate-400 font-medium">Specify order volume and technical options for your selected products</p>
+                  </div>
+                  
+                  {selectedProductsList.length === 0 ? (
+                    <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-6 text-center">
+                      <p className="text-xs text-slate-500 font-semibold">No products selected. Please go back and select at least one product.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6 divide-y divide-slate-100">
+                      {selectedProductsList.map((item, idx) => {
+                        const dbProd = availableProducts.find(p => p.name === item.product);
+                        const hasVariants = dbProd && dbProd.variants && dbProd.variants.length > 0;
+                        
+                        return (
+                          <div key={item.product} className={`pt-4 ${idx === 0 ? 'pt-0' : ''} space-y-4`}>
+                            <div className="flex justify-between items-center flex-wrap gap-2">
+                              <h4 className="font-black text-sm text-slate-800 flex items-center gap-2">
+                                <span className="h-2 w-2 rounded-full bg-blue-600" /> {item.product}
+                              </h4>
+                              
+                              {/* Quantity Selector */}
+                              <div className="flex items-center gap-2.5">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Quantity</span>
+                                <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+                                  <button
+                                    onClick={() => {
+                                      const nextQty = Math.max(item.quantity - 1, 1);
+                                      setSelectedProductQuantities(prev => ({ ...prev, [item.product]: nextQty }));
+                                    }}
+                                    className="h-8 w-8 text-xs font-bold text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition"
+                                  >
+                                    -
+                                  </button>
+                                  <span className="w-8 text-center text-xs font-bold text-slate-700">{item.quantity}</span>
+                                  <button
+                                    onClick={() => {
+                                      const nextQty = item.quantity + 1;
+                                      setSelectedProductQuantities(prev => ({ ...prev, [item.product]: nextQty }));
+                                    }}
+                                    className="h-8 w-8 text-xs font-bold text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Variant Selector */}
+                            {hasVariants && dbProd.variants && (
+                              <div className="space-y-2">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Type / Capacity</span>
+                                <div className="grid gap-2 sm:grid-cols-3">
+                                  {dbProd.variants.map((vObj: any) => {
+                                    const isSelected = item.variant === vObj.name;
+                                    return (
+                                      <div
+                                        key={vObj.name}
+                                        onClick={() => {
+                                          setSelectedProductVariants(prev => ({ ...prev, [item.product]: vObj.name }));
+                                        }}
+                                        className={`flex flex-col p-3 rounded-xl border text-xs cursor-pointer transition select-none ${
+                                          isSelected
+                                            ? "border-blue-600 bg-blue-50/10 ring-1 ring-blue-600"
+                                            : "border-slate-200 bg-white hover:border-slate-300"
+                                        }`}
+                                      >
+                                        <span className="font-bold text-slate-800">{vObj.name}</span>
+                                        <span className="text-[10px] text-slate-400 mt-1 font-semibold">{money(vObj.price)}</span>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(currentStepLabel === "Date & Time" || currentStepLabel === "Delivery Date") && (
                 <div className="space-y-4">
                   <div className="flex gap-1 items-start flex-col">
-                    <h3 className="text-base font-black text-slate-800">Schedule Service Slot</h3>
-                    <p className="text-xs text-slate-400 font-medium">Select a date and technician arrival window</p>
+                    <h3 className="text-base font-black text-slate-800">
+                      {isBuyCctvProducts ? "Select Delivery Date" : "Schedule Service Slot"}
+                    </h3>
+                    <p className="text-xs text-slate-400 font-medium">
+                      {isBuyCctvProducts
+                        ? "Pick your preferred date for product shipment & delivery"
+                        : "Select a date and technician arrival window"}
+                    </p>
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="text-xs font-bold text-slate-700">Preferred Date</label>
+                      <label className="text-xs font-bold text-slate-700">
+                        {isBuyCctvProducts ? "Delivery Date" : "Preferred Date"}
+                      </label>
                       <input
                         type="date"
                         value={date}
@@ -638,26 +1044,27 @@ export function ServiceBookingConfigModal({
                         className="h-11 w-full rounded-xl border border-slate-200 px-3 mt-2 bg-slate-50 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                       />
                     </div>
-                    <div>
-                      <label className="text-xs font-bold text-slate-700">Arrival Window</label>
-                      <select
-                        value={time}
-                        onChange={(e) => setTime(e.target.value)}
-                        className="h-11 w-full rounded-xl border border-slate-200 px-3 mt-2 bg-slate-50 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                      >
-                        <option value="">Select slot...</option>
-                        <option value="09:00 AM - 11:30 AM">09:00 AM - 11:30 AM</option>
-                        <option value="11:30 AM - 02:00 PM">11:30 AM - 02:00 PM</option>
-                        <option value="02:00 PM - 04:30 PM">02:00 PM - 04:30 PM</option>
-                        <option value="04:30 PM - 07:00 PM">04:30 PM - 07:00 PM</option>
-                      </select>
-                    </div>
+                    {!isBuyCctvProducts && (
+                      <div>
+                        <label className="text-xs font-bold text-slate-700">Arrival Window</label>
+                        <select
+                          value={time}
+                          onChange={(e) => setTime(e.target.value)}
+                          className="h-11 w-full rounded-xl border border-slate-200 px-3 mt-2 bg-slate-50 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        >
+                          <option value="">Select slot...</option>
+                          <option value="09:00 AM - 11:30 AM">09:00 AM - 11:30 AM</option>
+                          <option value="11:30 AM - 02:00 PM">11:30 AM - 02:00 PM</option>
+                          <option value="02:00 PM - 04:30 PM">02:00 PM - 04:30 PM</option>
+                          <option value="04:30 PM - 07:00 PM">04:30 PM - 07:00 PM</option>
+                        </select>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
 
-              {/* Step 4: Site Images */}
-              {step === 4 && (
+              {currentStepLabel === "Upload Images" && (
                 <div className="space-y-4">
                   <div className="flex gap-1 items-start flex-col">
                     <h3 className="text-base font-black text-slate-800">Upload Site Photos (Optional)</h3>
@@ -682,12 +1089,17 @@ export function ServiceBookingConfigModal({
                 </div>
               )}
 
-              {/* Step 5: Location Picker */}
-              {step === 5 && (
+              {(currentStepLabel === "Service Location" || currentStepLabel === "Delivery Address") && (
                 <div className="space-y-4">
                   <div className="flex gap-1 items-start flex-col">
-                    <h3 className="text-base font-black text-slate-800">Confirm Service Address</h3>
-                    <p className="text-xs text-slate-400 font-medium">Pin your precise installation location on the map</p>
+                    <h3 className="text-base font-black text-slate-800">
+                      {isBuyCctvProducts ? "Confirm Delivery Address" : "Confirm Service Address"}
+                    </h3>
+                    <p className="text-xs text-slate-400 font-medium">
+                      {isBuyCctvProducts
+                        ? "Pin your precise delivery location on the map"
+                        : "Pin your precise installation location on the map"}
+                    </p>
                   </div>
 
                   {savedAddresses.length > 0 && (
@@ -756,50 +1168,92 @@ export function ServiceBookingConfigModal({
 
                   {address && (
                     <div className="rounded-xl bg-slate-50 p-3 text-xs border border-slate-100 leading-relaxed text-slate-600">
-                      <strong>Pinned Address:</strong> {address}
+                      <strong>Address:</strong> {address}
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Step 6: Review Price */}
-              {step === 6 && (
+              {(currentStepLabel === "Review Estimate" || currentStepLabel === "Review Cart") && (
                 <div className="space-y-4">
                   <div className="flex gap-1 items-start flex-col">
-                    <h3 className="text-base font-black text-slate-800">Verify Estimate Details</h3>
-                    <p className="text-xs text-slate-400 font-medium">Review your service cost and apply promo codes</p>
+                    <h3 className="text-base font-black text-slate-800">
+                      {isBuyCctvProducts ? "Verify Cart & Price" : "Verify Estimate Details"}
+                    </h3>
+                    <p className="text-xs text-slate-400 font-medium">
+                      {isBuyCctvProducts
+                        ? "Review your purchased products and delivery charges"
+                        : "Review your service cost and apply promo codes"}
+                    </p>
                   </div>
 
-                  <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-2.5">
-                    <div className="flex justify-between text-xs font-medium text-slate-600">
-                      <span>Service package cost</span>
-                      <span>{money(prices.packageCost)}</span>
+                  {isBuyCctvProducts ? (
+                    <div className="rounded-2xl border border-slate-100 bg-white divide-y divide-slate-100 overflow-hidden shadow-sm">
+                      {selectedProductsList.map((item) => (
+                        <div key={item.product} className="p-4 flex justify-between items-center text-xs">
+                          <div>
+                            <span className="font-extrabold text-slate-800">{item.product}</span>
+                            {item.variant && <p className="text-[10px] text-slate-400 font-semibold">{item.variant}</p>}
+                          </div>
+                          <div className="text-right">
+                            <span className="font-bold text-slate-500">{item.quantity} × {money(item.unitPrice)}</span>
+                            <p className="font-black text-blue-600 mt-0.5">{money(item.total)}</p>
+                          </div>
+                        </div>
+                      ))}
+                      <div className="p-4 bg-slate-50/50 space-y-2.5">
+                        <div className="flex justify-between text-xs font-medium text-slate-600">
+                          <span>Delivery Charge</span>
+                          <span>{money(prices.visitCharge)}</span>
+                        </div>
+                        {prices.discount > 0 && (
+                          <div className="flex justify-between text-xs font-bold text-emerald-600">
+                            <span>Promo discount</span>
+                            <span>-{money(prices.discount)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-xs font-medium text-slate-600">
+                          <span>GST (18%)</span>
+                          <span>{money(prices.gst)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm font-black text-slate-900 border-t border-slate-200 pt-2.5">
+                          <span>Grand Total</span>
+                          <span>{money(prices.grandTotal)}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-xs font-medium text-slate-600">
-                      <span>Technician visitation fee</span>
-                      <span>{money(prices.visitCharge)}</span>
-                    </div>
-                    {prices.labourCost > 0 && (
+                  ) : (
+                    <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 space-y-2.5">
                       <div className="flex justify-between text-xs font-medium text-slate-600">
-                        <span>Labor cost</span>
-                        <span>{money(prices.labourCost)}</span>
+                        <span>Service package cost</span>
+                        <span>{money(prices.packageCost)}</span>
                       </div>
-                    )}
-                    {prices.discount > 0 && (
-                      <div className="flex justify-between text-xs font-bold text-emerald-600">
-                        <span>Promo discount</span>
-                        <span>-{money(prices.discount)}</span>
+                      <div className="flex justify-between text-xs font-medium text-slate-600">
+                        <span>Technician visitation fee</span>
+                        <span>{money(prices.visitCharge)}</span>
                       </div>
-                    )}
-                    <div className="flex justify-between text-xs font-medium text-slate-600">
-                      <span>GST (18%)</span>
-                      <span>{money(prices.gst)}</span>
+                      {prices.labourCost > 0 && (
+                        <div className="flex justify-between text-xs font-medium text-slate-600">
+                          <span>Labor cost</span>
+                          <span>{money(prices.labourCost)}</span>
+                        </div>
+                      )}
+                      {prices.discount > 0 && (
+                        <div className="flex justify-between text-xs font-bold text-emerald-600">
+                          <span>Promo discount</span>
+                          <span>-{money(prices.discount)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-xs font-medium text-slate-600">
+                        <span>GST (18%)</span>
+                        <span>{money(prices.gst)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm font-black text-slate-900 border-t border-slate-200 pt-2.5">
+                        <span>Grand Total</span>
+                        <span>{money(prices.grandTotal)}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-sm font-black text-slate-900 border-t border-slate-200 pt-2.5">
-                      <span>Grand Total</span>
-                      <span>{money(prices.grandTotal)}</span>
-                    </div>
-                  </div>
+                  )}
 
                   {/* Coupon section */}
                   <div className="space-y-2">
@@ -822,12 +1276,11 @@ export function ServiceBookingConfigModal({
                 </div>
               )}
 
-              {/* Step 7: Make Payment */}
-              {step === 7 && (
+              {currentStepLabel === "Checkout & Pay" && (
                 <div className="space-y-4">
                   <div className="flex gap-1 items-start flex-col">
                     <h3 className="text-base font-black text-slate-800">Choose Payment Option</h3>
-                    <p className="text-xs text-slate-400 font-medium">Select a secure settlement method for the booking</p>
+                    <p className="text-xs text-slate-400 font-medium font-semibold">Select a secure settlement method for the order</p>
                   </div>
 
                   <div className="grid gap-3">
@@ -848,7 +1301,7 @@ export function ServiceBookingConfigModal({
                     {/* Wallet deduction */}
                     <label
                       onClick={() => {
-                        if (walletBalance !== null) {
+                        if (walletBalance !== null && walletBalance >= prices.grandTotal) {
                           setPaymentMethod("wallet");
                         }
                       }}
@@ -878,8 +1331,8 @@ export function ServiceBookingConfigModal({
                     >
                       <input type="radio" checked={paymentMethod === "cod"} readOnly className="h-4 w-4 text-blue-600" />
                       <div className="text-xs">
-                        <h4 className="font-bold text-slate-900">Cash on Delivery (COD)</h4>
-                        <p className="text-slate-400 font-semibold mt-0.5">Pay standard service amount in cash to the technician upon completion.</p>
+                        <h4 className="font-bold text-slate-900">{isBuyCctvProducts ? "Cash on Delivery / Pay on Delivery" : "Cash on Delivery (COD)"}</h4>
+                        <p className="text-slate-400 font-semibold mt-0.5">Pay standard order amount in cash upon handover.</p>
                       </div>
                     </label>
                   </div>
@@ -896,7 +1349,7 @@ export function ServiceBookingConfigModal({
               ) : (
                 <div />
               )}
-              {step < 7 ? (
+              {step < stepsList.length ? (
                 <Button size="sm" onClick={goNext} className="h-9 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs">
                   Continue
                 </Button>
@@ -917,40 +1370,66 @@ export function ServiceBookingConfigModal({
           {/* Right Sticky Pricing Sidebar */}
           <aside className="rounded-3xl bg-slate-50 p-5 border border-slate-100 self-start">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-800">Booking Summary</h3>
+              <h3 className="text-sm font-bold text-slate-800">
+                {isBuyCctvProducts ? "Order Cart" : "Booking Summary"}
+              </h3>
               <Zap className="h-4 w-4 text-emerald-600" />
             </div>
 
-            <div className="mt-4 space-y-3.5 border-b border-slate-200 pb-4 text-xs font-medium text-slate-500">
-              <div className="flex justify-between items-center">
-                <span>Category</span>
-                <span className="font-bold text-slate-800">CCTV Security</span>
+            {isBuyCctvProducts ? (
+              <div className="mt-4 space-y-3.5 border-b border-slate-200 pb-4 text-xs font-medium text-slate-500 max-h-[220px] overflow-y-auto pr-1">
+                {selectedProductsList.length === 0 ? (
+                  <p className="text-[11px] text-slate-400 italic">No products selected yet</p>
+                ) : (
+                  selectedProductsList.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-start gap-2">
+                      <div>
+                        <span className="font-bold text-slate-800">{item.product}</span>
+                        {item.variant && <p className="text-[10px] text-slate-400 font-medium">{item.variant}</p>}
+                        <p className="text-[10px] text-slate-400 mt-0.5">Qty: {item.quantity}</p>
+                      </div>
+                      <span className="font-black text-slate-700 text-right text-[11px]">
+                        {money(item.total)}
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
-              <div className="flex justify-between items-center">
-                <span>Sub Category</span>
-                <span className="font-bold text-slate-800">{service.name}</span>
+            ) : (
+              <div className="mt-4 space-y-3.5 border-b border-slate-200 pb-4 text-xs font-medium text-slate-500">
+                <div className="flex justify-between items-center">
+                  <span>Category</span>
+                  <span className="font-bold text-slate-800">CCTV Security</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Sub Category</span>
+                  <span className="font-bold text-slate-800">{service.name}</span>
+                </div>
+                {selectedPackageId && (
+                  <div className="flex justify-between items-center">
+                    <span>Package</span>
+                    <span className="font-bold text-slate-800">
+                      {service.packages?.find((p) => p._id === selectedPackageId)?.name}
+                    </span>
+                  </div>
+                )}
+                {date && (
+                  <div className="flex justify-between items-center">
+                    <span>Slot Scheduled</span>
+                    <span className="font-bold text-slate-800">
+                      {date} {time && `(${time.split(" ")[0]})`}
+                    </span>
+                  </div>
+                )}
               </div>
-              {selectedPackageId && (
-                <div className="flex justify-between items-center">
-                  <span>Package</span>
-                  <span className="font-bold text-slate-800">
-                    {service.packages?.find((p) => p._id === selectedPackageId)?.name}
-                  </span>
-                </div>
-              )}
-              {date && (
-                <div className="flex justify-between items-center">
-                  <span>Slot Scheduled</span>
-                  <span className="font-bold text-slate-800">
-                    {date} {time && `(${time.split(" ")[0]})`}
-                  </span>
-                </div>
-              )}
-            </div>
+            )}
 
             <div className="mt-4 space-y-2.5 text-xs">
-              <Line label="Base Cost" value={prices.packageCost} />
-              <Line label="Visit Charge" value={prices.visitCharge} />
+              <Line label={isBuyCctvProducts ? "Delivery Cost" : "Base Cost"} value={isBuyCctvProducts ? prices.visitCharge : prices.packageCost} />
+              {!isBuyCctvProducts && <Line label="Visit Charge" value={prices.visitCharge} />}
+              {isBuyCctvProducts && selectedProductsList.length > 0 && (
+                <Line label="Items Cost" value={prices.packageCost} />
+              )}
               {prices.discount > 0 && (
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500">Discount Applied</span>
@@ -968,7 +1447,9 @@ export function ServiceBookingConfigModal({
             <div className="mt-5 rounded-2xl bg-amber-50/50 border border-amber-100 p-3 flex gap-2">
               <Info className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
               <div className="text-[10px] text-amber-800 font-medium leading-relaxed">
-                Prices cover baseline technician service & travel fees. Spare components or additional camera lengths recommended on-site will be billed separately.
+                {isBuyCctvProducts
+                  ? "Standard product warranties and door-step shipment guidelines apply. Delivery slots are subject to transit timelines."
+                  : "Prices cover baseline technician service & travel fees. Spare components or additional camera lengths recommended on-site will be billed separately."}
               </div>
             </div>
           </aside>
