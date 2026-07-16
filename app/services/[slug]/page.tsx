@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { PageShell } from "@/components/layout/page-shell";
 import { ServiceDetailView } from "@/components/services/service-detail-view";
 import { getServiceBySlug, services } from "@/lib/marketplace-data";
@@ -44,6 +44,12 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function ServiceDetailsPage({ params }: PageProps) {
   const { slug } = await params;
+
+  const cctvSlugs = ["install-new-cctv", "repair-existing-cctv", "cctv-repair", "maintenance-amc", "cctv-maintenance", "upgrade-existing-cctv", "buy-cctv-products", "free-site-survey"];
+  if (cctvSlugs.includes(slug)) {
+    redirect(`/services?category=cctv&booking=${slug}`);
+  }
+
   let service = getServiceBySlug(slug) as any;
 
   try {

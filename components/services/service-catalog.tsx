@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Search, SlidersHorizontal, Star, Clock, ArrowRight, Camera, Network, Laptop, Monitor, Server, Zap, Home, Globe, Key, Shield, Settings, CheckCircle2, Rocket } from "lucide-react";
 import { ReactNode, useState, useEffect } from "react";
 
@@ -12,6 +12,8 @@ import { MarketplaceService } from "@/lib/marketplace-data";
 import { fetchCategories, fetchAllSubcategories, fetchSubcategories, CatalogCategory, CatalogSubCategory } from "@/lib/catalog-api";
 import { managedServiceToMarketplaceService, normalizeCategoryId } from "@/lib/cctv-api";
 import { Spinner } from "@/components/ui/spinner";
+import { ServiceBookingConfigModal } from "@/components/booking/service-config-modal";
+import { useAuth } from "@/features/auth/context/auth-context";
 
 
 
@@ -19,6 +21,9 @@ type SortOption = "popular" | "price-low" | "top-rated";
 
 export function ServiceCatalog() {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
+
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
   const [minRating, setMinRating] = useState(0);
@@ -26,6 +31,10 @@ export function ServiceCatalog() {
   const [durationFilter, setDurationFilter] = useState("all");
   const [sortBy, setSortBy] = useState<SortOption>("popular");
   const [showFilters, setShowFilters] = useState(false);
+
+  // Inline CCTV Booking modal state
+  const [bookingService, setBookingService] = useState<any | null>(null);
+  const [bookingOpen, setBookingOpen] = useState(false);
 
   // Dynamic Catalog State
   const [dbCategories, setDbCategories] = useState<CatalogCategory[]>([]);
@@ -111,6 +120,79 @@ export function ServiceCatalog() {
   });
 
   const servicesToUse = dynamicServices;
+
+  const bookingSlug = searchParams.get("booking");
+
+  useEffect(() => {
+    if (bookingSlug && servicesToUse.length > 0 && !bookingOpen) {
+      const foundService = servicesToUse.find(s => s.slug === bookingSlug);
+      if (foundService) {
+        const cctvService = foundService.managedService || {
+          _id: foundService.slug,
+          slug: foundService.slug,
+          name: foundService.title,
+          categoryId: foundService.categoryId || "general",
+          shortDescription: foundService.tagline,
+          overview: foundService.description,
+          suitableFor: foundService.recommendedFor,
+          includedServices: foundService.includes,
+          excludedServices: [],
+          cameraTypes: [],
+          cableTypes: [],
+          installationProcess: foundService.steps,
+          installationTime: foundService.duration,
+          warranty: "30-day workmanship warranty. Product warranty depends on device brand and invoice.",
+          faqs: foundService.faqs,
+          pricingStartsFrom: foundService.priceValue,
+          image: foundService.image,
+          supportedAddons: (foundService as any).supportedAddons || [],
+          supportedProducts: (foundService as any).supportedProducts || [],
+          supportedSpareParts: (foundService as any).supportedSpareParts || [],
+        };
+        
+        if (!isAuthenticated) {
+          window.localStorage.setItem("techbes_pending_service", String(foundService.id));
+          router.push(`/login?redirect=${encodeURIComponent(`/services?category=cctv&booking=${bookingSlug}`)}`);
+        } else {
+          setBookingService(cctvService);
+          setBookingOpen(true);
+        }
+      }
+    }
+  }, [bookingSlug, servicesToUse, isAuthenticated, router, bookingOpen]);
+
+  const handleCctvClick = (clickedService: MarketplaceService) => {
+    const cctvService = clickedService.managedService || {
+      _id: clickedService.slug,
+      slug: clickedService.slug,
+      name: clickedService.title,
+      categoryId: clickedService.categoryId || "general",
+      shortDescription: clickedService.tagline,
+      overview: clickedService.description,
+      suitableFor: clickedService.recommendedFor,
+      includedServices: clickedService.includes,
+      excludedServices: [],
+      cameraTypes: [],
+      cableTypes: [],
+      installationProcess: clickedService.steps,
+      installationTime: clickedService.duration,
+      warranty: "30-day workmanship warranty. Product warranty depends on device brand and invoice.",
+      faqs: clickedService.faqs,
+      pricingStartsFrom: clickedService.priceValue,
+      image: clickedService.image,
+      supportedAddons: (clickedService as any).supportedAddons || [],
+      supportedProducts: (clickedService as any).supportedProducts || [],
+      supportedSpareParts: (clickedService as any).supportedSpareParts || [],
+    };
+
+    if (!isAuthenticated) {
+      window.localStorage.setItem("techbes_pending_service", String(clickedService.id));
+      router.push(`/login?redirect=${encodeURIComponent(`/services?category=cctv&booking=${clickedService.slug}`)}`);
+    } else {
+      setBookingService(cctvService);
+      setBookingOpen(true);
+    }
+  };
 
   let filteredServices = servicesToUse.filter((service) => {
     const matchesSearch =
@@ -324,7 +406,7 @@ export function ServiceCatalog() {
           ) : filteredServices.length > 0 ? (
             <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
               {filteredServices.map((service) => (
-                <CatalogCard key={service.slug} service={service} selectedCategory={selectedCategory} />
+                <CatalogCard key={service.slug} service={service} selectedCategory={selectedCategory} onCctvClick={handleCctvClick} />
               ))}
             </div>
           ) : (
@@ -350,6 +432,13 @@ export function ServiceCatalog() {
           )}
         </div>
       </div>
+      {bookingService && (
+        <ServiceBookingConfigModal
+          open={bookingOpen}
+          onOpenChange={setBookingOpen}
+          service={bookingService}
+        />
+      )}
     </section>
   );
 }
@@ -376,12 +465,22 @@ const categoryIcons: Record<string, any> = {
   "cyber-security": Shield,
 };
 
-function CatalogCard({ service, selectedCategory, isActive = false }: { service: MarketplaceService; selectedCategory?: string, isActive?: boolean }) {
+function CatalogCard({ service, selectedCategory, isActive = false, onCctvClick }: { service: MarketplaceService; selectedCategory?: string, isActive?: boolean, onCctvClick?: (s: MarketplaceService) => void }) {
   const Icon = categoryIcons[service.categoryId] || Settings;
+
+  const isCctv = service.categoryId === "cctv" || normalizeCategoryId(service.categoryId) === "cctv";
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isCctv && onCctvClick) {
+      e.preventDefault();
+      onCctvClick(service);
+    }
+  };
 
   return (
     <Link
       href={`/services/${service.slug}${selectedCategory && selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''}`}
+      onClick={handleClick}
       className={`group relative flex flex-col items-center text-center p-4 rounded-[18px] border transition-all duration-300 ease-out hover:-translate-y-[6px] ${
         isActive 
           ? "border-blue-600 bg-blue-50 shadow-[0_4px_12px_rgba(15,23,42,0.06)]" 
