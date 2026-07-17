@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: PageProps) {
 export default async function ServiceDetailsPage({ params }: PageProps) {
   const { slug } = await params;
 
-  const cctvSlugs = ["install-new-cctv", "repair-existing-cctv", "cctv-repair", "maintenance-amc", "cctv-maintenance", "upgrade-existing-cctv", "buy-cctv-products", "free-site-survey"];
+  const cctvSlugs = ["cctv-installation", "install-new-cctv", "repair-existing-cctv", "cctv-repair", "maintenance-amc", "cctv-maintenance", "upgrade-existing-cctv", "buy-cctv-products", "free-site-survey"];
   if (cctvSlugs.includes(slug)) {
     redirect(`/services?category=cctv&booking=${slug}`);
   }

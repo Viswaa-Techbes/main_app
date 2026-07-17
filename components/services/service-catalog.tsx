@@ -108,7 +108,7 @@ export function ServiceCatalog() {
       }
     }
 
-    const cctvSlugsList = ["install-new-cctv", "repair-existing-cctv", "cctv-repair", "maintenance-amc", "cctv-maintenance", "upgrade-existing-cctv", "buy-cctv-products", "free-site-survey"];
+    const cctvSlugsList = ["cctv-installation", "install-new-cctv", "repair-existing-cctv", "cctv-repair", "maintenance-amc", "cctv-maintenance", "upgrade-existing-cctv", "buy-cctv-products", "free-site-survey"];
     if (cctvSlugsList.includes(sub.slug)) {
       categoryName = "CCTV";
       categorySlug = "cctv";
@@ -478,6 +478,7 @@ function CatalogCard({ service, selectedCategory, isActive = false, onCctvClick 
     service.categoryId === "cctv" ||
     normalizeCategoryId(service.categoryId) === "cctv" ||
     [
+      "cctv-installation",
       "install-new-cctv",
       "repair-existing-cctv",
       "cctv-repair",

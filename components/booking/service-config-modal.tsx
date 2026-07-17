@@ -1929,9 +1929,21 @@ export function ServiceBookingConfigModal({
                   <span className="font-bold text-slate-800">{cctvPropertyType || "—"}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span>Installation</span>
-                  <span className="font-bold text-slate-800">{cctvInstallationType || "—"}</span>
+                  <span>Installation Required?</span>
+                  <span className="font-bold text-slate-800">{cctvInstallationRequired ? "Yes" : "No"}</span>
                 </div>
+                {cctvInstallationRequired && (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <span>Cable Type</span>
+                      <span className="font-bold text-slate-800">{cctvCableType || "—"}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span>Cable Length</span>
+                      <span className="font-bold text-slate-800">{cctvCableLength ? `${cctvCableLength}m` : "—"}</span>
+                    </div>
+                  </>
+                )}
                 {Object.entries(cctvSelectedCameraTypes).filter(([_, checked]) => checked).map(([type]) => (
                   <div key={type} className="flex justify-between items-center">
                     <span>{type}</span>
