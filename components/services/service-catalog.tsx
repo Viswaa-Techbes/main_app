@@ -108,6 +108,12 @@ export function ServiceCatalog() {
       }
     }
 
+    const cctvSlugsList = ["install-new-cctv", "repair-existing-cctv", "cctv-repair", "maintenance-amc", "cctv-maintenance", "upgrade-existing-cctv", "buy-cctv-products", "free-site-survey"];
+    if (cctvSlugsList.includes(sub.slug)) {
+      categoryName = "CCTV";
+      categorySlug = "cctv";
+    }
+
     return managedServiceToMarketplaceService({
       ...sub,
       categoryId: {
@@ -468,9 +474,24 @@ const categoryIcons: Record<string, any> = {
 function CatalogCard({ service, selectedCategory, isActive = false, onCctvClick }: { service: MarketplaceService; selectedCategory?: string, isActive?: boolean, onCctvClick?: (s: MarketplaceService) => void }) {
   const Icon = categoryIcons[service.categoryId] || Settings;
 
-  const isCctv = service.categoryId === "cctv" || normalizeCategoryId(service.categoryId) === "cctv";
+  const isCctv =
+    service.categoryId === "cctv" ||
+    normalizeCategoryId(service.categoryId) === "cctv" ||
+    [
+      "install-new-cctv",
+      "repair-existing-cctv",
+      "cctv-repair",
+      "maintenance-amc",
+      "cctv-maintenance",
+      "upgrade-existing-cctv",
+      "buy-cctv-products",
+      "free-site-survey",
+    ].includes(service.slug);
 
   const handleClick = (e: React.MouseEvent) => {
+    console.log(service.slug);
+    console.log(service.id);
+    console.log((service as any).onClick);
     if (isCctv && onCctvClick) {
       e.preventDefault();
       onCctvClick(service);

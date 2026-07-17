@@ -648,13 +648,15 @@ export function ServiceBookingConfigModal({
           toast({ title: "Camera Type Required", description: "Please select at least one camera type.", variant: "destructive" });
           return;
         }
-        if (!cctvInstallationType) {
-          toast({ title: "Installation Type Required", description: "Please select an installation type.", variant: "destructive" });
-          return;
-        }
-        if (cctvInstallationType === "Custom Installation" && !cctvWiringRequired) {
-          toast({ title: "Wiring Choice Required", description: "Please select whether wiring is required.", variant: "destructive" });
-          return;
+        if (cctvInstallationRequired) {
+          if (!cctvCableType) {
+            toast({ title: "Cable Type Required", description: "Please select a cable type.", variant: "destructive" });
+            return;
+          }
+          if (!cctvCableLength || cctvCableLength <= 0) {
+            toast({ title: "Cable Length Required", description: "Please enter a valid cable length.", variant: "destructive" });
+            return;
+          }
         }
       } else {
         const questions = service.bookingQuestions || [];
