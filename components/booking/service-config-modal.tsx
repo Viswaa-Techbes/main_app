@@ -11,7 +11,7 @@ import dynamic from "next/dynamic";
 import { fetchAuthApi } from "@/lib/api";
 import { AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
 
-const LocationPicker = dynamic(() => import("@/components/booking/LocationPicker"), { ssr: false });
+const LocationPicker = dynamic(() => import("./LocationPicker"), { ssr: false });
 
 export function ServiceBookingConfigModal({
   open,
@@ -578,17 +578,17 @@ export function ServiceBookingConfigModal({
   const prices = useMemo(() => {
     if (isInstallNewCctv) {
       const pb = cctvCalculatedPrice?.priceBreakdown || {};
-      const fittingChg = pb.cameraFittingCharge || 0;
-      const cableChg = pb.cableCharge || 0;
-      const sdChg = pb.sdCardCharge || 0;
-      const dvrChg = pb.dvrCharge || 0;
-      const nvrChg = pb.nvrCharge || 0;
-      const rackChg = pb.rackCharge || 0;
-      const monChg = pb.monitorCharge || 0;
-      const visitChg = pb.visitCharge || 0;
+      const fittingChg = pb.installationTotal || 0;
+      const cableChg = pb.cableTotal || 0;
+      const sdChg = pb.sdCardTotal || 0;
+      const dvrChg = pb.dvrTotal || 0;
+      const nvrChg = pb.nvrTotal || 0;
+      const rackChg = pb.rackTotal || 0;
+      const monChg = pb.monitorTotal || 0;
+      const visitChg = pb.baseCharge || 0;
       
       const discount = 0;
-      const gst = pb.gst || 0;
+      const gst = pb.taxTotal || 0;
       const grandTotal = pb.grandTotal || 0;
       
       return {
@@ -1945,13 +1945,12 @@ export function ServiceBookingConfigModal({
                                     <span className="font-extrabold text-slate-800">{brandObj?.name || "Camera"} {modelObj.resolution} {modelObj.name}</span>
                                     <span className="text-[10px] text-slate-400 font-bold">{type} — Qty: {qty} × {money(modelObj.price)}</span>
                                   </div>
-                                  <span className="font-black text-slate-800 self-center">{money(modelObj.price * qty)}</span>
                                 </div>
                               );
                             })}
 
                           {/* Camera Fitting & Installation */}
-                          {prices.rawBreakdown?.cameraFittingCharge > 0 && (
+                          {prices.rawBreakdown?.installationTotal > 0 && (
                             <div className="flex justify-between text-xs text-slate-600 font-semibold">
                               <div className="flex flex-col">
                                 <span className="font-bold text-slate-800">Fitting & Installation Labour</span>
@@ -1959,7 +1958,7 @@ export function ServiceBookingConfigModal({
                                   {Object.entries(cctvSelectedCameraTypes).filter(([_, checked]) => checked).reduce((sum, [type]) => sum + (cctvCameraQuantities[type] || 1), 0)} cameras × ₹{cctvInstallationCharges[0]?.price || 400}
                                 </span>
                               </div>
-                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.cameraFittingCharge)}</span>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.installationTotal)}</span>
                             </div>
                           )}
 
@@ -1969,10 +1968,10 @@ export function ServiceBookingConfigModal({
                               <div className="flex flex-col">
                                 <span className="font-bold text-slate-800">{cctvCableType} Wiring</span>
                                 <span className="text-[10px] text-slate-400 font-medium">
-                                  {cctvCableLength} meters × ₹{cctvCables.find(c => c.name === cctvCableType)?.price || (cctvCableType.includes("CAT6") ? 60 : 18)}
+                                  {cctvCableLength} meters × ₹{cctvCables.find(c => c.name === cctvCableType)?.price || (cctvCableType.includes("CAT6") ? 50 : 18)}
                                 </span>
                               </div>
-                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.cableCharge || 0)}</span>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.cableTotal || 0)}</span>
                             </div>
                           )}
 
@@ -1983,7 +1982,7 @@ export function ServiceBookingConfigModal({
                                 <span className="font-bold text-slate-800">DVR Installation</span>
                                 <span className="text-[10px] text-slate-400 font-medium">Fitting & setup charge</span>
                               </div>
-                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.dvrCharge || 0)}</span>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.dvrTotal || 0)}</span>
                             </div>
                           )}
 
@@ -1994,7 +1993,7 @@ export function ServiceBookingConfigModal({
                                 <span className="font-bold text-slate-800">NVR Installation</span>
                                 <span className="text-[10px] text-slate-400 font-medium">Fitting & setup charge</span>
                               </div>
-                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.nvrCharge || 0)}</span>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.nvrTotal || 0)}</span>
                             </div>
                           )}
 
@@ -2005,7 +2004,7 @@ export function ServiceBookingConfigModal({
                                 <span className="font-bold text-slate-800">Network Rack Mounting</span>
                                 <span className="text-[10px] text-slate-400 font-medium">Cabinet fitting & dressing</span>
                               </div>
-                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.rackCharge || 0)}</span>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.rackTotal || 0)}</span>
                             </div>
                           )}
 
@@ -2016,7 +2015,7 @@ export function ServiceBookingConfigModal({
                                 <span className="font-bold text-slate-800">Monitor Mounting</span>
                                 <span className="text-[10px] text-slate-400 font-medium">Wall/desk installation</span>
                               </div>
-                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.monitorCharge || 0)}</span>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.monitorTotal || 0)}</span>
                             </div>
                           )}
 
@@ -2029,7 +2028,7 @@ export function ServiceBookingConfigModal({
                                   Qty: {cctvSdCardQuantity} × ₹{cctvSdCards.find(sd => sd.capacity === cctvSdCardCapacity)?.price || 750}
                                 </span>
                               </div>
-                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.sdCardCharge || 0)}</span>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.sdCardTotal || 0)}</span>
                             </div>
                           )}
                         </div>
@@ -2298,8 +2297,40 @@ export function ServiceBookingConfigModal({
             <div className="mt-4 space-y-2.5 text-xs">
               {isInstallNewCctv ? (
                 <>
-                  <Line label="Fitting Cost" value={prices.packageCost} />
-                  {prices.labourCost > 0 && <Line label="Cabling/DVR/Mounts" value={prices.labourCost} />}
+                  {/* Camera Cost (sum of selected camera hardware) */}
+                  {(prices.rawBreakdown?.cameraTotal || 0) > 0 && (
+                    <Line label="Camera Cost" value={prices.rawBreakdown.cameraTotal} />
+                  )}
+                  {/* Installation Cost (Camera Fitting) */}
+                  {(prices.rawBreakdown?.installationTotal || 0) > 0 && (
+                    <Line label="Installation Cost" value={prices.rawBreakdown.installationTotal} />
+                  )}
+                  {/* Cable Cost */}
+                  {(prices.rawBreakdown?.cableTotal || 0) > 0 && (
+                    <Line label="Cable Cost" value={prices.rawBreakdown.cableTotal} />
+                  )}
+                  {/* DVR Cost */}
+                  {(prices.rawBreakdown?.dvrTotal || 0) > 0 && (
+                    <Line label="DVR Cost" value={prices.rawBreakdown.dvrTotal} />
+                  )}
+                  {/* NVR Cost */}
+                  {(prices.rawBreakdown?.nvrTotal || 0) > 0 && (
+                    <Line label="NVR Cost" value={prices.rawBreakdown.nvrTotal} />
+                  )}
+                  {/* Rack Mount */}
+                  {(prices.rawBreakdown?.rackTotal || 0) > 0 && (
+                    <Line label="Rack Mount" value={prices.rawBreakdown.rackTotal} />
+                  )}
+                  {/* Monitor Mount */}
+                  {(prices.rawBreakdown?.monitorTotal || 0) > 0 && (
+                    <Line label="Monitor Mount" value={prices.rawBreakdown.monitorTotal} />
+                  )}
+                  {/* SD Card */}
+                  {(prices.rawBreakdown?.sdCardTotal || 0) > 0 && (
+                    <Line label="SD Card" value={prices.rawBreakdown.sdCardTotal} />
+                  )}
+                  {/* Visit Charge */}
+                  <Line label="Visit Charge" value={prices.rawBreakdown?.baseCharge || 499} />
                 </>
               ) : (
                 <>

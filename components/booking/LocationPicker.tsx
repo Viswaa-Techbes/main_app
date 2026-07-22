@@ -9,12 +9,14 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 
 // Fix default Leaflet icon paths for Next.js / Webpack
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
+if (typeof window !== "undefined") {
+  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  });
+}
 
 interface LocationPickerProps {
   onLocationSelected: (data: {
@@ -67,7 +69,9 @@ export default function LocationPicker({ onLocationSelected, initialCoords, init
   const { toast } = useToast();
   const defaultCenter: [number, number] = [12.9716, 77.5946]; // Bangalore center
   const [position, setPosition] = useState<[number, number]>(
-    initialCoords ? [initialCoords.lat, initialCoords.lng] : defaultCenter
+    initialCoords && initialCoords.lat && initialCoords.lng
+      ? [parseFloat(initialCoords.lat as any), parseFloat(initialCoords.lng as any)]
+      : defaultCenter
   );
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -76,24 +80,24 @@ export default function LocationPicker({ onLocationSelected, initialCoords, init
   const [geocoding, setGeocoding] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // Resolved address states
-  const [address, setAddress] = useState("");
-  const [city, setCity] = useState("");
-  const [state, setState] = useState("");
-  const [pincode, setPincode] = useState("");
+  // Resolved address states (Initialized from initialAddressData on mount)
+  const [address, setAddress] = useState(initialAddressData?.formattedAddress || initialAddressData?.address || "");
+  const [city, setCity] = useState(initialAddressData?.city || "");
+  const [state, setState] = useState(initialAddressData?.state || "");
+  const [pincode, setPincode] = useState(initialAddressData?.pincode || "");
   
   // Structured Address States
-  const [houseNumber, setHouseNumber] = useState("");
-  const [street, setStreet] = useState("");
-  const [area, setArea] = useState("");
-  const [landmark, setLandmark] = useState("");
-  const [district, setDistrict] = useState("");
-  const [country, setCountry] = useState("");
+  const [houseNumber, setHouseNumber] = useState(initialAddressData?.houseNumber || "");
+  const [street, setStreet] = useState(initialAddressData?.street || "");
+  const [area, setArea] = useState(initialAddressData?.area || "");
+  const [landmark, setLandmark] = useState(initialAddressData?.landmark || "");
+  const [district, setDistrict] = useState(initialAddressData?.district || "");
+  const [country, setCountry] = useState(initialAddressData?.country || "");
   
   // Manual / Custom UX States
-  const [floor, setFloor] = useState("");
-  const [apartmentName, setApartmentName] = useState("");
-  const [deliveryInstructions, setDeliveryInstructions] = useState("");
+  const [floor, setFloor] = useState(initialAddressData?.floor || "");
+  const [apartmentName, setApartmentName] = useState(initialAddressData?.apartmentName || "");
+  const [deliveryInstructions, setDeliveryInstructions] = useState(initialAddressData?.deliveryInstructions || "");
   const [fullAddressData, setFullAddressData] = useState<any>(null);
 
   const markerRef = useRef<L.Marker>(null);
@@ -111,27 +115,6 @@ export default function LocationPicker({ onLocationSelected, initialCoords, init
       }
     };
   }, []);
-
-  // Update fields when initialAddressData updates
-  useEffect(() => {
-    if (initialAddressData) {
-      setHouseNumber(initialAddressData.houseNumber || "");
-      setStreet(initialAddressData.street || "");
-      setArea(initialAddressData.area || "");
-      setLandmark(initialAddressData.landmark || "");
-      setCity(initialAddressData.city || "");
-      setDistrict(initialAddressData.district || "");
-      setState(initialAddressData.state || "");
-      setPincode(initialAddressData.pincode || "");
-      setCountry(initialAddressData.country || "");
-      setFloor(initialAddressData.floor || "");
-      setApartmentName(initialAddressData.apartmentName || "");
-      setDeliveryInstructions(initialAddressData.deliveryInstructions || "");
-      if (initialAddressData.formattedAddress) {
-        setAddress(initialAddressData.formattedAddress);
-      }
-    }
-  }, [initialAddressData]);
 
   // Reverse Geocoding via local server proxy
   async function reverseGeocode(lat: number, lng: number, debounce = false) {
@@ -217,15 +200,20 @@ export default function LocationPicker({ onLocationSelected, initialCoords, init
     }, 500);
   }
 
-  // Initialize reverse geocode on load if initial coords exist
+  // Initialize reverse geocode on load if initial coords exist (mount-only to break infinite render loops)
   useEffect(() => {
-    if (initialCoords) {
-      setPosition([initialCoords.lat, initialCoords.lng]);
-      reverseGeocode(initialCoords.lat, initialCoords.lng);
-    } else {
-      reverseGeocode(defaultCenter[0], defaultCenter[1]);
+    if (initialCoords && initialCoords.lat && initialCoords.lng) {
+      const lat = parseFloat(initialCoords.lat as any);
+      const lng = parseFloat(initialCoords.lng as any);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        setPosition([lat, lng]);
+        reverseGeocode(lat, lng);
+        return;
+      }
     }
-  }, [initialCoords]);
+    reverseGeocode(defaultCenter[0], defaultCenter[1]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Use Current Location (Browser Geolocation API)
   function handleUseCurrentLocation() {
