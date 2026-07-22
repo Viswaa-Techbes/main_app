@@ -128,6 +128,11 @@ export function ServiceBookingConfigModal({
   const [cctvPropertyType, setCctvPropertyType] = useState<string>("");
   const [cctvSelectedCameraTypes, setCctvSelectedCameraTypes] = useState<Record<string, boolean>>({});
   const [cctvCameraQuantities, setCctvCameraQuantities] = useState<Record<string, number>>({});
+  const [cctvCameraBrands, setCctvCameraBrands] = useState<Record<string, string>>({});
+  const [cctvCameraModels, setCctvCameraModels] = useState<Record<string, string>>({});
+  const [cctvSdCardEnabled, setCctvSdCardEnabled] = useState<boolean>(false);
+  const [cctvSdCardCapacity, setCctvSdCardCapacity] = useState<string>("");
+  const [cctvSdCardQuantity, setCctvSdCardQuantity] = useState<number>(1);
   const [cctvInstallationRequired, setCctvInstallationRequired] = useState<boolean>(false);
   const [cctvCableType, setCctvCableType] = useState<string>("");
   const [cctvCableLength, setCctvCableLength] = useState<number>(0);
@@ -135,6 +140,15 @@ export function ServiceBookingConfigModal({
   const [cctvNvrRequired, setCctvNvrRequired] = useState<boolean>(false);
   const [cctvNetworkRack, setCctvNetworkRack] = useState<boolean>(false);
   const [cctvMonitorMounting, setCctvMonitorMounting] = useState<boolean>(false);
+
+  // Dynamic CCTV pricing tables fetched from API
+  const [cctvBrands, setCctvBrands] = useState<any[]>([]);
+  const [cctvAllModels, setCctvAllModels] = useState<any[]>([]);
+  const [cctvSdCards, setCctvSdCards] = useState<any[]>([]);
+  const [cctvCables, setCctvCables] = useState<any[]>([]);
+  const [cctvInstallationCharges, setCctvInstallationCharges] = useState<any[]>([]);
+  const [cctvAccessories, setCctvAccessories] = useState<any[]>([]);
+  const [cctvPricingConfig, setCctvPricingConfig] = useState<any>(null);
 
   // State for calculated price breakdown from backend
   const [cctvCalculatedPrice, setCctvCalculatedPrice] = useState<any>(null);
@@ -160,6 +174,11 @@ export function ServiceBookingConfigModal({
       setCctvPropertyType("");
       setCctvSelectedCameraTypes({});
       setCctvCameraQuantities({});
+      setCctvCameraBrands({});
+      setCctvCameraModels({});
+      setCctvSdCardEnabled(false);
+      setCctvSdCardCapacity("");
+      setCctvSdCardQuantity(1);
       setCctvInstallationRequired(false);
       setCctvCableType("");
       setCctvCableLength(0);
@@ -170,6 +189,29 @@ export function ServiceBookingConfigModal({
       setCctvCalculatedPrice(null);
     }
   }, [open]);
+
+  // Load CCTV dynamic pricing/metadata tables
+  useEffect(() => {
+    if (!open || !isInstallNewCctv) return;
+    
+    Promise.all([
+      fetch("/api/v2/cctv/brands").then(r => r.json()),
+      fetch("/api/v2/cctv/models").then(r => r.json()),
+      fetch("/api/v2/cctv/sd-cards").then(r => r.json()),
+      fetch("/api/v2/cctv/cable-pricings").then(r => r.json()),
+      fetch("/api/v2/cctv/installation-charges").then(r => r.json()),
+      fetch("/api/v2/cctv/accessories").then(r => r.json()),
+      fetch("/api/v2/cctv/pricing-config").then(r => r.json()),
+    ]).then(([brandsRes, modelsRes, sdRes, cablesRes, instRes, accRes, configRes]) => {
+      if (brandsRes.success) setCctvBrands(brandsRes.data || []);
+      if (modelsRes.success) setCctvAllModels(modelsRes.data || []);
+      if (sdRes.success) setCctvSdCards(sdRes.data || []);
+      if (cablesRes.success) setCctvCables(cablesRes.data || []);
+      if (instRes.success) setCctvInstallationCharges(instRes.data || []);
+      if (accRes.success) setCctvAccessories(accRes.data || []);
+      if (configRes.success) setCctvPricingConfig(configRes.data || null);
+    }).catch(err => console.error("Error loading CCTV dynamic metadata:", err));
+  }, [open, isInstallNewCctv]);
 
   // Load Saved Addresses, User details, and Wallet balance
   useEffect(() => {
@@ -266,10 +308,28 @@ export function ServiceBookingConfigModal({
       setCctvCalculatedPrice(null);
       return;
     }
+
+    // Check brand & model selection for checked cameras
+    const incomplete = Object.entries(cctvSelectedCameraTypes)
+      .filter(([_, checked]) => checked)
+      .some(([type]) => !cctvCameraBrands[type] || !cctvCameraModels[type]);
+      
+    if (incomplete) {
+      setCctvCalculatedPrice(null);
+      return;
+    }
     
     // Check cable config if installation is required
     if (cctvInstallationRequired) {
       if (!cctvCableType || !cctvCableLength) {
+        setCctvCalculatedPrice(null);
+        return;
+      }
+    }
+
+    // Check SD Card config if enabled
+    if (cctvSdCardEnabled) {
+      if (!cctvSdCardCapacity || !cctvSdCardQuantity) {
         setCctvCalculatedPrice(null);
         return;
       }
@@ -279,6 +339,8 @@ export function ServiceBookingConfigModal({
       .filter(([_, checked]) => checked)
       .map(([type]) => ({
         type,
+        brandId: cctvCameraBrands[type],
+        modelId: cctvCameraModels[type],
         quantity: cctvCameraQuantities[type] || 1
       }));
       
@@ -293,7 +355,10 @@ export function ServiceBookingConfigModal({
       dvrRequired: cctvDvrRequired,
       nvrRequired: cctvNvrRequired,
       networkRack: cctvNetworkRack,
-      monitorMounting: cctvMonitorMounting
+      monitorMounting: cctvMonitorMounting,
+      sdCardRequired: cctvSdCardEnabled,
+      sdCardCapacity: cctvSdCardCapacity,
+      sdCardQuantity: cctvSdCardQuantity
     };
     
     setCctvCalculating(true);
@@ -314,6 +379,11 @@ export function ServiceBookingConfigModal({
     cctvPropertyType,
     cctvSelectedCameraTypes,
     cctvCameraQuantities,
+    cctvCameraBrands,
+    cctvCameraModels,
+    cctvSdCardEnabled,
+    cctvSdCardCapacity,
+    cctvSdCardQuantity,
     cctvInstallationRequired,
     cctvCableType,
     cctvCableLength,
@@ -507,23 +577,24 @@ export function ServiceBookingConfigModal({
   // Price calculations
   const prices = useMemo(() => {
     if (isInstallNewCctv) {
-      const pb = cctvCalculatedPrice?.priceBreakdown;
-      const cameraInst = pb?.cameraInstallation || 0;
-      const cableChg = pb?.cableCharge || 0;
-      const dvrChg = pb?.dvrCharge || 0;
-      const nvrChg = pb?.nvrCharge || 0;
-      const rackChg = pb?.rackCharge || 0;
-      const monChg = pb?.monitorCharge || 0;
-      const visitChg = pb?.visitCharge || 0;
+      const pb = cctvCalculatedPrice?.priceBreakdown || {};
+      const fittingChg = pb.cameraFittingCharge || 0;
+      const cableChg = pb.cableCharge || 0;
+      const sdChg = pb.sdCardCharge || 0;
+      const dvrChg = pb.dvrCharge || 0;
+      const nvrChg = pb.nvrCharge || 0;
+      const rackChg = pb.rackCharge || 0;
+      const monChg = pb.monitorCharge || 0;
+      const visitChg = pb.visitCharge || 0;
       
       const discount = 0;
-      const gst = pb?.gst || 0;
-      const grandTotal = pb?.grandTotal || 0;
+      const gst = pb.gst || 0;
+      const grandTotal = pb.grandTotal || 0;
       
       return {
-        packageCost: cameraInst,
+        packageCost: fittingChg,
         visitCharge: visitChg,
-        labourCost: cableChg + dvrChg + nvrChg + rackChg + monChg,
+        labourCost: cableChg + sdChg + dvrChg + nvrChg + rackChg + monChg,
         discount,
         gst,
         grandTotal,
@@ -787,6 +858,8 @@ export function ServiceBookingConfigModal({
             .filter(([_, checked]) => checked)
             .map(([type]) => ({
               type,
+              brandId: cctvCameraBrands[type],
+              modelId: cctvCameraModels[type],
               quantity: cctvCameraQuantities[type] || 1
             })),
           installationRequired: cctvInstallationRequired,
@@ -795,7 +868,10 @@ export function ServiceBookingConfigModal({
           dvrRequired: cctvDvrRequired,
           nvrRequired: cctvNvrRequired,
           networkRack: cctvNetworkRack,
-          monitorMounting: cctvMonitorMounting
+          monitorMounting: cctvMonitorMounting,
+          sdCardRequired: cctvSdCardEnabled,
+          sdCardCapacity: cctvSdCardCapacity,
+          sdCardQuantity: cctvSdCardQuantity
         } : {})
       }
     };
@@ -1098,7 +1174,7 @@ export function ServiceBookingConfigModal({
                           Select Camera Types <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[8px] font-bold text-rose-700 ring-1 ring-inset ring-rose-600/10">Required</span>
                         </label>
                         <div className="grid gap-2 sm:grid-cols-2">
-                          {["IP Camera", "Analog Camera", "WiFi Indoor Camera", "WiFi Outdoor Camera", "4G Camera"].map((type) => {
+                          {["IP Camera", "Analog Camera", "WiFi Indoor Camera", "WiFi Outdoor Camera", "4G Camera", "Solar Camera"].map((type) => {
                             const checked = cctvSelectedCameraTypes[type] || false;
                             return (
                               <div
@@ -1131,34 +1207,89 @@ export function ServiceBookingConfigModal({
                         </div>
                       </div>
 
-                      {/* 3. Camera Count */}
+                      {/* 3. Camera Details (Brand, Model, Qty) */}
                       {Object.entries(cctvSelectedCameraTypes).filter(([_, checked]) => checked).length > 0 && (
-                        <div className="space-y-3 bg-slate-50/50 rounded-2xl p-4 border border-slate-100">
-                          <label className="text-xs font-bold text-slate-700">Specify Camera Quantities</label>
-                          <div className="space-y-3 divide-y divide-slate-100">
+                        <div className="space-y-4 bg-slate-50/50 rounded-2xl p-4 border border-slate-100">
+                          <label className="text-xs font-bold text-slate-700 block">Configure Selected Cameras</label>
+                          <div className="space-y-4">
                             {Object.entries(cctvSelectedCameraTypes)
                               .filter(([_, checked]) => checked)
                               .map(([type]) => {
                                 const qty = cctvCameraQuantities[type] || 1;
+                                const selectedBrandId = cctvCameraBrands[type] || "";
+                                const selectedModelId = cctvCameraModels[type] || "";
+                                
+                                // Filter models by type and selected brand
+                                const filteredModels = cctvAllModels.filter(
+                                  (m) => m.cameraType === type && String(m.brandId?._id || m.brandId) === selectedBrandId
+                                );
+
                                 return (
-                                  <div key={type} className="flex justify-between items-center py-2 first:pt-0 last:pb-0">
-                                    <span className="text-xs font-bold text-slate-700">{type}</span>
-                                    <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white">
-                                      <button
-                                        type="button"
-                                        onClick={() => setCctvCameraQuantities(prev => ({ ...prev, [type]: Math.max((prev[type] || 1) - 1, 1) }))}
-                                        className="h-8 w-8 text-xs font-bold text-slate-600 hover:bg-slate-50 active:bg-slate-100 transition"
-                                      >
-                                        -
-                                      </button>
-                                      <span className="w-8 text-center text-xs font-bold text-slate-700">{qty}</span>
-                                      <button
-                                        type="button"
-                                        onClick={() => setCctvCameraQuantities(prev => ({ ...prev, [type]: (prev[type] || 1) + 1 }))}
-                                        className="h-8 w-8 text-xs font-bold text-slate-600 hover:bg-slate-50 active:bg-slate-100 transition"
-                                      >
-                                        +
-                                      </button>
+                                  <div key={type} className="p-3.5 bg-white rounded-xl border border-slate-200/80 space-y-3 shadow-xs">
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-xs font-black text-slate-800 uppercase tracking-wider">{type}</span>
+                                      
+                                      {/* Quantity Counter */}
+                                      <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-slate-50">
+                                        <button
+                                          type="button"
+                                          onClick={() => setCctvCameraQuantities(prev => ({ ...prev, [type]: Math.max((prev[type] || 1) - 1, 1) }))}
+                                          className="h-8 w-8 text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                                        >
+                                          -
+                                        </button>
+                                        <span className="w-8 text-center text-xs font-extrabold text-slate-700">{qty}</span>
+                                        <button
+                                          type="button"
+                                          onClick={() => setCctvCameraQuantities(prev => ({ ...prev, [type]: (prev[type] || 1) + 1 }))}
+                                          className="h-8 w-8 text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                                        >
+                                          +
+                                        </button>
+                                      </div>
+                                    </div>
+
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                      {/* Brand Dropdown */}
+                                      <div className="space-y-1">
+                                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Brand *</label>
+                                        <select
+                                          value={selectedBrandId}
+                                          onChange={(e) => {
+                                            const bId = e.target.value;
+                                            setCctvCameraBrands(prev => ({ ...prev, [type]: bId }));
+                                            setCctvCameraModels(prev => ({ ...prev, [type]: "" })); // Reset selected model
+                                          }}
+                                          className="h-9 w-full rounded-lg border border-slate-200 px-2.5 bg-slate-50 text-[11px] font-semibold text-slate-700 focus:outline-none"
+                                          required
+                                        >
+                                          <option value="">Select Brand</option>
+                                          {cctvBrands.map((b) => (
+                                            <option key={b._id} value={b._id}>{b.name}</option>
+                                          ))}
+                                        </select>
+                                      </div>
+
+                                      {/* Model Dropdown */}
+                                      <div className="space-y-1">
+                                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Model Variant *</label>
+                                        <select
+                                          value={selectedModelId}
+                                          onChange={(e) => {
+                                            setCctvCameraModels(prev => ({ ...prev, [type]: e.target.value }));
+                                          }}
+                                          disabled={!selectedBrandId}
+                                          className="h-9 w-full rounded-lg border border-slate-200 px-2.5 bg-slate-50 text-[11px] font-semibold text-slate-700 focus:outline-none disabled:opacity-60"
+                                          required
+                                        >
+                                          <option value="">Select Model</option>
+                                          {filteredModels.map((m) => (
+                                            <option key={m._id} value={m._id}>
+                                              {m.resolution} {m.name} (₹{m.price})
+                                            </option>
+                                          ))}
+                                        </select>
+                                      </div>
                                     </div>
                                   </div>
                                 );
@@ -1194,8 +1325,8 @@ export function ServiceBookingConfigModal({
                               </label>
                               <div className="grid gap-2.5 sm:grid-cols-2">
                                 {[
-                                  { name: "CAT6 Cable", description: "Charged at ₹60 × meter" },
-                                  { name: "3+1 CCTV Cable", description: "Charged at ₹18 × meter" }
+                                  { name: "CAT6 Cable", price: cctvCables.find(c => c.name.includes("CAT6"))?.price || 60 },
+                                  { name: "3+1 CCTV Cable", price: cctvCables.find(c => c.name.includes("3+1"))?.price || 18 }
                                 ].map((c) => {
                                   const isSelected = cctvCableType === c.name;
                                   return (
@@ -1209,7 +1340,7 @@ export function ServiceBookingConfigModal({
                                       }`}
                                     >
                                       <span className="font-extrabold text-slate-800">{c.name}</span>
-                                      <span className="text-[10px] text-slate-400 mt-1 font-semibold">{c.description}</span>
+                                      <span className="text-[10px] text-slate-400 mt-1 font-semibold">Charged at ₹{c.price} / meter</span>
                                     </div>
                                   );
                                 })}
@@ -1232,7 +1363,7 @@ export function ServiceBookingConfigModal({
                         )}
                       </div>
 
-                      {/* 5. DVR / NVR Installation (Independent) */}
+                      {/* 5. DVR / NVR Installation */}
                       <div className="space-y-3 bg-slate-50/50 rounded-2xl p-4 border border-slate-100">
                         <label className="text-xs font-bold text-slate-700 block">Recorder Options</label>
                         <div className="space-y-2.5 pt-2">
@@ -1243,7 +1374,9 @@ export function ServiceBookingConfigModal({
                               onChange={(e) => setCctvDvrRequired(e.target.checked)}
                               className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                             />
-                            <span className="font-bold text-xs text-slate-800">Need DVR Installation (₹1000)</span>
+                            <span className="font-bold text-xs text-slate-800">
+                              Need DVR Installation (+₹{cctvAccessories.find(a => a.name.toLowerCase().includes("dvr"))?.price || 1000})
+                            </span>
                           </label>
 
                           <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -1253,15 +1386,17 @@ export function ServiceBookingConfigModal({
                               onChange={(e) => setCctvNvrRequired(e.target.checked)}
                               className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                             />
-                            <span className="font-bold text-xs text-slate-800">Need NVR Installation (₹1000)</span>
+                            <span className="font-bold text-xs text-slate-800">
+                              Need NVR Installation (+₹{cctvAccessories.find(a => a.name.toLowerCase().includes("nvr"))?.price || 1000})
+                            </span>
                           </label>
                         </div>
                       </div>
 
                       {/* 6. Optional Add-ons */}
-                      <div className="space-y-2 bg-slate-50/50 rounded-2xl p-4 border border-slate-100">
+                      <div className="space-y-3 bg-slate-50/50 rounded-2xl p-4 border border-slate-100">
                         <label className="text-xs font-bold text-slate-700">Optional Add-ons</label>
-                        <div className="space-y-2.5 pt-2">
+                        <div className="space-y-3 pt-1">
                           <label className="flex items-center gap-2 cursor-pointer select-none">
                             <input
                               type="checkbox"
@@ -1271,7 +1406,9 @@ export function ServiceBookingConfigModal({
                             />
                             <div className="text-xs">
                               <span className="font-bold text-slate-800">Network Rack Mounting</span>
-                              <span className="text-[10px] text-slate-400 font-bold ml-1.5">(+ ₹500)</span>
+                              <span className="text-[10px] text-slate-400 font-bold ml-1.5">
+                                (+ ₹{cctvAccessories.find(a => a.name.toLowerCase().includes("rack"))?.price || 500})
+                              </span>
                             </div>
                           </label>
 
@@ -1284,9 +1421,69 @@ export function ServiceBookingConfigModal({
                             />
                             <div className="text-xs">
                               <span className="font-bold text-slate-800">Monitor Mounting</span>
-                              <span className="text-[10px] text-slate-400 font-bold ml-1.5">(+ ₹350)</span>
+                              <span className="text-[10px] text-slate-400 font-bold ml-1.5">
+                                (+ ₹{cctvAccessories.find(a => a.name.toLowerCase().includes("monitor"))?.price || 350})
+                              </span>
                             </div>
                           </label>
+
+                          {/* SD Card (Memory Card) Add-on */}
+                          <div className="border-t border-slate-200/60 pt-3 mt-3 space-y-3">
+                            <label className="flex items-center gap-2 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={cctvSdCardEnabled}
+                                onChange={(e) => {
+                                  setCctvSdCardEnabled(e.target.checked);
+                                  if (e.target.checked && cctvSdCards.length > 0 && !cctvSdCardCapacity) {
+                                    setCctvSdCardCapacity(cctvSdCards[0].capacity);
+                                  }
+                                }}
+                                className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="font-bold text-xs text-slate-800">Add Memory Card (SD Card)</span>
+                            </label>
+
+                            {cctvSdCardEnabled && (
+                              <div className="grid gap-3 sm:grid-cols-2 pl-6.5 animate-fadeIn">
+                                <div className="space-y-1">
+                                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Capacity *</label>
+                                  <select
+                                    value={cctvSdCardCapacity}
+                                    onChange={(e) => setCctvSdCardCapacity(e.target.value)}
+                                    className="h-9 w-full rounded-lg border border-slate-200 px-2.5 bg-white text-[11px] font-semibold text-slate-700 focus:outline-none"
+                                    required
+                                  >
+                                    {cctvSdCards.map((sd) => (
+                                      <option key={sd._id} value={sd.capacity}>
+                                        {sd.capacity} (₹{sd.price})
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div className="space-y-1">
+                                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Quantity</label>
+                                  <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white h-9 w-24">
+                                    <button
+                                      type="button"
+                                      onClick={() => setCctvSdCardQuantity(q => Math.max(q - 1, 1))}
+                                      className="h-full w-8 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+                                    >
+                                      -
+                                    </button>
+                                    <span className="flex-1 text-center text-xs font-extrabold text-slate-700">{cctvSdCardQuantity}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => setCctvSdCardQuantity(q => q + 1)}
+                                      className="h-full w-8 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+                                    >
+                                      +
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1589,79 +1786,106 @@ export function ServiceBookingConfigModal({
                       {isBuyCctvProducts ? "Confirm Delivery Address" : "Confirm Service Address"}
                     </h3>
                     <p className="text-xs text-slate-400 font-medium">
-                      {isBuyCctvProducts
-                        ? "Pin your precise delivery location on the map"
-                        : "Pin your precise installation location on the map"}
+                      Select a saved address or pin a new location.
                     </p>
                   </div>
 
                   {savedAddresses.length > 0 && (
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Select Saved Location</label>
-                      <select
-                        value={selectedAddressId}
-                        onChange={(e) => handleAddressChange(e.target.value)}
-                        className="h-10 w-full rounded-xl border border-slate-200 px-3 bg-slate-50 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                      >
-                        <option value="" disabled>-- Select saved address --</option>
-                        {savedAddresses.map((a) => (
-                          <option key={a._id} value={a._id}>
-                            {a.label} ({a.address || a.city})
-                          </option>
-                        ))}
-                        <option value="new">-- Pin New Address --</option>
-                      </select>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Saved Locations</label>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {savedAddresses.map((addr) => {
+                          const isSelected = selectedAddressId === addr._id;
+                          return (
+                            <div
+                              key={addr._id}
+                              onClick={() => handleAddressChange(addr._id)}
+                              className={`p-3.5 rounded-2xl border text-xs cursor-pointer transition-all flex flex-col justify-between min-h-[96px] ${
+                                isSelected
+                                  ? "border-blue-600 bg-blue-50/10 ring-1 ring-blue-600 shadow-sm"
+                                  : "border-slate-200 bg-white hover:border-slate-300"
+                              }`}
+                            >
+                              <div>
+                                <span className="font-extrabold text-slate-800 block text-xs mb-1">{addr.label || addr.name || "Saved Address"}</span>
+                                <span className="text-slate-500 font-semibold line-clamp-2 leading-relaxed">
+                                  {addr.formattedAddress || addr.address}
+                                </span>
+                              </div>
+                              {isSelected && (
+                                <span className="text-blue-600 text-[10px] font-extrabold mt-2 flex items-center gap-1">
+                                  <Check className="h-3.5 w-3.5" /> Selected
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                        
+                        <div
+                          onClick={() => handleAddressChange("new")}
+                          className={`p-3.5 rounded-2xl border border-dashed text-xs cursor-pointer transition flex items-center justify-center min-h-[96px] ${
+                            selectedAddressId === "new" || !selectedAddressId
+                              ? "border-blue-600 bg-blue-50/10 ring-1 ring-blue-600"
+                              : "border-slate-300 bg-slate-50 hover:bg-slate-100"
+                          }`}
+                        >
+                          <span className="font-bold text-slate-600 flex items-center gap-1.5">
+                            <PlusIcon className="h-4 w-4" /> Add New Address
+                          </span>
+                        </div>
+                      </div>
                     </div>
                   )}
 
-                  <div className="rounded-2xl border border-slate-200/80 p-2 bg-white relative">
-                    <LocationPicker
-                      onLocationSelected={(data: any) => {
-                        setAddress(data.address);
-                        setCity(data.city);
-                        setStateName(data.state);
-                        setPincode(data.pincode);
-                        setLatitude(data.latitude);
-                        setLongitude(data.longitude);
-                        setHouseNumber(data.houseNumber || "");
-                        setStreet(data.street || "");
-                        setArea(data.area || "");
-                        setLandmark(data.landmark || "");
-                        setDistrict(data.district || "");
-                        setCountry(data.country || "");
-                        setFloor(data.floor || "");
-                        setApartmentName(data.apartmentName || "");
-                        setDeliveryInstructions(data.deliveryInstructions || "");
-                        setFormattedAddress(data.formattedAddress || "");
-                        toast({ title: "Location Confirmed", description: "Pinned address successfully." });
-                        goNext();
-                      }}
-                      initialCoords={latitude && longitude ? { lat: latitude, lng: longitude } : null}
-                      initialAddressData={
-                        selectedAddressId !== "new" && selectedAddressId
-                          ? savedAddresses.find((a) => a._id === selectedAddressId)
-                          : {
-                              houseNumber,
-                              street,
-                              area,
-                              landmark,
-                              city,
-                              district,
-                              state: stateName,
-                              pincode,
-                              country,
-                              floor,
-                              apartmentName,
-                              deliveryInstructions,
-                              formattedAddress
-                            }
-                      }
-                    />
-                  </div>
+                  {/* Show Leaflet Picker only if adding a new address or no saved addresses exist */}
+                  {(savedAddresses.length === 0 || selectedAddressId === "new" || !selectedAddressId) && (
+                    <div className="rounded-2xl border border-slate-200/80 p-2 bg-white relative animate-fadeIn">
+                      <LocationPicker
+                        onLocationSelected={(data: any) => {
+                          setAddress(data.address);
+                          setCity(data.city);
+                          setStateName(data.state);
+                          setPincode(data.pincode);
+                          setLatitude(data.latitude);
+                          setLongitude(data.longitude);
+                          setHouseNumber(data.houseNumber || "");
+                          setStreet(data.street || "");
+                          setArea(data.area || "");
+                          setLandmark(data.landmark || "");
+                          setDistrict(data.district || "");
+                          setCountry(data.country || "");
+                          setFloor(data.floor || "");
+                          setApartmentName(data.apartmentName || "");
+                          setDeliveryInstructions(data.deliveryInstructions || "");
+                          setFormattedAddress(data.formattedAddress || "");
+                        }}
+                        initialCoords={latitude && longitude ? { lat: latitude, lng: longitude } : null}
+                        initialAddressData={
+                          selectedAddressId !== "new" && selectedAddressId
+                            ? savedAddresses.find((a) => a._id === selectedAddressId)
+                            : {
+                                houseNumber,
+                                street,
+                                area,
+                                landmark,
+                                city,
+                                district,
+                                state: stateName,
+                                pincode,
+                                country,
+                                floor,
+                                apartmentName,
+                                deliveryInstructions,
+                                formattedAddress
+                              }
+                        }
+                      />
+                    </div>
+                  )}
 
                   {address && (
                     <div className="rounded-xl bg-slate-50 p-3 text-xs border border-slate-100 leading-relaxed text-slate-600">
-                      <strong>Address:</strong> {address}
+                      <strong>Current Address Pinned:</strong> {address}
                     </div>
                   )}
                 </div>
@@ -1702,44 +1926,110 @@ export function ServiceBookingConfigModal({
 
                       {/* Itemized pricing breakdown */}
                       <div className="rounded-2xl border border-slate-100 bg-white divide-y divide-slate-100 overflow-hidden shadow-sm">
-                        <div className="p-4 space-y-2.5">
-                          <div className="flex justify-between text-xs text-slate-600 font-semibold">
-                            <span>Camera Installation ({Object.entries(cctvSelectedCameraTypes).filter(([_, checked]) => checked).reduce((sum, [type]) => sum + (cctvCameraQuantities[type] || 1), 0)} × ₹400)</span>
-                            <span className="font-black text-slate-800">{money(prices.rawBreakdown?.cameraInstallation || 0)}</span>
-                          </div>
+                        <div className="p-4 space-y-3.5">
+                          {/* Selected Camera Models List */}
+                          {Object.entries(cctvSelectedCameraTypes)
+                            .filter(([_, checked]) => checked)
+                            .map(([type]) => {
+                              const qty = cctvCameraQuantities[type] || 1;
+                              const bId = cctvCameraBrands[type];
+                              const mId = cctvCameraModels[type];
+                              const brandObj = cctvBrands.find(b => b._id === bId);
+                              const modelObj = cctvAllModels.find(m => m._id === mId);
+                              
+                              if (!modelObj) return null;
+                              
+                              return (
+                                <div key={type} className="flex justify-between text-xs text-slate-600 font-semibold">
+                                  <div className="flex flex-col">
+                                    <span className="font-extrabold text-slate-800">{brandObj?.name || "Camera"} {modelObj.resolution} {modelObj.name}</span>
+                                    <span className="text-[10px] text-slate-400 font-bold">{type} — Qty: {qty} × {money(modelObj.price)}</span>
+                                  </div>
+                                  <span className="font-black text-slate-800 self-center">{money(modelObj.price * qty)}</span>
+                                </div>
+                              );
+                            })}
 
-                          {(prices.rawBreakdown?.cableCharge || 0) > 0 && (
+                          {/* Camera Fitting & Installation */}
+                          {prices.rawBreakdown?.cameraFittingCharge > 0 && (
                             <div className="flex justify-between text-xs text-slate-600 font-semibold">
-                              <span>Cable Charge ({cctvCableLength}m × {cctvCableType === "CAT6 Cable" ? "₹60" : "₹18"})</span>
-                              <span className="font-black text-slate-800">{money(prices.rawBreakdown.cableCharge)}</span>
+                              <div className="flex flex-col">
+                                <span className="font-bold text-slate-800">Fitting & Installation Labour</span>
+                                <span className="text-[10px] text-slate-400 font-medium">
+                                  {Object.entries(cctvSelectedCameraTypes).filter(([_, checked]) => checked).reduce((sum, [type]) => sum + (cctvCameraQuantities[type] || 1), 0)} cameras × ₹{cctvInstallationCharges[0]?.price || 400}
+                                </span>
+                              </div>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.cameraFittingCharge)}</span>
                             </div>
                           )}
 
-                          {(prices.rawBreakdown?.dvrCharge || 0) > 0 && (
+                          {/* Cable Charge */}
+                          {cctvInstallationRequired && cctvCableLength > 0 && (
                             <div className="flex justify-between text-xs text-slate-600 font-semibold">
-                              <span>DVR Installation</span>
-                              <span className="font-black text-slate-800">{money(prices.rawBreakdown.dvrCharge)}</span>
+                              <div className="flex flex-col">
+                                <span className="font-bold text-slate-800">{cctvCableType} Wiring</span>
+                                <span className="text-[10px] text-slate-400 font-medium">
+                                  {cctvCableLength} meters × ₹{cctvCables.find(c => c.name === cctvCableType)?.price || (cctvCableType.includes("CAT6") ? 60 : 18)}
+                                </span>
+                              </div>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.cableCharge || 0)}</span>
                             </div>
                           )}
 
-                          {(prices.rawBreakdown?.nvrCharge || 0) > 0 && (
+                          {/* DVR Installation */}
+                          {cctvDvrRequired && (
                             <div className="flex justify-between text-xs text-slate-600 font-semibold">
-                              <span>NVR Installation</span>
-                              <span className="font-black text-slate-800">{money(prices.rawBreakdown.nvrCharge)}</span>
+                              <div className="flex flex-col">
+                                <span className="font-bold text-slate-800">DVR Installation</span>
+                                <span className="text-[10px] text-slate-400 font-medium">Fitting & setup charge</span>
+                              </div>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.dvrCharge || 0)}</span>
                             </div>
                           )}
 
-                          {(prices.rawBreakdown?.rackCharge || 0) > 0 && (
+                          {/* NVR Installation */}
+                          {cctvNvrRequired && (
                             <div className="flex justify-between text-xs text-slate-600 font-semibold">
-                              <span>Network Rack Mounting</span>
-                              <span className="font-black text-slate-800">{money(prices.rawBreakdown.rackCharge)}</span>
+                              <div className="flex flex-col">
+                                <span className="font-bold text-slate-800">NVR Installation</span>
+                                <span className="text-[10px] text-slate-400 font-medium">Fitting & setup charge</span>
+                              </div>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.nvrCharge || 0)}</span>
                             </div>
                           )}
 
-                          {(prices.rawBreakdown?.monitorCharge || 0) > 0 && (
+                          {/* Network Rack Mount */}
+                          {cctvNetworkRack && (
                             <div className="flex justify-between text-xs text-slate-600 font-semibold">
-                              <span>Monitor Mounting</span>
-                              <span className="font-black text-slate-800">{money(prices.rawBreakdown.monitorCharge)}</span>
+                              <div className="flex flex-col">
+                                <span className="font-bold text-slate-800">Network Rack Mounting</span>
+                                <span className="text-[10px] text-slate-400 font-medium">Cabinet fitting & dressing</span>
+                              </div>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.rackCharge || 0)}</span>
+                            </div>
+                          )}
+
+                          {/* Monitor Mounting */}
+                          {cctvMonitorMounting && (
+                            <div className="flex justify-between text-xs text-slate-600 font-semibold">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-slate-800">Monitor Mounting</span>
+                                <span className="text-[10px] text-slate-400 font-medium">Wall/desk installation</span>
+                              </div>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.monitorCharge || 0)}</span>
+                            </div>
+                          )}
+
+                          {/* SD Memory Cards */}
+                          {cctvSdCardEnabled && (
+                            <div className="flex justify-between text-xs text-slate-600 font-semibold">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-slate-800">SD Memory Card ({cctvSdCardCapacity})</span>
+                                <span className="text-[10px] text-slate-400 font-medium">
+                                  Qty: {cctvSdCardQuantity} × ₹{cctvSdCards.find(sd => sd.capacity === cctvSdCardCapacity)?.price || 750}
+                                </span>
+                              </div>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.sdCardCharge || 0)}</span>
                             </div>
                           )}
                         </div>
@@ -1749,6 +2039,12 @@ export function ServiceBookingConfigModal({
                             <span>Subtotal</span>
                             <span>{money(prices.rawBreakdown?.subtotal || 0)}</span>
                           </div>
+                          
+                          <div className="flex justify-between text-xs font-medium text-slate-600">
+                            <span>Visit & Logistics Charges</span>
+                            <span>{money(prices.rawBreakdown?.visitCharge || 499)}</span>
+                          </div>
+                          
                           {prices.discount > 0 && (
                             <div className="flex justify-between text-xs font-bold text-emerald-600">
                               <span>Promo discount</span>
@@ -1756,7 +2052,7 @@ export function ServiceBookingConfigModal({
                             </div>
                           )}
                           <div className="flex justify-between text-xs font-medium text-slate-600">
-                            <span>GST (18%)</span>
+                            <span>GST ({cctvPricingConfig?.tax?.percentage || 18}%)</span>
                             <span>{money(prices.gst)}</span>
                           </div>
                           <div className="flex justify-between text-sm font-black text-slate-900 border-t border-slate-200 pt-2.5">

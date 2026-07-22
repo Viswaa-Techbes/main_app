@@ -307,42 +307,61 @@ export default function LocationPicker({ onLocationSelected, initialCoords, init
     setFullAddressData(suggestion);
   }
 
-  // Confirm selection to parent component
-  function handleConfirm() {
-    const parts = [
-      houseNumber,
-      apartmentName ? `Apartment: ${apartmentName}` : "",
-      floor ? `Floor: ${floor}` : "",
-      street,
-      area,
-      landmark ? `Landmark: ${landmark}` : "",
-      city,
-      state,
-      pincode,
-      country
-    ].filter(Boolean);
+  // Auto-propagate selection to parent component in real-time
+  useEffect(() => {
+    if (address && position[0] && position[1]) {
+      const parts = [
+        houseNumber,
+        apartmentName ? `Apartment: ${apartmentName}` : "",
+        floor ? `Floor: ${floor}` : "",
+        street,
+        area,
+        landmark ? `Landmark: ${landmark}` : "",
+        city,
+        state,
+        pincode,
+        country
+      ].filter(Boolean);
 
-    const compiledAddress = parts.join(", ") || address;
+      const compiledAddress = parts.join(", ") || address;
 
-    onLocationSelected({
-      address: compiledAddress,
-      city,
-      state,
-      pincode,
-      latitude: position[0],
-      longitude: position[1],
-      houseNumber,
-      street,
-      area,
-      landmark,
-      district,
-      country,
-      floor,
-      apartmentName,
-      deliveryInstructions,
-      formattedAddress: compiledAddress
-    });
-  }
+      onLocationSelected({
+        address: compiledAddress,
+        city,
+        state,
+        pincode,
+        latitude: position[0],
+        longitude: position[1],
+        houseNumber,
+        street,
+        area,
+        landmark,
+        district,
+        country,
+        floor,
+        apartmentName,
+        deliveryInstructions,
+        formattedAddress: compiledAddress
+      });
+    }
+  }, [
+    position,
+    address,
+    houseNumber,
+    street,
+    area,
+    landmark,
+    city,
+    state,
+    pincode,
+    country,
+    floor,
+    apartmentName,
+    deliveryInstructions
+  ]);
+
+  // Keep handleConfirm as an empty shell or optional helper just in case
+  function handleConfirm() {}
 
   return (
     <div className="flex flex-col gap-4 w-full text-slate-900">
@@ -535,16 +554,6 @@ export default function LocationPicker({ onLocationSelected, initialCoords, init
           </div>
         )}
       </div>
-
-      {/* Confirm Action Button */}
-      <Button
-        type="button"
-        disabled={geocoding || !address}
-        onClick={handleConfirm}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white flex gap-2 h-11 text-sm font-black rounded-xl shadow-md transition-all active:scale-[0.99]"
-      >
-        <Check className="h-4.5 w-4.5" /> Confirm & Continue
-      </Button>
     </div>
   );
 }
