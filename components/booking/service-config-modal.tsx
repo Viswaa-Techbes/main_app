@@ -123,6 +123,8 @@ export function ServiceBookingConfigModal({
   const [selectedProductsCheckboxes, setSelectedProductsCheckboxes] = useState<Record<string, boolean>>({});
   const [selectedProductQuantities, setSelectedProductQuantities] = useState<Record<string, number>>({});
   const [selectedProductVariants, setSelectedProductVariants] = useState<Record<string, string>>({});
+  const [selectedProductBrands, setSelectedProductBrands] = useState<Record<string, string>>({});
+  const [selectedProductCategory, setSelectedProductCategory] = useState<string>("all");
 
   // Install New CCTV custom states
   const [cctvPropertyType, setCctvPropertyType] = useState<string>("");
@@ -192,7 +194,7 @@ export function ServiceBookingConfigModal({
 
   // Load CCTV dynamic pricing/metadata tables
   useEffect(() => {
-    if (!open || !isInstallNewCctv) return;
+    if (!open || (!isInstallNewCctv && !isBuyCctvProducts)) return;
     
     Promise.all([
       fetch("/api/v2/cctv/brands").then(r => r.json()),
@@ -211,7 +213,7 @@ export function ServiceBookingConfigModal({
       if (accRes.success) setCctvAccessories(accRes.data || []);
       if (configRes.success) setCctvPricingConfig(configRes.data || null);
     }).catch(err => console.error("Error loading CCTV dynamic metadata:", err));
-  }, [open, isInstallNewCctv]);
+  }, [open, isInstallNewCctv, isBuyCctvProducts]);
 
   // Load Saved Addresses, User details, and Wallet balance
   useEffect(() => {
@@ -483,6 +485,7 @@ export function ServiceBookingConfigModal({
       
       const quantity = selectedProductQuantities[prodName] || 1;
       const variantName = selectedProductVariants[prodName] || "";
+      const brand = selectedProductBrands[prodName] || "";
       
       const dbProd = availableProducts.find(p => p.name === prodName);
       let unitPrice = dbProd ? dbProd.price : 800; // default/fallback
@@ -497,7 +500,7 @@ export function ServiceBookingConfigModal({
       }
       
       list.push({
-        product: prodName,
+        product: brand ? `${brand} ${prodName}` : prodName,
         variant: finalVariant || undefined,
         quantity,
         unitPrice,
@@ -506,7 +509,7 @@ export function ServiceBookingConfigModal({
     });
     
     return list;
-  }, [selectedProductsCheckboxes, selectedProductQuantities, selectedProductVariants, availableProducts]);
+  }, [selectedProductsCheckboxes, selectedProductQuantities, selectedProductVariants, selectedProductBrands, availableProducts]);
 
   const toggleProductSelection = (prodName: string) => {
     setSelectedProductsCheckboxes(prev => {
@@ -645,13 +648,12 @@ export function ServiceBookingConfigModal({
   const stepsList = useMemo(() => {
     if (isBuyCctvProducts) {
       return [
-        { step: 1, label: "Choose Package" },
-        { step: 2, label: "Select Products" },
-        { step: 3, label: "Quantity & Variants" },
-        { step: 4, label: "Delivery Date" },
-        { step: 5, label: "Delivery Address" },
-        { step: 6, label: "Review Cart" },
-        { step: 7, label: "Checkout & Pay" }
+        { step: 1, label: "Select Products" },
+        { step: 2, label: "Quantity & Variants" },
+        { step: 3, label: "Delivery Date" },
+        { step: 4, label: "Delivery Address" },
+        { step: 5, label: "Review Cart" },
+        { step: 6, label: "Checkout & Pay" }
       ];
     } else if (isCctvServiceRequest) {
       if (isInstallNewCctv) {
@@ -1578,12 +1580,40 @@ export function ServiceBookingConfigModal({
                     <h3 className="text-base font-black text-slate-800">Select CCTV Products</h3>
                     <p className="text-xs text-slate-400 font-medium">Choose multiple products to add to your purchase order</p>
                   </div>
-                  <div className="grid gap-2.5 sm:grid-cols-2 mt-4">
-                    {["Camera", "DVR", "NVR", "Hard Disk", "Cable", "Connector", "Power Supply", "Accessories", "Complete CCTV Kit"].map((prodName) => {
+
+                  {/* Category Filter Tabs */}
+                  <div className="flex overflow-x-auto gap-2 pb-2 mt-2 -mx-1 px-1">
+                    {[
+                      { id: "all", label: "All Products" },
+                      { id: "camera", label: "Cameras" },
+                      { id: "recorder", label: "Recorders" },
+                      { id: "storage", label: "Hard Disks" },
+                      { id: "cable", label: "Cables" },
+                      { id: "power", label: "Power Supplies" },
+                      { id: "accessory", label: "Accessories" }
+                    ].map(cat => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setSelectedProductCategory(cat.id)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition ${
+                          selectedProductCategory === cat.id
+                            ? 'bg-blue-900 text-white shadow-sm'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="grid gap-2.5 sm:grid-cols-2 mt-2">
+                    {availableProducts.filter(p => selectedProductCategory === "all" || p.type === selectedProductCategory).map((prod) => {
+                      const prodName = prod.name;
                       const checked = selectedProductsCheckboxes[prodName] || false;
                       return (
                         <div
-                          key={prodName}
+                          key={prod._id || prodName}
                           onClick={() => toggleProductSelection(prodName)}
                           className={`flex items-center justify-between p-4 rounded-2xl border transition cursor-pointer select-none ${
                             checked ? "border-blue-600 bg-blue-50/10 ring-1 ring-blue-600" : "border-slate-200 bg-white hover:shadow-sm"
@@ -1596,7 +1626,10 @@ export function ServiceBookingConfigModal({
                               onChange={() => {}} // handled by parent div click
                               className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                             />
-                            <span className="font-bold text-xs text-slate-800">{prodName}</span>
+                            <div>
+                              <span className="font-bold text-xs text-slate-800 block">{prodName}</span>
+                              <span className="text-[10px] text-slate-400 font-semibold mt-0.5 block">Starting at Rs. {prod.price}</span>
+                            </div>
                           </div>
                           {checked && <Check className="h-4 w-4 text-blue-600" />}
                         </div>
@@ -1657,6 +1690,23 @@ export function ServiceBookingConfigModal({
                               </div>
                             </div>
                             
+                            {/* Brand Selector */}
+                            <div className="space-y-1">
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Brand</span>
+                              <select
+                                value={selectedProductBrands[item.product] || ""}
+                                onChange={(e) => {
+                                  setSelectedProductBrands(prev => ({ ...prev, [item.product]: e.target.value }));
+                                }}
+                                className="h-9 w-full sm:w-64 rounded-xl border border-slate-200 px-2.5 bg-slate-50 text-[11px] font-semibold text-slate-700 focus:outline-none"
+                              >
+                                <option value="">Select Brand...</option>
+                                {cctvBrands.map((b: any) => (
+                                  <option key={b._id} value={b.name}>{b.name}</option>
+                                ))}
+                              </select>
+                            </div>
+
                             {/* Variant Selector */}
                             {hasVariants && dbProd.variants && (
                               <div className="space-y-2">

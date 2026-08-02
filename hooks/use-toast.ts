@@ -6,7 +6,7 @@ import * as React from 'react'
 import type { ToastActionElement, ToastProps } from '@/components/ui/toast'
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_REMOVE_DELAY = 4000
 
 type ToasterToast = ToastProps & {
   id: string
@@ -141,6 +141,15 @@ type Toast = Omit<ToasterToast, 'id'>
 
 function toast({ ...props }: Toast) {
   const id = genId()
+
+  if (props.variant === 'destructive') {
+    console.error("Toast Destructive Error details:", {
+      title: props.title,
+      description: props.description
+    });
+    props.title = "Something went wrong";
+    props.description = "Unable to load data. Please try again.";
+  }
 
   const update = (props: ToasterToast) =>
     dispatch({

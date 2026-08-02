@@ -123,8 +123,8 @@ export default function DashboardOverview() {
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                        {booking.status}
+                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 capitalize">
+                        {booking.status?.replace("_", " ")}
                       </span>
                       <Link href={`/dashboard/bookings/${booking._id}`} className="text-sm text-blue-600 font-medium hover:underline">
                         Track Status

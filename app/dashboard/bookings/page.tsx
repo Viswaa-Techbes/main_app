@@ -18,9 +18,9 @@ export default function BookingsPage() {
 
   async function fetchBookings() {
     try {
-      const res = await fetchAuthApi("/api/v2/customer/dashboard-stats"); // Using stats endpoint as a mock proxy for now since it returns bookings, ideally we hit /api/v2/bookings/me
-      if (res.success && res.data.upcomingBookings) {
-        setBookings(res.data.upcomingBookings); 
+      const res = await fetchAuthApi("/api/v2/bookings");
+      if (res.success && res.data) {
+        setBookings(res.data); 
       }
     } catch (e) {
       console.error(e);
@@ -31,9 +31,10 @@ export default function BookingsPage() {
 
   const filteredBookings = bookings.filter(b => {
     if (filter === "all") return true;
-    if (filter === "completed") return b.status === "Completed";
-    if (filter === "upcoming") return ["Pending", "Assigned", "In Progress"].includes(b.status);
-    if (filter === "cancelled") return b.status === "Cancelled";
+    const status = b.status?.toLowerCase();
+    if (filter === "completed") return status === "completed";
+    if (filter === "upcoming") return ["pending", "assigned", "travelling", "arrived", "working", "in_progress", "payment_requested", "payment_pending"].includes(status);
+    if (filter === "cancelled") return status === "cancelled";
     return true;
   });
 
@@ -88,15 +89,15 @@ export default function BookingsPage() {
                     </div>
                     <div className="flex items-start gap-2 text-sm text-gray-600">
                       <MapPin size={16} className="mt-0.5 text-gray-400 shrink-0" />
-                      <span className="line-clamp-2">{b.address?.addressLine1 || 'Saved Address'}</span>
+                      <span className="line-clamp-2">{b.location || b.address?.formattedAddress || b.address?.addressLine1 || 'Saved Address'}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex flex-col md:items-end justify-between gap-4 border-t md:border-t-0 md:border-l border-gray-100 pt-4 md:pt-0 md:pl-6 shrink-0">
                   <div className="flex flex-col md:items-end gap-1">
-                    <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold w-fit">
-                      {b.status}
+                    <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold w-fit capitalize">
+                      {b.status?.replace("_", " ")}
                     </span>
                     <span className="text-lg font-black text-gray-900 mt-2">
                       {formatCurrency(b.totalAmount || 0)}
@@ -104,14 +105,16 @@ export default function BookingsPage() {
                   </div>
                   
                   <div className="flex gap-2 w-full md:w-auto">
-                    {b.status === 'Completed' ? (
+                    {b.status?.toLowerCase() === 'completed' ? (
                       <button className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-bold text-sm rounded-lg transition">
                         <Download size={16} /> Invoice
                       </button>
                     ) : (
-                      <button className="flex-1 md:flex-none px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-sm rounded-lg transition">
-                        Track Status
-                      </button>
+                      <Link href={`/dashboard/bookings/${b._id}`} className="flex-1 md:flex-none">
+                        <button className="w-full px-4 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold text-sm rounded-lg transition">
+                          Track Status
+                        </button>
+                      </Link>
                     )}
                   </div>
                 </div>

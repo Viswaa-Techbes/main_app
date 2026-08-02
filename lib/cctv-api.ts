@@ -331,6 +331,7 @@ export const cctvApi = {
   cameraTypes: () => api<CctvCameraType[]>("/api/v2/cctv/camera-types"),
   addons: () => api<CctvAddon[]>("/api/v2/cctv/addons"),
   materials: () => api<CctvAddon[]>("/api/v2/materials"),
+  products: () => api<any[]>("/api/v2/cctv/products"),
   calculate: (body: CctvPriceInput) =>
     api<CctvPriceResult>("/api/v2/cctv/calculate-price", { method: "POST", body: JSON.stringify(body) }),
   createBooking: (body: unknown) =>
