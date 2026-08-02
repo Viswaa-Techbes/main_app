@@ -132,7 +132,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                   </div>
 
                   <div className="mt-6 border-t border-slate-50 pt-4">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Starting from</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">How much does it cost?</p>
                     <p className="text-2xl font-black text-slate-800">{service.price}</p>
                   </div>
 
@@ -146,12 +146,82 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
             </div>
 
             {/* Overview Section */}
-            <Section title="Overview">
+            <Section title={`What is ${service.title} and how does it work?`}>
+              {/* Conversational content intro */}
+              <p className="text-xs leading-relaxed text-slate-600 font-semibold mb-6">
+                Looking for reliable, expert {service.title} in Bangalore? At TechBes, we map experienced local technicians directly to your residential or business site. Here is everything you need to know about setting up, pricing, and scheduling your service.
+              </p>
+
+              {/* AI Answer Direct Cards */}
+              {(service as any).aeoData?.aiAnswers?.map((block: any, idx: number) => (
+                <div key={idx} className="mb-6 rounded-2xl border border-blue-100 bg-blue-50/20 p-5 space-y-2 text-left">
+                  <span className="inline-flex rounded-full bg-blue-100 px-3 py-1 text-[9px] font-bold uppercase tracking-wider text-blue-700">
+                    ★ AI Overview & Direct Answer
+                  </span>
+                  <h3 className="text-xs font-bold text-slate-850 uppercase tracking-wider">{block.question}</h3>
+                  <p className="text-xs leading-relaxed text-slate-600 font-semibold">{block.answer}</p>
+                </div>
+              ))}
+
               <p className="text-xs leading-relaxed text-slate-500">{service.description}</p>
               <div className="mt-6">
                 <FeatureGrid features={[...service.features, ...service.includes]} />
               </div>
             </Section>
+
+            {/* AEO Comparison Tables */}
+            {(service as any).aeoData?.comparisons && (service as any).aeoData.comparisons.length > 0 && (
+              <Section title="Compare Technology Options & Specifications">
+                <div className="space-y-6">
+                  {(service as any).aeoData.comparisons.map((comp: any, idx: number) => (
+                    <div key={idx} className="space-y-3">
+                      <h3 className="text-xs font-bold text-slate-850 uppercase tracking-wider">{comp.title}</h3>
+                      <div className="overflow-x-auto rounded-2xl border border-slate-100 bg-white">
+                        <table className="min-w-full divide-y divide-slate-100 text-xs text-slate-600">
+                          <thead className="bg-slate-50 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                            <tr>
+                              {comp.headers.map((h: string) => (
+                                <th key={h} className="px-4 py-3 text-left">{h}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 font-medium">
+                            {comp.rows.map((row: string[], rIdx: number) => (
+                              <tr key={rIdx} className="hover:bg-slate-50/50 transition">
+                                {row.map((cell: string, cIdx: number) => (
+                                  <td key={cIdx} className="px-4 py-3 whitespace-nowrap">{cell}</td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            )}
+
+            {/* AEO How-To Step Guides */}
+            {(service as any).aeoData?.howTo && (
+              <Section title={(service as any).aeoData.howTo.title}>
+                <p className="mb-6 text-xs leading-relaxed text-slate-500">
+                  {(service as any).aeoData.howTo.description}
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-left">
+                  {(service as any).aeoData.howTo.steps.map((step: any, sIdx: number) => (
+                    <div key={sIdx} className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-2">
+                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                        {step.name}
+                      </h4>
+                      <p className="text-xs leading-relaxed text-slate-500 font-medium">
+                        {step.text}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            )}
 
             {/* Addons Section */}
             {((service as any).supportedProducts || (service as any).supportedAddons || (service as any).supportedSpareParts) && (
@@ -177,16 +247,16 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
             )}
 
             {/* How it works */}
-            <Section title="How it works">
+            <Section title={`How does our ${service.title} booking process work?`}>
               <HorizontalStepper steps={service.steps} />
             </Section>
 
             {/* FAQ Accordion */}
-            <Section title="Frequently Asked Questions">
+            <Section title={`Common Questions About ${service.title} in Bangalore`}>
               <Accordion type="single" collapsible className="w-full">
-                {service.faqs.slice(0, 5).map((faq, index) => (
+                {service.faqs.map((faq, index) => (
                   <AccordionItem key={faq.question} value={`faq-${index}`} className="border-slate-100">
-                    <AccordionTrigger className="text-xs font-bold text-slate-800 hover:no-underline">{faq.question}</AccordionTrigger>
+                    <AccordionTrigger className="text-xs font-bold text-slate-850 hover:no-underline text-left">{faq.question}</AccordionTrigger>
                     <AccordionContent className="text-xs leading-relaxed text-slate-500">{faq.answer}</AccordionContent>
                   </AccordionItem>
                 ))}
@@ -243,7 +313,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
             )}
 
             {/* Related Services */}
-            <Section title="Related Services">
+            <Section title="Other Popular IT & Security Solutions in Bangalore">
               <div className="grid gap-3 sm:grid-cols-3">
                 {recommended.map((item) => (
                   <Link key={item.slug} href={`/services/${item.slug}`} className="group rounded-2xl border border-slate-100 bg-white p-4 transition duration-200 hover:border-blue-100 hover:shadow-sm">
@@ -260,7 +330,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
             <div className="sticky top-28 space-y-4">
               <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-5">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Starting from</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">How much does it cost?</p>
                   <p className="mt-1 text-3xl font-black text-slate-800">{service.price}</p>
                 </div>
                 

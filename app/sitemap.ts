@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import { fetchAllSubcategories } from "@/lib/catalog-api";
+import { GEO_PAGES } from "@/lib/geo-data";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://techbes.co.in";
@@ -102,11 +103,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
+  // 6. Knowledge Hub Landing and Dynamic Guides
+  const knowledgePages = [
+    { url: `${baseUrl}/knowledge`, lastModified: new Date(), changeFrequency: "daily" as const, priority: 0.8 },
+    ...Object.values(GEO_PAGES).map((page) => ({
+      url: `${baseUrl}/knowledge/${page.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    }))
+  ];
+
   return [
     ...staticPages,
     ...servicePages,
     ...futureLocations,
     ...futureBlogs,
     ...futureCategories,
+    ...knowledgePages,
   ] as MetadataRoute.Sitemap;
 }

@@ -6,6 +6,7 @@ import { managedServiceToMarketplaceService } from "@/lib/cctv-api";
 import { fetchSubcategoryDetail } from "@/lib/catalog-api";
 import { getSeoMetadata, getServiceSeo } from "@/lib/seo-helpers";
 import { JsonLd } from "@/components/seo/json-ld";
+import { getAeoDataForSlug } from "@/lib/aeo-data";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -104,6 +105,18 @@ export default async function ServiceDetailsPage({ params }: PageProps) {
     notFound();
   }
 
+  const aeoData = getAeoDataForSlug(slug);
+  if (aeoData) {
+    const existingQuestions = new Set(service.faqs?.map((f: any) => f.question.toLowerCase()) || []);
+    const uniqueAeoFaqs = aeoData.faqs.filter((f) => !existingQuestions.has(f.question.toLowerCase()));
+    
+    service = {
+      ...service,
+      faqs: [...(service.faqs || []), ...uniqueAeoFaqs],
+      aeoData: aeoData,
+    };
+  }
+
   const breadcrumbs = {
     items: [
       { name: "Home", url: "/" },
@@ -119,6 +132,7 @@ export default async function ServiceDetailsPage({ params }: PageProps) {
       <JsonLd type="breadcrumb" data={breadcrumbs} />
       <JsonLd type="service" data={service} />
       {service.faqs && service.faqs.length > 0 && <JsonLd type="faq" data={service} />}
+      {aeoData?.howTo && <JsonLd type="howto" data={aeoData.howTo} />}
       {isBuyProducts && <JsonLd type="product" data={service} />}
       <ServiceDetailView service={service} />
     </PageShell>

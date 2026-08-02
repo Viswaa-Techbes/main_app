@@ -1,7 +1,7 @@
 import React from "react";
 
 export interface JsonLdProps {
-  type: "organization" | "localbusiness" | "website" | "service" | "breadcrumb" | "faq" | "product";
+  type: "organization" | "localbusiness" | "website" | "service" | "breadcrumb" | "faq" | "product" | "howto";
   data?: any;
 }
 
@@ -9,6 +9,23 @@ export function JsonLd({ type, data }: JsonLdProps) {
   let schema: any = null;
 
   switch (type) {
+    case "howto":
+      if (data) {
+        schema = {
+          "@context": "https://schema.org",
+          "@type": "HowTo",
+          "name": data.title,
+          "description": data.description || "",
+          "step": data.steps.map((step: { name: string; text: string }, index: number) => ({
+            "@type": "HowToStep",
+            "position": index + 1,
+            "name": step.name,
+            "text": step.text
+          }))
+        };
+      }
+      break;
+
     case "organization":
       schema = {
         "@context": "https://schema.org",

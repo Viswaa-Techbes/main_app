@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 const navItems = [
   { label: "Home", href: "/" },
   { label: "Services", href: "/services" },
-  { label: "Solutions", href: "/services" },
+  { label: "Knowledge Hub", href: "/knowledge" },
   { label: "About Us", href: "/about" },
   { label: "Contact Us", href: "/contact" },
 ];

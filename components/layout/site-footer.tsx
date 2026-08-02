@@ -70,14 +70,14 @@ export function SiteFooter() {
             </ul>
           </div>
 
-          {/* Solutions Group */}
+          {/* Knowledge Center Group */}
           <div>
-            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Solutions</h4>
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Knowledge</h4>
             <ul className="mt-4 space-y-3 text-xs text-slate-400 font-semibold">
-              <li><Link href="/services" className="hover:text-white transition-colors">Annual Contracts</Link></li>
-              <li><Link href="/services" className="hover:text-white transition-colors">Managed Security</Link></li>
-              <li><Link href="/services?category=website-development" className="hover:text-white transition-colors">Web Development</Link></li>
-              <li><Link href="/services?category=home-automation" className="hover:text-white transition-colors">Home Automation</Link></li>
+              <li><Link href="/knowledge" className="hover:text-white transition-colors">Knowledge Hub</Link></li>
+              <li><Link href="/knowledge/cctv-buying-guide" className="hover:text-white transition-colors">CCTV Buying Guide</Link></li>
+              <li><Link href="/knowledge/cp-plus-vs-hikvision" className="hover:text-white transition-colors">CP Plus vs Hikvision</Link></li>
+              <li><Link href="/knowledge/nagarbhavi" className="hover:text-white transition-colors">Service Areas</Link></li>
             </ul>
           </div>
 

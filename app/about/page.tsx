@@ -241,6 +241,40 @@ export default function AboutPage() {
             </div>
           </section>
 
+          {/* Trust Credentials (E-E-A-T) */}
+          <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-4">
+            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider text-center">E-E-A-T Certified Trust & Business Credentials</h2>
+            <div className="grid gap-4 sm:grid-cols-3 pt-2 text-left">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4.5 w-4.5 text-blue-600" />
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">100% Verified Experts</h3>
+                </div>
+                <p className="text-[11px] leading-relaxed text-slate-500 font-semibold">
+                  Every field technician undergoes thorough police background validation, safety training, and holds professional certifications in system integration.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Award className="h-4.5 w-4.5 text-blue-600" />
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Workmanship Guarantee</h3>
+                </div>
+                <p className="text-[11px] leading-relaxed text-slate-500 font-semibold">
+                  TechBes provides a 30-day post-service warranty on all manual terminations, mount structures, and wring paths, ensuring high stability.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Cpu className="h-4.5 w-4.5 text-blue-600" />
+                  <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">SLA Enterprise Operations</h3>
+                </div>
+                <p className="text-[11px] leading-relaxed text-slate-500 font-semibold">
+                  We maintain strict Service Level Agreements (SLAs) with corporate partners, guaranteeing defined turnaround times on AMC breakdown diagnostics.
+                </p>
+              </div>
+            </div>
+          </section>
+
           {/* Major Clients */}
           <section className="space-y-6">
             <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider text-center">Our Major Clients</h2>
