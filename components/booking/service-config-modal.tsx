@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CalendarCheck, FileText, ShoppingCart, Zap, ShieldAlert, CheckCircle2, Info, Loader2, Upload, MapPin, Check, Wallet } from "lucide-react";
+import { CalendarCheck, FileText, ShoppingCart, Zap, ShieldAlert, CheckCircle2, Info, Loader2, Upload, MapPin, Check, Wallet, Plus } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -1880,7 +1880,7 @@ export function ServiceBookingConfigModal({
                           }`}
                         >
                           <span className="font-bold text-slate-600 flex items-center gap-1.5">
-                            <PlusIcon className="h-4 w-4" /> Add New Address
+                            <Plus className="h-4 w-4" /> Add New Address
                           </span>
                         </div>
                       </div>
