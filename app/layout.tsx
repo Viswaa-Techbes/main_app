@@ -1,16 +1,24 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import Script from "next/script";
 
 import { AppProviders } from "@/providers/app-providers";
 import { AIAssistantWidget } from "@/components/AIAssistantWidget";
+import { JsonLd } from "@/components/seo/json-ld";
 
 import "./globals.css";
 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "Techbes Marketplace | Book Verified IT Experts",
+  title: "TechBes | CCTV Installation & IT Services in Bangalore",
   description:
-    "A modern IT service marketplace for CCTV, networking, laptop, desktop, server setup, electronic contracts, home automation, website development, software licensing, and cyber security.",
+    "Book professional CCTV installation, repair, AMC, networking and IT services across Bangalore with verified technicians and transparent pricing.",
   generator: "OpenAI Codex",
   icons: {
     icon: "/logo.png",
@@ -24,7 +32,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en" data-scroll-behavior="smooth" className={inter.variable}>
+      <head>
+        <link rel="preconnect" href="https://images.unsplash.com" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <JsonLd type="organization" />
+        <JsonLd type="localbusiness" />
+        <JsonLd type="website" />
+      </head>
       <body className="font-sans antialiased">
         <AppProviders>
           {children}
@@ -39,3 +55,4 @@ export default function RootLayout({
     </html>
   );
 }
+

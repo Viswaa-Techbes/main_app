@@ -21,10 +21,14 @@ import {
   Cpu
 } from "lucide-react";
 
-export const metadata = {
-  title: "About Techbes | IT Infrastructure Solutions Provider",
-  description: "Learn about Techbes, a leading IT infrastructure solutions provider in Bangalore.",
-};
+import { getSeoMetadata } from "@/lib/seo-helpers";
+
+export const metadata = getSeoMetadata({
+  title: "About TechBes | Corporate IT Solutions in Bangalore",
+  description:
+    "Learn about TechBes, Bangalore's leading IT infrastructure solutions provider. We specialize in CCTV, networking, data centers, and corporate AMC.",
+  path: "/about",
+});
 
 export default function AboutPage() {
   const values = [

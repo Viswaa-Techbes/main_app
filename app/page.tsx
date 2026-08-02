@@ -9,6 +9,14 @@ import { WhyChoose } from "@/components/services/why-choose";
 import { CustomerReviews } from "@/components/services/customer-reviews";
 import { Brands } from "@/components/services/brands";
 import { GeneralFaq } from "@/components/services/general-faq";
+import { getSeoMetadata } from "@/lib/seo-helpers";
+
+export const metadata = getSeoMetadata({
+  title: "TechBes | CCTV Installation & IT Services in Bangalore",
+  description:
+    "Book professional CCTV installation, repair, AMC, networking and IT services across Bangalore with verified technicians and transparent pricing.",
+  path: "/",
+});
 
 export default function Home() {
   return (

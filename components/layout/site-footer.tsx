@@ -115,8 +115,8 @@ export function SiteFooter() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>© 2026 Techbes India. All rights reserved. Razorpay Secured Gateway.</p>
           <div className="flex gap-4 text-[10px] uppercase tracking-wider">
-            <Link href="/services" className="hover:text-slate-400">Privacy Policy</Link>
-            <Link href="/services" className="hover:text-slate-400">Terms of Use</Link>
+            <Link href="/privacy" className="hover:text-slate-400">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-slate-400">Terms of Use</Link>
           </div>
         </div>
       </div>

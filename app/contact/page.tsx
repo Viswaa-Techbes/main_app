@@ -5,10 +5,14 @@ import { Mail, Phone, MapPin, Clock, ArrowRight, ShieldCheck } from "lucide-reac
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Link from "next/link";
 
-export const metadata = {
-  title: "Contact Techbes | Bangalore Corporate IT Office",
-  description: "Get in touch with Techbes corporate office in Nagarbhavi, Bangalore.",
-};
+import { getSeoMetadata } from "@/lib/seo-helpers";
+
+export const metadata = getSeoMetadata({
+  title: "Contact TechBes | Nagarbhavi Corporate IT Office",
+  description:
+    "Get in touch with TechBes corporate office in Papareddy Palya, Nagarbhavi, Bangalore. Call +91 95911 44949 or email lohith@techbes.co.in.",
+  path: "/contact",
+});
 
 export default function ContactPage() {
   const supportCards = [

@@ -3,8 +3,12 @@ import { CheckCircle2, ChevronRight, LayoutDashboard, Search } from "lucide-reac
 import { PageShell } from "@/components/layout/page-shell";
 
 export const metadata = {
-  title: "Booking Confirmed | Techbes",
+  title: "Booking Confirmed | TechBes",
   description: "Your IT service slot has been confirmed successfully.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function BookingSuccessPage({ searchParams }: { searchParams: Promise<{ bookingId?: string }> }) {

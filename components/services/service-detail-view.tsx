@@ -110,6 +110,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                 <Image
                   src={imgSrc}
                   alt={service.title}
+                  title={service.title}
                   fill
                   className="object-cover"
                   onError={() => setImgSrc("https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80")}
@@ -191,6 +192,55 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                 ))}
               </Accordion>
             </Section>
+
+            {/* CCTV Internal Linking Strip */}
+            {service.categoryId === "cctv" && (
+              <Section title="TechBes CCTV Security Ecosystem in Bangalore">
+                <p className="mb-4 text-xs leading-relaxed text-slate-500 font-semibold">
+                  From initial planning to long-term maintenance, TechBes provides complete end-to-end security camera lifecycle services across Bangalore.
+                </p>
+                <div className="grid gap-3 grid-cols-2 md:grid-cols-5 text-left">
+                  {[
+                    { slug: "install-new-cctv", label: "1. Install CCTV", desc: "Site setup & wiring" },
+                    { slug: "maintenance-amc", label: "2. CCTV AMC", desc: "Annual servicing contracts" },
+                    { slug: "repair-existing-cctv", label: "3. CCTV Repair", desc: "Troubleshoot & fix faults" },
+                    { slug: "buy-cctv-products", label: "4. Buy Cameras", desc: "Recorders, wires & gear" },
+                    { slug: "free-site-survey", label: "5. Free Survey", desc: "On-site planning & quote" }
+                  ].map((item) => {
+                    const isActive = service.slug === item.slug;
+                    return (
+                      <Link
+                        key={item.slug}
+                        href={`/services/${item.slug}`}
+                        className={`group p-4 rounded-2xl border transition duration-200 text-center flex flex-col justify-between ${
+                          isActive
+                            ? "bg-blue-50/50 border-blue-200 ring-1 ring-blue-100"
+                            : "bg-white border-slate-100 hover:border-blue-100 hover:shadow-sm"
+                        }`}
+                      >
+                        <div>
+                          <h4 className={`text-xs font-bold transition-colors ${
+                            isActive ? "text-blue-700" : "text-slate-800 group-hover:text-blue-600"
+                          }`}>
+                            {item.label}
+                          </h4>
+                          <p className="mt-1 text-[9px] text-slate-400 font-semibold leading-relaxed">
+                            {item.desc}
+                          </p>
+                        </div>
+                        <span className={`mt-3 mx-auto inline-flex items-center justify-center h-5 w-5 rounded-full text-[9px] font-bold ${
+                          isActive
+                            ? "bg-blue-600 text-white"
+                            : "bg-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition"
+                        }`}>
+                          {isActive ? "✓" : "→"}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </Section>
+            )}
 
             {/* Related Services */}
             <Section title="Related Services">

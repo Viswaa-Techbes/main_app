@@ -2,8 +2,12 @@ import { LoginForm } from "@/features/auth/components/login-form";
 import { SignupForm } from "@/features/auth/components/signup-form";
 
 export const metadata = {
-  title: "Sign In | Techbes IT Marketplace",
+  title: "Sign In | TechBes IT Marketplace",
   description: "Log in to your Techbes account to manage bookings, track technicians, and access IT service history.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default async function LoginPage({
