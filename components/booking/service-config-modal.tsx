@@ -138,8 +138,51 @@ export function ServiceBookingConfigModal({
   const [cctvInstallationRequired, setCctvInstallationRequired] = useState<boolean>(false);
   const [cctvCableType, setCctvCableType] = useState<string>("");
   const [cctvCableLength, setCctvCableLength] = useState<number>(0);
-  const [cctvDvrRequired, setCctvDvrRequired] = useState<boolean>(false);
-  const [cctvNvrRequired, setCctvNvrRequired] = useState<boolean>(false);
+  const [cctvDvrChannels, setCctvDvrChannels] = useState<string>("None");
+  const [cctvDvrManualOverride, setCctvDvrManualOverride] = useState<boolean>(false);
+
+  const cctvTotalCameras = useMemo(() => {
+    return Object.entries(cctvSelectedCameraTypes)
+      .filter(([_, checked]) => checked)
+      .reduce((sum, [type]) => sum + (cctvCameraQuantities[type] || 1), 0);
+  }, [cctvSelectedCameraTypes, cctvCameraQuantities]);
+
+  const hasAnalog = useMemo(() => {
+    return Object.entries(cctvSelectedCameraTypes)
+      .filter(([_, checked]) => checked)
+      .some(([type]) => type === "Analog Camera");
+  }, [cctvSelectedCameraTypes]);
+
+  const isRecorderSelected = cctvDvrChannels && cctvDvrChannels !== "None";
+  const cctvDvrRequired = isRecorderSelected && hasAnalog;
+  const cctvNvrRequired = isRecorderSelected && !hasAnalog;
+
+  const showSdCardSection = useMemo(() => {
+    return Object.entries(cctvSelectedCameraTypes)
+      .filter(([_, checked]) => checked)
+      .some(([type]) => ["WiFi Indoor Camera", "WiFi Outdoor Camera", "4G Camera"].includes(type));
+  }, [cctvSelectedCameraTypes]);
+
+  useEffect(() => {
+    if (!showSdCardSection) {
+      setCctvSdCardEnabled(false);
+    }
+  }, [showSdCardSection]);
+
+  useEffect(() => {
+    if (isInstallNewCctv) {
+      let rec = "None";
+      if (cctvTotalCameras > 0) {
+        if (cctvTotalCameras <= 4) rec = "4 Channel";
+        else if (cctvTotalCameras <= 8) rec = "8 Channel";
+        else if (cctvTotalCameras <= 16) rec = "16 Channel";
+        else rec = "32 Channel";
+      }
+      if (!cctvDvrManualOverride) {
+        setCctvDvrChannels(rec);
+      }
+    }
+  }, [cctvTotalCameras, isInstallNewCctv, cctvDvrManualOverride]);
   const [cctvNetworkRack, setCctvNetworkRack] = useState<boolean>(false);
   const [cctvMonitorMounting, setCctvMonitorMounting] = useState<boolean>(false);
 
@@ -184,8 +227,8 @@ export function ServiceBookingConfigModal({
       setCctvInstallationRequired(false);
       setCctvCableType("");
       setCctvCableLength(0);
-      setCctvDvrRequired(false);
-      setCctvNvrRequired(false);
+      setCctvDvrChannels("None");
+      setCctvDvrManualOverride(false);
       setCctvNetworkRack(false);
       setCctvMonitorMounting(false);
       setCctvCalculatedPrice(null);
@@ -360,7 +403,8 @@ export function ServiceBookingConfigModal({
       monitorMounting: cctvMonitorMounting,
       sdCardRequired: cctvSdCardEnabled,
       sdCardCapacity: cctvSdCardCapacity,
-      sdCardQuantity: cctvSdCardQuantity
+      sdCardQuantity: cctvSdCardQuantity,
+      selectedDvrChannels: cctvDvrChannels
     };
     
     setCctvCalculating(true);
@@ -389,6 +433,7 @@ export function ServiceBookingConfigModal({
     cctvInstallationRequired,
     cctvCableType,
     cctvCableLength,
+    cctvDvrChannels,
     cctvDvrRequired,
     cctvNvrRequired,
     cctvNetworkRack,
@@ -721,6 +766,10 @@ export function ServiceBookingConfigModal({
           toast({ title: "Camera Type Required", description: "Please select at least one camera type.", variant: "destructive" });
           return;
         }
+        if (cctvTotalCameras > 16) {
+          toast({ title: "Enterprise Booking Required", description: "CCTV bookings with more than 16 cameras are blocked online. Please contact our office.", variant: "destructive" });
+          return;
+        }
         if (cctvInstallationRequired) {
           if (!cctvCableType) {
             toast({ title: "Cable Type Required", description: "Please select a cable type.", variant: "destructive" });
@@ -869,6 +918,7 @@ export function ServiceBookingConfigModal({
           cableLength: cctvCableLength,
           dvrRequired: cctvDvrRequired,
           nvrRequired: cctvNvrRequired,
+          selectedDvrChannels: cctvDvrChannels,
           networkRack: cctvNetworkRack,
           monitorMounting: cctvMonitorMounting,
           sdCardRequired: cctvSdCardEnabled,
@@ -1365,33 +1415,29 @@ export function ServiceBookingConfigModal({
                         )}
                       </div>
 
-                      {/* 5. DVR / NVR Installation */}
+                      {/* 5. DVR / NVR Dropdown */}
                       <div className="space-y-3 bg-slate-50/50 rounded-2xl p-4 border border-slate-100">
-                        <label className="text-xs font-bold text-slate-700 block">Recorder Options</label>
-                        <div className="space-y-2.5 pt-2">
-                          <label className="flex items-center gap-2 cursor-pointer select-none">
-                            <input
-                              type="checkbox"
-                              checked={cctvDvrRequired}
-                              onChange={(e) => setCctvDvrRequired(e.target.checked)}
-                              className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                            />
-                            <span className="font-bold text-xs text-slate-800">
-                              Need DVR Installation (+₹{cctvAccessories.find(a => a.name.toLowerCase().includes("dvr"))?.price || 1000})
-                            </span>
-                          </label>
-
-                          <label className="flex items-center gap-2 cursor-pointer select-none">
-                            <input
-                              type="checkbox"
-                              checked={cctvNvrRequired}
-                              onChange={(e) => setCctvNvrRequired(e.target.checked)}
-                              className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                            />
-                            <span className="font-bold text-xs text-slate-800">
-                              Need NVR Installation (+₹{cctvAccessories.find(a => a.name.toLowerCase().includes("nvr"))?.price || 1000})
-                            </span>
-                          </label>
+                        <label className="text-xs font-bold text-slate-700 block">DVR / NVR Recorder Channel</label>
+                        <div className="space-y-2">
+                          <select
+                            value={cctvDvrChannels}
+                            onChange={(e) => {
+                              setCctvDvrChannels(e.target.value);
+                              setCctvDvrManualOverride(true);
+                            }}
+                            className="h-10 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                          >
+                            <option value="None">None / Not Required</option>
+                            <option value="4 Channel">4 Channel</option>
+                            <option value="8 Channel">8 Channel</option>
+                            <option value="16 Channel">16 Channel</option>
+                            <option value="32 Channel">32 Channel</option>
+                          </select>
+                          {cctvTotalCameras > 0 && (
+                            <p className="text-[10px] text-blue-700 font-bold mt-1">
+                              Recommended: {cctvTotalCameras <= 4 ? "4 Channel" : cctvTotalCameras <= 8 ? "8 Channel" : cctvTotalCameras <= 16 ? "16 Channel" : "32 Channel"} DVR/NVR based on your selected cameras.
+                            </p>
+                          )}
                         </div>
                       </div>
 
@@ -1430,64 +1476,108 @@ export function ServiceBookingConfigModal({
                           </label>
 
                           {/* SD Card (Memory Card) Add-on */}
-                          <div className="border-t border-slate-200/60 pt-3 mt-3 space-y-3">
-                            <label className="flex items-center gap-2 cursor-pointer select-none">
-                              <input
-                                type="checkbox"
-                                checked={cctvSdCardEnabled}
-                                onChange={(e) => {
-                                  setCctvSdCardEnabled(e.target.checked);
-                                  if (e.target.checked && cctvSdCards.length > 0 && !cctvSdCardCapacity) {
-                                    setCctvSdCardCapacity(cctvSdCards[0].capacity);
-                                  }
-                                }}
-                                className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                              />
-                              <span className="font-bold text-xs text-slate-800">Add Memory Card (SD Card)</span>
-                            </label>
+                          {showSdCardSection && (
+                            <div className="border-t border-slate-200/60 pt-3 mt-3 space-y-3">
+                              <label className="flex items-center gap-2 cursor-pointer select-none">
+                                <input
+                                  type="checkbox"
+                                  checked={cctvSdCardEnabled}
+                                  onChange={(e) => {
+                                    setCctvSdCardEnabled(e.target.checked);
+                                    if (e.target.checked && cctvSdCards.length > 0 && !cctvSdCardCapacity) {
+                                      setCctvSdCardCapacity(cctvSdCards[0].capacity);
+                                    }
+                                  }}
+                                  className="h-4.5 w-4.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <span className="font-bold text-xs text-slate-800">Add Memory Card (SD Card)</span>
+                              </label>
 
-                            {cctvSdCardEnabled && (
-                              <div className="grid gap-3 sm:grid-cols-2 pl-6.5 animate-fadeIn">
-                                <div className="space-y-1">
-                                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Capacity *</label>
-                                  <select
-                                    value={cctvSdCardCapacity}
-                                    onChange={(e) => setCctvSdCardCapacity(e.target.value)}
-                                    className="h-9 w-full rounded-lg border border-slate-200 px-2.5 bg-white text-[11px] font-semibold text-slate-700 focus:outline-none"
-                                    required
-                                  >
-                                    {cctvSdCards.map((sd) => (
-                                      <option key={sd._id} value={sd.capacity}>
-                                        {sd.capacity} (₹{sd.price})
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-                                <div className="space-y-1">
-                                  <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Quantity</label>
-                                  <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white h-9 w-24">
-                                    <button
-                                      type="button"
-                                      onClick={() => setCctvSdCardQuantity(q => Math.max(q - 1, 1))}
-                                      className="h-full w-8 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+                              {cctvSdCardEnabled && (
+                                <div className="grid gap-3 sm:grid-cols-2 pl-6.5 animate-fadeIn">
+                                  <div className="space-y-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Capacity *</label>
+                                    <select
+                                      value={cctvSdCardCapacity}
+                                      onChange={(e) => setCctvSdCardCapacity(e.target.value)}
+                                      className="h-9 w-full rounded-lg border border-slate-200 px-2.5 bg-white text-[11px] font-semibold text-slate-700 focus:outline-none"
+                                      required
                                     >
-                                      -
-                                    </button>
-                                    <span className="flex-1 text-center text-xs font-extrabold text-slate-700">{cctvSdCardQuantity}</span>
-                                    <button
-                                      type="button"
-                                      onClick={() => setCctvSdCardQuantity(q => q + 1)}
-                                      className="h-full w-8 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
-                                    >
-                                      +
-                                    </button>
+                                      {cctvSdCards.map((sd) => (
+                                        <option key={sd._id} value={sd.capacity}>
+                                          {sd.capacity} (₹{sd.price})
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <div className="space-y-1">
+                                    <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Quantity</label>
+                                    <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white h-9 w-24">
+                                      <button
+                                        type="button"
+                                        onClick={() => setCctvSdCardQuantity(q => Math.max(q - 1, 1))}
+                                        className="h-full w-8 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+                                      >
+                                        -
+                                      </button>
+                                      <span className="flex-1 text-center text-xs font-extrabold text-slate-700">{cctvSdCardQuantity}</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => setCctvSdCardQuantity(q => q + 1)}
+                                        className="h-full w-8 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+                                      >
+                                        +
+                                      </button>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            )}
-                          </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
+
+                      {/* Large Enterprise Installation Block */}
+                      {cctvTotalCameras > 16 && (
+                        <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 text-white rounded-2xl p-5 shadow-xl border border-blue-900 mt-4 space-y-4 animate-fadeIn">
+                          <div className="flex items-start gap-3">
+                            <div className="p-2 bg-white/10 rounded-xl mt-0.5">
+                              <ShieldAlert className="h-5 w-5 text-blue-300 animate-pulse" />
+                            </div>
+                            <div className="space-y-1">
+                              <h3 className="font-extrabold text-sm uppercase tracking-wider text-blue-300">Large Enterprise Installation</h3>
+                              <p className="text-[11px] text-slate-300 font-bold leading-relaxed">
+                                Installations above 16 cameras require a customized site assessment and quotation. Please contact our office to arrange a site survey.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="border-t border-white/10 pt-3 flex flex-wrap gap-2.5">
+                            <a
+                              href="tel:+919900012345"
+                              className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider transition"
+                            >
+                              <CalendarCheck className="h-3.5 w-3.5" /> Call Now
+                            </a>
+                            <a
+                              href="https://wa.me/919900012345?text=Hi%20Techbes,%20I%20need%20a%20custom%20quote%20for%20a%20large%20CCTV%20installation%20with%20more%20than%2016%20cameras."
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider transition"
+                            >
+                              WhatsApp
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                toast({ title: "Callback Requested", description: "Our enterprise sales manager will contact you shortly." });
+                              }}
+                              className="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider transition"
+                            >
+                              Request Callback
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     // Default questions render
@@ -2081,6 +2171,17 @@ export function ServiceBookingConfigModal({
                               <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.sdCardTotal || 0)}</span>
                             </div>
                           )}
+
+                          {/* Miscellaneous Charges */}
+                          {prices.rawBreakdown?.miscCharges > 0 && (
+                            <div className="flex justify-between text-xs text-slate-600 font-semibold">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-slate-800">Miscellaneous Charges</span>
+                                <span className="text-[10px] text-slate-400 font-medium">Service fee</span>
+                              </div>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.miscCharges)}</span>
+                            </div>
+                          )}
                         </div>
 
                         <div className="p-4 bg-slate-50/50 space-y-2.5">
@@ -2241,7 +2342,12 @@ export function ServiceBookingConfigModal({
                 <div />
               )}
               {step < stepsList.length ? (
-                <Button size="sm" onClick={goNext} className="h-9 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs">
+                <Button 
+                  size="sm" 
+                  onClick={goNext} 
+                  disabled={isInstallNewCctv && cctvTotalCameras > 16}
+                  className="h-9 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs"
+                >
                   Continue
                 </Button>
               ) : (
