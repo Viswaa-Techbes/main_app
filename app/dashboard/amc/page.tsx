@@ -319,7 +319,98 @@ export default function AmcPage() {
             </div>
           </div>
         </div>
+      ) : (
+        <div className="space-y-8">
+          <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm text-center max-w-3xl mx-auto space-y-6">
+            <Shield className="text-blue-600 w-16 h-16 mx-auto animate-bounce" />
+            <h2 className="text-3xl font-extrabold text-gray-900">Secure Your IT Infrastructure with TechBes Shield</h2>
+            <p className="text-gray-500 text-sm max-w-xl mx-auto">
+              Preventive maintenance, regular checkups, priority support, and discounted spare parts. Choose a plan to activate your TechBes AMC Shield subscription.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Silver Plan */}
+            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col justify-between space-y-6 relative overflow-hidden hover:shadow-md transition-shadow">
+              <div>
+                <h3 className="text-xl font-bold text-gray-950">Silver Shield</h3>
+                <p className="text-gray-505 text-xs mt-1">Perfect for homes & small offices</p>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="text-4xl font-extrabold text-blue-600">4</span>
+                  <span className="text-gray-505 text-sm font-semibold">visits / year</span>
+                </div>
+                <ul className="mt-6 space-y-3 text-xs text-gray-600 font-medium">
+                  <li className="flex items-center gap-2">✓ Regular camera cleaning & checks</li>
+                  <li className="flex items-center gap-2">✓ Priority SLA tickets queue</li>
+                  <li className="flex items-center gap-2">✓ Zero call-out inspection fees</li>
+                  <li className="flex items-center gap-2">✓ 10% discount on repair parts</li>
+                </ul>
+              </div>
+              <button
+                disabled={purchasing}
+                onClick={() => handlePurchase("Silver")}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-bold rounded-xl text-xs shadow-md transition-all"
+              >
+                {purchasing ? "Processing..." : "Select Silver Plan"}
+              </button>
+            </div>
+
+            {/* Gold Plan */}
+            <div className="bg-white rounded-3xl p-8 border-2 border-indigo-600 shadow-lg flex flex-col justify-between space-y-6 relative overflow-hidden transform hover:-translate-y-1 transition-all">
+              <div className="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-black px-3 py-1 rounded-bl-xl uppercase tracking-wider">
+                Popular
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-950">Gold Shield</h3>
+                <p className="text-gray-505 text-xs mt-1">Best for medium enterprises</p>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="text-4xl font-extrabold text-indigo-600">6</span>
+                  <span className="text-gray-505 text-sm font-semibold">visits / year</span>
+                </div>
+                <ul className="mt-6 space-y-3 text-xs text-gray-600 font-medium">
+                  <li className="flex items-center gap-2">✓ Bi-monthly preventative visits</li>
+                  <li className="flex items-center gap-2">✓ 4-hour emergency SLA response</li>
+                  <li className="flex items-center gap-2">✓ Free replacement backup equipment</li>
+                  <li className="flex items-center gap-2">✓ 15% discount on repair parts</li>
+                </ul>
+              </div>
+              <button
+                disabled={purchasing}
+                onClick={() => handlePurchase("Gold")}
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-bold rounded-xl text-xs shadow-md transition-all"
+              >
+                {purchasing ? "Processing..." : "Select Gold Plan"}
+              </button>
+            </div>
+
+            {/* Diamond Plan */}
+            <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex flex-col justify-between space-y-6 relative overflow-hidden hover:shadow-md transition-shadow">
+              <div>
+                <h3 className="text-xl font-bold text-gray-950">Diamond Shield</h3>
+                <p className="text-gray-505 text-xs mt-1">Premium 24/7 round-the-clock shield</p>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="text-4xl font-extrabold text-emerald-600">12</span>
+                  <span className="text-gray-505 text-sm font-semibold">visits / year</span>
+                </div>
+                <ul className="mt-6 space-y-3 text-xs text-gray-600 font-medium">
+                  <li className="flex items-center gap-2">✓ Monthly dedicated physical audits</li>
+                  <li className="flex items-center gap-2">✓ 2-hour premium SLA support</li>
+                  <li className="flex items-center gap-2">✓ Dedicated account manager</li>
+                  <li className="flex items-center gap-2">✓ 20% discount on repair parts</li>
+                </ul>
+              </div>
+              <button
+                disabled={purchasing}
+                onClick={() => handlePurchase("Diamond")}
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white font-bold rounded-xl text-xs shadow-md transition-all"
+              >
+                {purchasing ? "Processing..." : "Select Diamond Plan"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
+
 
       {/* RESCHEDULE MODAL */}
       {reschedulingVisit && (
