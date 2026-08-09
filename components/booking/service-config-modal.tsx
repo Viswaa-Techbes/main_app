@@ -185,6 +185,10 @@ export function ServiceBookingConfigModal({
   }, [cctvTotalCameras, isInstallNewCctv, cctvDvrManualOverride]);
   const [cctvNetworkRack, setCctvNetworkRack] = useState<boolean>(false);
   const [cctvMonitorMounting, setCctvMonitorMounting] = useState<boolean>(false);
+  const [cctvHdds, setCctvHdds] = useState<any[]>([]);
+  const [cctvRacks, setCctvRacks] = useState<any[]>([]);
+  const [cctvHddCapacity, setCctvHddCapacity] = useState<string>("");
+  const [cctvRackType, setCctvRackType] = useState<string>("");
 
   // Dynamic CCTV pricing tables fetched from API
   const [cctvBrands, setCctvBrands] = useState<any[]>([]);
@@ -231,6 +235,8 @@ export function ServiceBookingConfigModal({
       setCctvDvrManualOverride(false);
       setCctvNetworkRack(false);
       setCctvMonitorMounting(false);
+      setCctvHddCapacity("");
+      setCctvRackType("");
       setCctvCalculatedPrice(null);
     }
   }, [open]);
@@ -247,7 +253,9 @@ export function ServiceBookingConfigModal({
       fetch("/api/v2/cctv/installation-charges").then(r => r.json()),
       fetch("/api/v2/cctv/accessories").then(r => r.json()),
       fetch("/api/v2/cctv/pricing-config").then(r => r.json()),
-    ]).then(([brandsRes, modelsRes, sdRes, cablesRes, instRes, accRes, configRes]) => {
+      fetch("/api/v2/cctv/hdds").then(r => r.json()),
+      fetch("/api/v2/cctv/racks").then(r => r.json()),
+    ]).then(([brandsRes, modelsRes, sdRes, cablesRes, instRes, accRes, configRes, hddRes, rackRes]) => {
       if (brandsRes.success) setCctvBrands(brandsRes.data || []);
       if (modelsRes.success) setCctvAllModels(modelsRes.data || []);
       if (sdRes.success) setCctvSdCards(sdRes.data || []);
@@ -255,6 +263,8 @@ export function ServiceBookingConfigModal({
       if (instRes.success) setCctvInstallationCharges(instRes.data || []);
       if (accRes.success) setCctvAccessories(accRes.data || []);
       if (configRes.success) setCctvPricingConfig(configRes.data || null);
+      if (hddRes?.success) setCctvHdds(hddRes.data || []);
+      if (rackRes?.success) setCctvRacks(rackRes.data || []);
     }).catch(err => console.error("Error loading CCTV dynamic metadata:", err));
   }, [open, isInstallNewCctv, isBuyCctvProducts]);
 
@@ -404,7 +414,9 @@ export function ServiceBookingConfigModal({
       sdCardRequired: cctvSdCardEnabled,
       sdCardCapacity: cctvSdCardCapacity,
       sdCardQuantity: cctvSdCardQuantity,
-      selectedDvrChannels: cctvDvrChannels
+      selectedDvrChannels: cctvDvrChannels,
+      hddCapacity: cctvHddCapacity,
+      rackType: cctvRackType
     };
     
     setCctvCalculating(true);
@@ -437,7 +449,9 @@ export function ServiceBookingConfigModal({
     cctvDvrRequired,
     cctvNvrRequired,
     cctvNetworkRack,
-    cctvMonitorMounting
+    cctvMonitorMounting,
+    cctvHddCapacity,
+    cctvRackType
   ]);
 
   // Handle saved address changes
@@ -633,6 +647,8 @@ export function ServiceBookingConfigModal({
       const nvrChg = pb.nvrTotal || 0;
       const rackChg = pb.rackTotal || 0;
       const monChg = pb.monitorTotal || 0;
+      const hddChg = pb.hddTotal || 0;
+      const rackSelectedChg = pb.rackSelectedTotal || 0;
       const visitChg = pb.baseCharge || 0;
       
       const discount = 0;
@@ -642,7 +658,7 @@ export function ServiceBookingConfigModal({
       return {
         packageCost: fittingChg,
         visitCharge: visitChg,
-        labourCost: cableChg + sdChg + dvrChg + nvrChg + rackChg + monChg,
+        labourCost: cableChg + sdChg + dvrChg + nvrChg + rackChg + monChg + hddChg + rackSelectedChg,
         discount,
         gst,
         grandTotal,
@@ -923,7 +939,9 @@ export function ServiceBookingConfigModal({
           monitorMounting: cctvMonitorMounting,
           sdCardRequired: cctvSdCardEnabled,
           sdCardCapacity: cctvSdCardCapacity,
-          sdCardQuantity: cctvSdCardQuantity
+          sdCardQuantity: cctvSdCardQuantity,
+          hddCapacity: cctvHddCapacity,
+          rackType: cctvRackType
         } : {})
       }
     };
@@ -1532,6 +1550,40 @@ export function ServiceBookingConfigModal({
                                   </div>
                                 </div>
                               )}
+
+                              {/* HDD Capacity selection */}
+                              <div className="border-t border-slate-200/60 pt-3 mt-3 space-y-1.5 animate-fadeIn">
+                                <label className="text-[11px] font-bold text-slate-700 block">HDD / Storage</label>
+                                <select
+                                  value={cctvHddCapacity}
+                                  onChange={(e) => setCctvHddCapacity(e.target.value)}
+                                  className="h-10 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                >
+                                  <option value="">None / Not Required</option>
+                                  {cctvHdds.filter(h => h.status === 'active').map((hdd) => (
+                                    <option key={hdd._id} value={hdd.capacity}>
+                                      {hdd.capacity} — ₹{hdd.price.toLocaleString("en-IN")} + GST
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+
+                              {/* Rack selection */}
+                              <div className="border-t border-slate-200/60 pt-3 mt-3 space-y-1.5 animate-fadeIn">
+                                <label className="text-[11px] font-bold text-slate-700 block">Rack Option</label>
+                                <select
+                                  value={cctvRackType}
+                                  onChange={(e) => setCctvRackType(e.target.value)}
+                                  className="h-10 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                >
+                                  <option value="">None / Not Required</option>
+                                  {cctvRacks.filter(r => r.status === 'active').map((rack) => (
+                                    <option key={rack._id} value={rack.type}>
+                                      {rack.type} — ₹{rack.price.toLocaleString("en-IN")} + GST
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -2139,7 +2191,7 @@ export function ServiceBookingConfigModal({
 
                           {/* Network Rack Mount */}
                           {cctvNetworkRack && (
-                            <div className="flex justify-between text-xs text-slate-600 font-semibold">
+                            <div className="flex justify-between text-xs text-slate-600 font-semibold animate-fadeIn">
                               <div className="flex flex-col">
                                 <span className="font-bold text-slate-800">Network Rack Mounting</span>
                                 <span className="text-[10px] text-slate-400 font-medium">Cabinet fitting & dressing</span>
@@ -2150,7 +2202,7 @@ export function ServiceBookingConfigModal({
 
                           {/* Monitor Mounting */}
                           {cctvMonitorMounting && (
-                            <div className="flex justify-between text-xs text-slate-600 font-semibold">
+                            <div className="flex justify-between text-xs text-slate-600 font-semibold animate-fadeIn">
                               <div className="flex flex-col">
                                 <span className="font-bold text-slate-800">Monitor Mounting</span>
                                 <span className="text-[10px] text-slate-400 font-medium">Wall/desk installation</span>
@@ -2161,7 +2213,7 @@ export function ServiceBookingConfigModal({
 
                           {/* SD Memory Cards */}
                           {cctvSdCardEnabled && (
-                            <div className="flex justify-between text-xs text-slate-600 font-semibold">
+                            <div className="flex justify-between text-xs text-slate-600 font-semibold animate-fadeIn">
                               <div className="flex flex-col">
                                 <span className="font-bold text-slate-800">SD Memory Card ({cctvSdCardCapacity})</span>
                                 <span className="text-[10px] text-slate-400 font-medium">
@@ -2172,9 +2224,31 @@ export function ServiceBookingConfigModal({
                             </div>
                           )}
 
+                          {/* HDD Storage Selection */}
+                          {cctvHddCapacity && (prices.rawBreakdown?.hddTotal > 0) && (
+                            <div className="flex justify-between text-xs text-slate-600 font-semibold animate-fadeIn">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-slate-800">HDD Storage ({cctvHddCapacity})</span>
+                                <span className="text-[10px] text-slate-400 font-medium">CCTV base storage</span>
+                              </div>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.hddTotal)}</span>
+                            </div>
+                          )}
+
+                          {/* Rack Selection */}
+                          {cctvRackType && (prices.rawBreakdown?.rackSelectedTotal > 0) && (
+                            <div className="flex justify-between text-xs text-slate-600 font-semibold animate-fadeIn">
+                              <div className="flex flex-col">
+                                <span className="font-bold text-slate-800">Rack Option ({cctvRackType})</span>
+                                <span className="text-[10px] text-slate-400 font-medium">Server/DVR enclosure</span>
+                              </div>
+                              <span className="font-black text-slate-800 self-center">{money(prices.rawBreakdown.rackSelectedTotal)}</span>
+                            </div>
+                          )}
+
                           {/* Miscellaneous Charges */}
                           {prices.rawBreakdown?.miscCharges > 0 && (
-                            <div className="flex justify-between text-xs text-slate-600 font-semibold">
+                            <div className="flex justify-between text-xs text-slate-600 font-semibold animate-fadeIn">
                               <div className="flex flex-col">
                                 <span className="font-bold text-slate-800">Miscellaneous Charges</span>
                                 <span className="text-[10px] text-slate-400 font-medium">Service fee</span>

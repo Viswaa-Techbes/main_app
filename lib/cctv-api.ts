@@ -51,6 +51,8 @@ export type CctvPriceInput = {
   networkRack?: boolean;
   monitorMounting?: boolean;
   discountPercent?: number;
+  hddCapacity?: string;
+  rackType?: string;
 };
 
 export type CctvPriceResult = {
@@ -332,6 +334,8 @@ export const cctvApi = {
   addons: () => api<CctvAddon[]>("/api/v2/cctv/addons"),
   materials: () => api<CctvAddon[]>("/api/v2/materials"),
   products: () => api<any[]>("/api/v2/cctv/products"),
+  hdds: () => api<any[]>("/api/v2/cctv/hdds"),
+  racks: () => api<any[]>("/api/v2/cctv/racks"),
   calculate: (body: CctvPriceInput) =>
     api<CctvPriceResult>("/api/v2/cctv/calculate-price", { method: "POST", body: JSON.stringify(body) }),
   createBooking: (body: unknown) =>
