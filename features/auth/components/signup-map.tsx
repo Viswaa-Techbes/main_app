@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type L from "leaflet";
 
 interface SignupMapProps {
   lat: number;
@@ -10,15 +11,38 @@ interface SignupMapProps {
 
 export function SignupMap({ lat, lng, onChange }: SignupMapProps) {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<any>(null);
-  const markerRef = useRef<any>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
+  const isMountedRef = useRef<boolean>(true);
+  const latLngRef = useRef<{ lat: number; lng: number }>({ lat, lng });
+
+  // Keep track of coordinates to avoid stale closures in async leaflet initialization
+  useEffect(() => {
+    latLngRef.current = { lat, lng };
+  }, [lat, lng]);
 
   useEffect(() => {
+    isMountedRef.current = true;
+
     if (typeof window === "undefined" || !mapRef.current) return;
     if (mapInstanceRef.current) return; // Already initialized
 
     // Dynamically import leaflet to avoid SSR issues
     import("leaflet").then((L) => {
+      if (!isMountedRef.current) return;
+
+      // Before calling L.map(), check whether the map container already has an initialized Leaflet instance
+      const container = mapRef.current;
+      if (!container) return;
+
+      const hasLeafletInstance = (container as any)._leaflet_id || (container as any)._leaflet_map;
+      if (hasLeafletInstance) {
+        if ((container as any)._leaflet_map) {
+          mapInstanceRef.current = (container as any)._leaflet_map;
+        }
+        return;
+      }
+
       // Fix default icon paths broken by webpack
       delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
@@ -27,19 +51,27 @@ export function SignupMap({ lat, lng, onChange }: SignupMapProps) {
         shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
       });
 
-      const map = L.map(mapRef.current!, {
-        center: [lat, lng],
+      const currentLat = latLngRef.current.lat;
+      const currentLng = latLngRef.current.lng;
+
+      const map = L.map(container, {
+        center: [currentLat, currentLng],
         zoom: 15,
         zoomControl: true,
         scrollWheelZoom: false,
       });
+
+      // Attach map instance to DOM container for robust tracking/re-use
+      (container as any)._leaflet_map = map;
+      mapInstanceRef.current = map;
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap contributors",
         maxZoom: 19,
       }).addTo(map);
 
-      const marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+      const marker = L.marker([currentLat, currentLng], { draggable: true }).addTo(map);
+      markerRef.current = marker;
 
       marker.on("dragend", (e: any) => {
         const pos = marker.getLatLng();
@@ -50,16 +82,25 @@ export function SignupMap({ lat, lng, onChange }: SignupMapProps) {
         marker.setLatLng(e.latlng);
         onChange(e.latlng.lat, e.latlng.lng);
       });
-
-      mapInstanceRef.current = map;
-      markerRef.current = marker;
     });
 
     return () => {
+      isMountedRef.current = false;
+
+      if (markerRef.current) {
+        markerRef.current.off("dragend");
+        markerRef.current.remove();
+        markerRef.current = null;
+      }
+
       if (mapInstanceRef.current) {
+        mapInstanceRef.current.off("click");
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
-        markerRef.current = null;
+      }
+
+      if (mapRef.current) {
+        delete (mapRef.current as any)._leaflet_map;
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

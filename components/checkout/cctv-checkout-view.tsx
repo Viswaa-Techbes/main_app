@@ -59,6 +59,7 @@ function loadRazorpayCheckout() {
 }
 
 export function CctvCheckoutView() {
+  const isTestMode = process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_CCTV_TEST_PAYMENT === "true";
   const router = useRouter();
   const { toast } = useToast();
   const [items, setItems] = useState<CctvCartItem[]>([]);
@@ -622,17 +623,47 @@ export function CctvCheckoutView() {
                 </div>
               ))}
               
+              {isTestMode && (
+                <div className="rounded-xl bg-amber-50 border border-amber-200 p-3.5 text-[10px] text-amber-800 leading-relaxed font-bold space-y-1.5 shadow-sm">
+                  <div className="flex items-center gap-1.5 text-amber-700">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    <span>TEST PAYMENT ACTIVE</span>
+                  </div>
+                  <p className="text-slate-500 font-semibold leading-normal">
+                    You will be charged exactly ₹1.00 for testing purposes. Production pricing is preserved in the database.
+                  </p>
+                </div>
+              )}
+
               <div className="flex justify-between text-xs font-extrabold text-slate-800 pt-1">
                 <span>Grand Total Price</span>
                 <span className="text-blue-600 font-black">{money(total)}</span>
               </div>
 
+              {isTestMode && (
+                <div className="flex justify-between text-xs font-extrabold text-amber-700 border-t border-dashed border-slate-200 pt-2.5">
+                  <span>Payable Amount (Test)</span>
+                  <span className="font-black">₹1.00</span>
+                </div>
+              )}
+
               <div className="rounded-xl bg-blue-50/50 border border-blue-100/50 p-3.5 text-[10px] text-blue-700 leading-relaxed font-semibold">
                 To confirm booking slots, an upfront order verification is processed securely via Razorpay payment gateway.
               </div>
 
-              <Button disabled={saving} className="w-full h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold mt-2 shadow-sm">
-                {saving ? "Creating Order..." : "Proceed to Payment"}
+              <Button 
+                disabled={saving} 
+                className={`w-full h-10 rounded-xl text-white text-xs font-bold mt-2 shadow-sm transition-all duration-200 ${
+                  isTestMode 
+                    ? "bg-amber-600 hover:bg-amber-700 shadow-amber-600/10" 
+                    : "bg-blue-600 hover:bg-blue-700 shadow-blue-600/10"
+                }`}
+              >
+                {saving 
+                  ? "Creating Order..." 
+                  : isTestMode 
+                    ? "Pay ₹1.00 (Test Payment)" 
+                    : "Proceed to Payment"}
               </Button>
             </div>
           </aside>
