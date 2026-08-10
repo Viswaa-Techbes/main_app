@@ -35,12 +35,16 @@ export function SignupMap({ lat, lng, onChange }: SignupMapProps) {
       const container = mapRef.current;
       if (!container) return;
 
-      const hasLeafletInstance = (container as any)._leaflet_id || (container as any)._leaflet_map;
-      if (hasLeafletInstance) {
-        if ((container as any)._leaflet_map) {
-          mapInstanceRef.current = (container as any)._leaflet_map;
-        }
+      if ((container as any)._leaflet_map) {
+        mapInstanceRef.current = (container as any)._leaflet_map;
         return;
+      }
+
+      // If the container has a leaflet ID but no active map instance reference, clean it up to re-initialize safely
+      if ((container as any)._leaflet_id) {
+        (container as any)._leaflet_id = null;
+        container.innerHTML = "";
+        container.className = container.className.replace(/\bleaflet-container\b/g, "");
       }
 
       // Fix default icon paths broken by webpack
