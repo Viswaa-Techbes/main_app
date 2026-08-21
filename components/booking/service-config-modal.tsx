@@ -1618,15 +1618,12 @@ export function ServiceBookingConfigModal({
                             >
                               WhatsApp
                             </a>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                toast({ title: "Callback Requested", description: "Our enterprise sales manager will contact you shortly." });
-                              }}
+                            <a
+                              href="/quote?service=install-new-cctv"
                               className="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider transition"
                             >
-                              Request Callback
-                            </button>
+                              Get a Quote
+                            </a>
                           </div>
                         </div>
                       )}

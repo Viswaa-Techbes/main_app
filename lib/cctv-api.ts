@@ -342,6 +342,8 @@ export const cctvApi = {
     api<any>("/api/v2/bookings/create", { method: "POST", body: JSON.stringify(body) }),
   createLead: (body: unknown) =>
     api<any>("/leads", { method: "POST", body: JSON.stringify(body) }),
+  createQuoteRequest: (body: unknown) =>
+    api<any>("/api/v2/quotes", { method: "POST", body: JSON.stringify(body) }),
   createOrder: (body: unknown) =>
     api<any>("/api/v2/payments/create-order", { method: "POST", body: JSON.stringify(body) }),
   verifyPayment: (body: unknown) =>

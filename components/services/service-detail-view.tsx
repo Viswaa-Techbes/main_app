@@ -24,6 +24,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
   const [quoteSaving, setQuoteSaving] = useState(false);
   const [quoteForm, setQuoteForm] = useState({ name: "", phone: "", email: "", location: "", message: "" });
   const { isAuthenticated } = useAuth();
+  const isCctvCategory = service.categoryId === "cctv" || service.category === "CCTV" || service.slug?.includes("cctv") || pathname.includes("cctv");
   const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
@@ -139,7 +140,13 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                   <div className="mt-6 flex flex-wrap gap-2">
                     <Button className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 shadow-sm" onClick={openBooking}>Book Now</Button>
                     {cctvService && <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold px-4" onClick={() => setConfigOpen(true)}>Add To Cart</Button>}
-                    <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold px-4" onClick={() => setQuoteOpen(true)}>Request Quote</Button>
+                    {isCctvCategory ? (
+                      <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold px-4" asChild>
+                        <Link href={`/quote?service=${service.slug}`}>Request Quote</Link>
+                      </Button>
+                    ) : (
+                      <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold px-4" onClick={() => setQuoteOpen(true)}>Request Quote</Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -343,7 +350,13 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                 <div className="grid gap-2 pt-2">
                   <Button className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs" onClick={openBooking}>Book Now</Button>
                   {cctvService && <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold" onClick={() => setConfigOpen(true)}>Add To Cart</Button>}
-                  <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold" onClick={() => setQuoteOpen(true)}>Request Quote</Button>
+                  {isCctvCategory ? (
+                    <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold w-full" asChild>
+                      <Link href={`/quote?service=${service.slug}`}>Request Quote</Link>
+                    </Button>
+                  ) : (
+                    <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold" onClick={() => setQuoteOpen(true)}>Request Quote</Button>
+                  )}
                 </div>
               </div>
             </div>
