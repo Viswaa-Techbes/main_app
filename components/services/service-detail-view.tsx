@@ -24,10 +24,10 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
   const [quoteSaving, setQuoteSaving] = useState(false);
   const [quoteForm, setQuoteForm] = useState({ name: "", phone: "", email: "", location: "", message: "" });
   const { isAuthenticated } = useAuth();
-  const isCctvCategory = service.categoryId === "cctv" || service.category === "CCTV" || service.slug?.includes("cctv") || pathname.includes("cctv");
   const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
+  const isCctvCategory = service.categoryId === "cctv" || service.category === "CCTV" || service.slug?.includes("cctv") || pathname.includes("cctv");
   const searchParams = useSearchParams();
   const recommended = getRecommendedServices(service.id);
 
