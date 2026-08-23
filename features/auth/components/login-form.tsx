@@ -38,9 +38,38 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
 
+  // Forgot password state
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSubmitting, setForgotSubmitting] = useState(false);
+  const [forgotError, setForgotError] = useState("");
+  const [forgotSuccess, setForgotSuccess] = useState("");
+
   useEffect(() => {
     if (status === "authenticated") router.replace(redirectTo);
   }, [redirectTo, router, status]);
+
+  async function handleForgotPasswordSubmit(e: FormEvent) {
+    e.preventDefault();
+    setForgotError("");
+    setForgotSuccess("");
+    if (!isValidEmail(sanitizeEmail(forgotEmail))) return setForgotError("Enter a valid email address.");
+    setForgotSubmitting(true);
+    try {
+      const { authService } = await import("../services/auth-service");
+      const res = await authService.forgotPassword(forgotEmail);
+      if (res.success) {
+        setForgotSuccess(res.message || "Password reset link sent to your email.");
+      } else {
+        setForgotError(res.message || "Failed to send reset link.");
+      }
+    } catch (err: any) {
+      logger.warn("Forgot password request failed", err);
+      setForgotError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setForgotSubmitting(false);
+    }
+  }
 
   // OTP countdown
   useEffect(() => {
@@ -190,7 +219,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <Label htmlFor="password" className="text-xs font-bold text-slate-700">Password</Label>
-                  <button type="button" className="text-[10px] text-blue-600 hover:underline font-bold">Forgot password?</button>
+                  <button type="button" onClick={() => setShowForgotModal(true)} className="text-[10px] text-blue-600 hover:underline font-bold">Forgot password?</button>
                 </div>
                 <div className="relative">
                   <Lock className="pointer-events-none absolute left-3 top-3 text-slate-400 h-4 w-4" />
@@ -272,6 +301,72 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
 
         </div>
       </div>
+
+      {showForgotModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl border border-slate-100 shadow-xl overflow-hidden p-6 relative animate-in fade-in zoom-in duration-200">
+            <button
+              onClick={() => { setShowForgotModal(false); setForgotEmail(""); setForgotError(""); setForgotSuccess(""); }}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 font-bold text-base cursor-pointer bg-slate-50 hover:bg-slate-100 rounded-full h-7 w-7 flex items-center justify-center transition border border-slate-100"
+            >
+              ✕
+            </button>
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-extrabold text-slate-900">Reset Password</h3>
+                <p className="text-xs text-slate-400 font-semibold mt-1">Enter your email address to receive a secure link to reset your password.</p>
+              </div>
+
+              {forgotError && (
+                <div className="flex gap-2 items-center bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold p-3 rounded-xl">
+                  <ShieldAlert className="h-4 w-4 shrink-0" />
+                  <span>{forgotError}</span>
+                </div>
+              )}
+
+              {forgotSuccess ? (
+                <div className="space-y-4">
+                  <div className="flex gap-2 items-center bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-semibold p-3 rounded-xl">
+                    <MessageSquare className="h-4 w-4 shrink-0" />
+                    <span>{forgotSuccess}</span>
+                  </div>
+                  <Button
+                    onClick={() => { setShowForgotModal(false); setForgotEmail(""); setForgotError(""); setForgotSuccess(""); }}
+                    className="w-full h-10 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs"
+                  >
+                    Close
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleForgotPasswordSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="forgot-email" className="text-xs font-bold text-slate-700">Email Address</Label>
+                    <div className="relative">
+                      <Mail className="pointer-events-none absolute left-3 top-3 text-slate-400 h-4 w-4" />
+                      <Input
+                        id="forgot-email"
+                        type="email"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        placeholder="you@example.com"
+                        className="h-10 rounded-xl border-slate-200 bg-slate-50 text-xs pl-9"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={forgotSubmitting}
+                    className="w-full h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs"
+                  >
+                    {forgotSubmitting ? <Spinner className="h-4 w-4 text-white" /> : "Send Reset Link"}
+                  </Button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

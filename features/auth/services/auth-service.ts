@@ -23,17 +23,53 @@ export const authService = {
     return response;
   },
 
-  async sendOtp(email: string) {
+  async sendOtp(identifier: string) {
+    const isMobile = /^[0-9]{10}$/.test(identifier.trim());
+    const body: any = {};
+    if (isMobile) {
+      body.mobileNumber = sanitizeText(identifier);
+    } else {
+      body.email = sanitizeEmail(identifier);
+    }
     return apiClient<{ success: boolean; message: string; expiresInSeconds?: number }>("/api/auth/send-otp", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+  },
+
+  async verifyOtp(identifier: string, otp: string) {
+    const isMobile = /^[0-9]{10}$/.test(identifier.trim());
+    const body: any = { otp: sanitizeText(otp) };
+    if (isMobile) {
+      body.mobileNumber = sanitizeText(identifier);
+    } else {
+      body.email = sanitizeEmail(identifier);
+    }
+    const response = await apiClient<any>("/api/auth/verify-otp", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (response && response.token) {
+      persistToken(response.token);
+    }
+    return response;
+  },
+
+  async forgotPassword(email: string) {
+    return apiClient<{ success: boolean; message: string; token?: string; resetLink?: string }>("/api/auth/forgot-password", {
       method: "POST",
       body: JSON.stringify({ email: sanitizeEmail(email) }),
     });
   },
 
-  async verifyOtp(email: string, otp: string) {
-    return apiClient<{ success: boolean; message: string; data: { emailVerificationToken: string } }>("/api/auth/verify-otp", {
+  async resetPassword(payload: any) {
+    return apiClient<{ success: boolean; message: string }>("/api/auth/reset-password", {
       method: "POST",
-      body: JSON.stringify({ email: sanitizeEmail(email), otp: sanitizeText(otp) }),
+      body: JSON.stringify({
+        email: sanitizeEmail(payload.email),
+        token: sanitizeText(payload.token),
+        password: sanitizeText(payload.password),
+      }),
     });
   },
 

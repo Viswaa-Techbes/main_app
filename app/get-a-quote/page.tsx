@@ -43,32 +43,117 @@ function GetQuoteForm() {
   const [preferredVisitDate, setPreferredVisitDate] = useState("");
   const [preferredVisitTime, setPreferredVisitTime] = useState("09:00 AM - 12:00 PM");
 
-  // Autofill user details if authenticated
+  // Load saved quote form state on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("techbes_quote_form_state");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.fullName) setFullName(parsed.fullName);
+        if (parsed.mobile) setMobile(parsed.mobile);
+        if (parsed.email) setEmail(parsed.email);
+        if (parsed.companyName) setCompanyName(parsed.companyName);
+        if (parsed.preferredContact) setPreferredContact(parsed.preferredContact);
+        if (parsed.serviceCategory) setServiceCategory(parsed.serviceCategory);
+        if (parsed.cctvReqType) setCctvReqType(parsed.cctvReqType);
+        if (parsed.cctvCamCount) setCctvCamCount(parsed.cctvCamCount);
+        if (parsed.cctvPropType) setCctvPropType(parsed.cctvPropType);
+        if (parsed.address) setAddress(parsed.address);
+        if (parsed.pincode) setPincode(parsed.pincode);
+        if (parsed.googleMapsUrl) setGoogleMapsUrl(parsed.googleMapsUrl);
+        if (parsed.additionalRequirements) setAdditionalRequirements(parsed.additionalRequirements);
+        if (parsed.preferredVisitDate) setPreferredVisitDate(parsed.preferredVisitDate);
+        if (parsed.preferredVisitTime) setPreferredVisitTime(parsed.preferredVisitTime);
+      }
+    } catch (err) {
+      console.error("Failed to load quote form state:", err);
+    }
+  }, []);
+
+  // Autofill user details if authenticated & no local state exists
   useEffect(() => {
     if (isAuthenticated && user) {
-      setFullName(user.name || "");
-      setMobile(user.mobileNumber || user.phone || "");
-      setEmail(user.email || "");
+      const saved = localStorage.getItem("techbes_quote_form_state");
+      if (!saved) {
+        setFullName(user.name || "");
+        setMobile(user.mobileNumber || user.phone || "");
+        setEmail(user.email || "");
+      }
     }
   }, [isAuthenticated, user]);
 
   // Pre-select service category based on query parameters
   useEffect(() => {
     const serviceParam = searchParams.get("service")?.toLowerCase() || "";
-    if (serviceParam.includes("cctv")) {
-      setServiceCategory("CCTV");
-    } else if (serviceParam.includes("network")) {
-      setServiceCategory("Networking");
-    } else if (serviceParam.includes("laptop")) {
-      setServiceCategory("Laptop");
-    } else if (serviceParam.includes("desktop")) {
-      setServiceCategory("Desktop");
-    } else if (serviceParam.includes("server")) {
-      setServiceCategory("Server");
-    } else if (serviceParam) {
-      setServiceCategory("Other");
+    if (serviceParam) {
+      if (serviceParam.includes("cctv") || serviceParam.includes("install") || serviceParam.includes("repair") || serviceParam.includes("amc") || serviceParam.includes("upgrade")) {
+        setServiceCategory("CCTV");
+        if (serviceParam.includes("install")) {
+          setCctvReqType("New CCTV Installation");
+        } else if (serviceParam.includes("repair")) {
+          setCctvReqType("Existing CCTV Repair");
+        } else if (serviceParam.includes("upgrade")) {
+          setCctvReqType("CCTV Upgrade");
+        } else if (serviceParam.includes("amc")) {
+          setCctvReqType("CCTV AMC");
+        } else if (serviceParam.includes("products")) {
+          setCctvReqType("CCTV Products");
+        }
+      } else if (serviceParam.includes("network")) {
+        setServiceCategory("Networking");
+      } else if (serviceParam.includes("laptop")) {
+        setServiceCategory("Laptop");
+      } else if (serviceParam.includes("desktop")) {
+        setServiceCategory("Desktop");
+      } else if (serviceParam.includes("server")) {
+        setServiceCategory("Server");
+      } else {
+        setServiceCategory("Other");
+      }
     }
   }, [searchParams]);
+
+  // Save quote form state on changes
+  useEffect(() => {
+    try {
+      const state = {
+        fullName,
+        mobile,
+        email,
+        companyName,
+        preferredContact,
+        serviceCategory,
+        cctvReqType,
+        cctvCamCount,
+        cctvPropType,
+        address,
+        pincode,
+        googleMapsUrl,
+        additionalRequirements,
+        preferredVisitDate,
+        preferredVisitTime
+      };
+      localStorage.setItem("techbes_quote_form_state", JSON.stringify(state));
+    } catch (err) {
+      console.error("Failed to save quote form state:", err);
+    }
+  }, [
+    fullName,
+    mobile,
+    email,
+    companyName,
+    preferredContact,
+    serviceCategory,
+    cctvReqType,
+    cctvCamCount,
+    cctvPropType,
+    address,
+    pincode,
+    googleMapsUrl,
+    additionalRequirements,
+    preferredVisitDate,
+    preferredVisitTime
+  ]);
 
   // Validations
   const isEmailValid = (val: string) => {
@@ -139,6 +224,10 @@ function GetQuoteForm() {
         title: "Quote Submitted Successfully!",
         description: "Our security and deployment engineers will review your request shortly.",
       });
+
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("techbes_quote_form_state");
+      }
 
       // Redirect to the general quote success page
       const qParams = new URLSearchParams({

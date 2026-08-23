@@ -241,6 +241,100 @@ export function ServiceBookingConfigModal({
     }
   }, [open]);
 
+  // Load CCTV configuration state from localStorage on open
+  useEffect(() => {
+    if (open) {
+      try {
+        const saved = localStorage.getItem("techbes_cctv_booking_state");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.step) setStep(parsed.step);
+          if (parsed.selectedPackageId) setSelectedPackageId(parsed.selectedPackageId);
+          if (parsed.questionAnswers) setQuestionAnswers(parsed.questionAnswers);
+          if (parsed.date) setDate(parsed.date);
+          if (parsed.time) setTime(parsed.time);
+          if (parsed.notes) setNotes(parsed.notes);
+          if (parsed.cctvPropertyType) setCctvPropertyType(parsed.cctvPropertyType);
+          if (parsed.cctvSelectedCameraTypes) setCctvSelectedCameraTypes(parsed.cctvSelectedCameraTypes);
+          if (parsed.cctvCameraQuantities) setCctvCameraQuantities(parsed.cctvCameraQuantities);
+          if (parsed.cctvCameraBrands) setCctvCameraBrands(parsed.cctvCameraBrands);
+          if (parsed.cctvCameraModels) setCctvCameraModels(parsed.cctvCameraModels);
+          if (parsed.cctvSdCardEnabled !== undefined) setCctvSdCardEnabled(parsed.cctvSdCardEnabled);
+          if (parsed.cctvSdCardCapacity) setCctvSdCardCapacity(parsed.cctvSdCardCapacity);
+          if (parsed.cctvSdCardQuantity) setCctvSdCardQuantity(parsed.cctvSdCardQuantity);
+          if (parsed.cctvInstallationRequired !== undefined) setCctvInstallationRequired(parsed.cctvInstallationRequired);
+          if (parsed.cctvCableType) setCctvCableType(parsed.cctvCableType);
+          if (parsed.cctvCableLength) setCctvCableLength(parsed.cctvCableLength);
+          if (parsed.cctvDvrChannels) setCctvDvrChannels(parsed.cctvDvrChannels);
+          if (parsed.cctvNetworkRack !== undefined) setCctvNetworkRack(parsed.cctvNetworkRack);
+          if (parsed.cctvMonitorMounting !== undefined) setCctvMonitorMounting(parsed.cctvMonitorMounting);
+          if (parsed.cctvHddCapacity) setCctvHddCapacity(parsed.cctvHddCapacity);
+          if (parsed.cctvRackType) setCctvRackType(parsed.cctvRackType);
+        }
+      } catch (err) {
+        console.error("Failed to load cctv booking state:", err);
+      }
+    }
+  }, [open]);
+
+  // Save CCTV configuration state to localStorage on state changes
+  useEffect(() => {
+    if (!open) return;
+    try {
+      const state = {
+        step,
+        selectedPackageId,
+        questionAnswers,
+        date,
+        time,
+        notes,
+        cctvPropertyType,
+        cctvSelectedCameraTypes,
+        cctvCameraQuantities,
+        cctvCameraBrands,
+        cctvCameraModels,
+        cctvSdCardEnabled,
+        cctvSdCardCapacity,
+        cctvSdCardQuantity,
+        cctvInstallationRequired,
+        cctvCableType,
+        cctvCableLength,
+        cctvDvrChannels,
+        cctvNetworkRack,
+        cctvMonitorMounting,
+        cctvHddCapacity,
+        cctvRackType
+      };
+      localStorage.setItem("techbes_cctv_booking_state", JSON.stringify(state));
+    } catch (err) {
+      console.error("Failed to save cctv booking state:", err);
+    }
+  }, [
+    open,
+    step,
+    selectedPackageId,
+    questionAnswers,
+    date,
+    time,
+    notes,
+    cctvPropertyType,
+    cctvSelectedCameraTypes,
+    cctvCameraQuantities,
+    cctvCameraBrands,
+    cctvCameraModels,
+    cctvSdCardEnabled,
+    cctvSdCardCapacity,
+    cctvSdCardQuantity,
+    cctvInstallationRequired,
+    cctvCableType,
+    cctvCableLength,
+    cctvDvrChannels,
+    cctvNetworkRack,
+    cctvMonitorMounting,
+    cctvHddCapacity,
+    cctvRackType
+  ]);
+
   // Load CCTV dynamic pricing/metadata tables
   useEffect(() => {
     if (!open || (!isInstallNewCctv && !isBuyCctvProducts)) return;
@@ -786,6 +880,13 @@ export function ServiceBookingConfigModal({
           toast({ title: "Enterprise Booking Required", description: "CCTV bookings with more than 16 cameras are blocked online. Please contact our office.", variant: "destructive" });
           return;
         }
+        const incompleteSelection = Object.entries(cctvSelectedCameraTypes)
+          .filter(([_, checked]) => checked)
+          .some(([type]) => !cctvCameraBrands[type] || !cctvCameraModels[type]);
+        if (incompleteSelection) {
+          toast({ title: "Configuration Incomplete", description: "Please select a valid brand and model for all selected camera types.", variant: "destructive" });
+          return;
+        }
         if (cctvInstallationRequired) {
           if (!cctvCableType) {
             toast({ title: "Cable Type Required", description: "Please select a cable type.", variant: "destructive" });
@@ -947,6 +1048,19 @@ export function ServiceBookingConfigModal({
     };
 
     try {
+      if (prices.grandTotal === 0) {
+        // Direct booking bypass for FREE site surveys / visits
+        const createdJob = await cctvApi.createBooking(payload);
+        const jobId = createdJob._id || createdJob.id || createdJob.data?._id;
+        toast({ title: "Booking Success", description: "Your free site visit is scheduled successfully!" });
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem("techbes_cctv_booking_state");
+        }
+        onOpenChange(false);
+        router.push(`/dashboard/bookings/${jobId}`);
+        return;
+      }
+
       if (paymentMethod === "online") {
         // online Razorpay flow
         const orderData = await cctvApi.createOrder({ bookingPayload: payload });
@@ -971,6 +1085,9 @@ export function ServiceBookingConfigModal({
               });
               const job = verifyRes.job || verifyRes.data?.job || verifyRes.data;
               toast({ title: "Booking Success", description: "Advance payment verified! Booking is scheduled." });
+              if (typeof window !== "undefined") {
+                window.localStorage.removeItem("techbes_cctv_booking_state");
+              }
               onOpenChange(false);
               router.push(`/dashboard/bookings/${job._id || job.id}`);
             } catch (err: any) {
@@ -997,6 +1114,9 @@ export function ServiceBookingConfigModal({
         });
 
         toast({ title: "Booking Success", description: "Deducted balance from wallet. Booking scheduled!" });
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem("techbes_cctv_booking_state");
+        }
         onOpenChange(false);
         router.push(`/dashboard/bookings/${jobId}`);
       } else {
@@ -1348,17 +1468,56 @@ export function ServiceBookingConfigModal({
                                           onChange={(e) => {
                                             setCctvCameraModels(prev => ({ ...prev, [type]: e.target.value }));
                                           }}
-                                          disabled={!selectedBrandId}
+                                          disabled={!selectedBrandId || filteredModels.length === 0}
                                           className="h-9 w-full rounded-lg border border-slate-200 px-2.5 bg-slate-50 text-[11px] font-semibold text-slate-700 focus:outline-none disabled:opacity-60"
                                           required
                                         >
-                                          <option value="">Select Model</option>
-                                          {filteredModels.map((m) => (
-                                            <option key={m._id} value={m._id}>
-                                              {m.resolution} {m.name} (₹{m.price})
-                                            </option>
-                                          ))}
+                                          {filteredModels.length === 0 ? (
+                                            <option value="">No models available</option>
+                                          ) : (
+                                            <>
+                                              <option value="">Select Model</option>
+                                              {filteredModels.map((m) => (
+                                                <option key={m._id} value={m._id}>
+                                                  {m.resolution} {m.name} (₹{m.price})
+                                                </option>
+                                              ))}
+                                            </>
+                                          )}
                                         </select>
+                                        {selectedBrandId && filteredModels.length === 0 && (
+                                          <div className="text-[10px] text-rose-500 font-bold mt-1 leading-relaxed">
+                                            No models available for {cctvBrands.find(b => b._id === selectedBrandId)?.name || "selected brand"}.
+                                            {(() => {
+                                              const brandsWithModelsForType = cctvBrands.filter(b =>
+                                                cctvAllModels.some(m => m.cameraType === type && String(m.brandId?._id || m.brandId) === b._id)
+                                              );
+                                              if (brandsWithModelsForType.length > 0) {
+                                                return (
+                                                  <div className="text-slate-500 mt-1 font-semibold">
+                                                    Available brands for {type}:
+                                                    <div className="flex flex-wrap gap-1 mt-1">
+                                                      {brandsWithModelsForType.map(b => (
+                                                        <button
+                                                          type="button"
+                                                          key={b._id}
+                                                          onClick={() => {
+                                                            setCctvCameraBrands(prev => ({ ...prev, [type]: b._id }));
+                                                            setCctvCameraModels(prev => ({ ...prev, [type]: "" }));
+                                                          }}
+                                                          className="px-1.5 py-0.5 rounded bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-600 text-[9px] font-bold"
+                                                        >
+                                                          {b.name}
+                                                        </button>
+                                                      ))}
+                                                    </div>
+                                                  </div>
+                                                );
+                                              }
+                                              return null;
+                                            })()}
+                                          </div>
+                                        )}
                                       </div>
                                     </div>
                                   </div>
@@ -2556,6 +2715,18 @@ export function ServiceBookingConfigModal({
                   {(prices.rawBreakdown?.sdCardTotal || 0) > 0 && (
                     <Line label="SD Card" value={prices.rawBreakdown.sdCardTotal} />
                   )}
+                  {/* HDD Storage */}
+                  {(prices.rawBreakdown?.hddTotal || 0) > 0 && (
+                    <Line label="HDD Storage Cost" value={prices.rawBreakdown.hddTotal} />
+                  )}
+                  {/* Rack Cost */}
+                  {(prices.rawBreakdown?.rackSelectedTotal || 0) > 0 && (
+                    <Line label="Rack Cost" value={prices.rawBreakdown.rackSelectedTotal} />
+                  )}
+                  {/* Miscellaneous Charges */}
+                  {(prices.rawBreakdown?.miscCharges || 0) > 0 && (
+                    <Line label="Miscellaneous Charges" value={prices.rawBreakdown.miscCharges} />
+                  )}
                   {/* Visit Charge */}
                   <Line label="Visit Charge" value={prices.rawBreakdown?.baseCharge || 499} />
                 </>
@@ -2607,7 +2778,7 @@ function Line({ label, value }: { label: string; value?: number }) {
 }
 
 function money(value?: number) {
-  return `Rs. ${Math.round(value || 0).toLocaleString("en-IN")}`;
+  return `₹${Math.round(value || 0).toLocaleString("en-IN")}`;
 }
 
 export default ServiceBookingConfigModal;
