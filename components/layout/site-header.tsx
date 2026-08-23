@@ -131,7 +131,7 @@ export function SiteHeader() {
 
           {/* Get a Quote / Book Service CTA */}
           <Button className="h-9.5 rounded-full px-5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md hover:shadow-lg transition-all duration-150" asChild>
-            <Link href="/services">
+            <Link href="/get-a-quote">
               Get a Quote
             </Link>
           </Button>
@@ -200,6 +200,12 @@ export function SiteHeader() {
                 </Link>
               </Button>
             )}
+            <hr className="my-2 border-slate-100" />
+            <Button className="h-10 rounded-full px-5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md w-full" asChild>
+              <Link href="/get-a-quote" onClick={() => setIsOpen(false)}>
+                Get a Quote
+              </Link>
+            </Button>
           </div>
         </div>
       )}
