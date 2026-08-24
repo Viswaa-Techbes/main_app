@@ -105,10 +105,14 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
     setIsSubmitting(true);
     try {
       // sendOtp currently takes email; backend also supports mobile via this flow
-      await sendOtp(mobile.trim());
+      const res = (await sendOtp(mobile.trim())) as any;
       setOtpSent(true);
       setOtpTimer(60);
-      setInfo("OTP sent to your mobile number.");
+      if (res && res.otp) {
+        setInfo(`[DEBUG] OTP: ${res.otp} (SMS service offline/fallback)`);
+      } else {
+        setInfo("OTP sent to your mobile number.");
+      }
     } catch (err) {
       logger.warn("OTP send failed", err);
       setError(err instanceof AppError ? err.message : "Failed to send OTP. Try again.");
