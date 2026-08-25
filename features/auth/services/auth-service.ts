@@ -23,27 +23,37 @@ export const authService = {
     return response;
   },
 
-  async sendOtp(identifier: string) {
-    const isMobile = /^[0-9]{10}$/.test(identifier.trim());
-    const body: any = {};
+  async sendOtp(identifier: string, isMobileOverride?: boolean, purpose: string = "login") {
+    const clean = identifier.trim();
+    const digits = clean.replace(/\D/g, "");
+    const isMobile = isMobileOverride !== undefined 
+      ? isMobileOverride 
+      : (digits.length === 10 || (digits.length === 12 && digits.startsWith("91")));
+    
+    const body: any = { purpose };
     if (isMobile) {
-      body.mobileNumber = sanitizeText(identifier);
+      body.mobileNumber = digits.length === 12 ? digits.slice(2) : digits;
     } else {
-      body.email = sanitizeEmail(identifier);
+      body.email = clean.toLowerCase();
     }
-    return apiClient<{ success: boolean; message: string; expiresInSeconds?: number }>("/api/auth/send-otp", {
+    return apiClient<{ success: boolean; message: string; expiresInSeconds?: number; otp?: string }>("/api/auth/send-otp", {
       method: "POST",
       body: JSON.stringify(body),
     });
   },
 
-  async verifyOtp(identifier: string, otp: string) {
-    const isMobile = /^[0-9]{10}$/.test(identifier.trim());
-    const body: any = { otp: sanitizeText(otp) };
+  async verifyOtp(identifier: string, otp: string, isMobileOverride?: boolean, purpose: string = "login") {
+    const clean = identifier.trim();
+    const digits = clean.replace(/\D/g, "");
+    const isMobile = isMobileOverride !== undefined 
+      ? isMobileOverride 
+      : (digits.length === 10 || (digits.length === 12 && digits.startsWith("91")));
+
+    const body: any = { otp: sanitizeText(otp), purpose };
     if (isMobile) {
-      body.mobileNumber = sanitizeText(identifier);
+      body.mobileNumber = digits.length === 12 ? digits.slice(2) : digits;
     } else {
-      body.email = sanitizeEmail(identifier);
+      body.email = clean.toLowerCase();
     }
     const response = await apiClient<any>("/api/auth/verify-otp", {
       method: "POST",

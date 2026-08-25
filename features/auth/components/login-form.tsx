@@ -15,7 +15,7 @@ import { isValidEmail, sanitizeEmail } from "@/core/utils/sanitize";
 import { useAuth } from "@/features/auth/context/auth-context";
 import { PageStatus } from "@/shared/components/feedback/page-status";
 
-type LoginTab = "email" | "mobile";
+type LoginTab = "email" | "email_otp" | "mobile";
 
 export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }) {
   const router = useRouter();
@@ -27,6 +27,12 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+
+  // Email OTP state
+  const [emailOtpAddress, setEmailOtpAddress] = useState("");
+  const [emailOtp, setEmailOtp] = useState("");
+  const [emailOtpSent, setEmailOtpSent] = useState(false);
+  const [emailOtpTimer, setEmailOtpTimer] = useState(0);
 
   // Mobile OTP state
   const [mobile, setMobile] = useState("");
@@ -78,6 +84,13 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
     return () => clearTimeout(t);
   }, [otpTimer]);
 
+  // Email OTP countdown
+  useEffect(() => {
+    if (emailOtpTimer <= 0) return;
+    const t = setTimeout(() => setEmailOtpTimer((n) => n - 1), 1000);
+    return () => clearTimeout(t);
+  }, [emailOtpTimer]);
+
   // ── Email Login ──────────────────────────────────────────────────────────────
   async function handleEmailLogin(e: FormEvent) {
     e.preventDefault();
@@ -98,17 +111,64 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
     }
   }
 
+  // ── Email OTP ───────────────────────────────────────────────────────────────
+  async function handleSendEmailOtp() {
+    setError("");
+    const cleanEmail = emailOtpAddress.trim();
+    if (!isValidEmail(sanitizeEmail(cleanEmail))) return setError("Enter a valid email address.");
+    setIsSubmitting(true);
+    try {
+      const res = (await sendOtp(cleanEmail, false, "login")) as any;
+      setEmailOtpSent(true);
+      setEmailOtpTimer(60);
+      if (res && res.otp && process.env.NODE_ENV !== "production") {
+        setInfo(`[DEBUG] OTP: ${res.otp} (Email service offline/fallback)`);
+      } else {
+        setInfo("OTP sent to your email address.");
+      }
+    } catch (err) {
+      logger.warn("Email OTP send failed", err);
+      setError(err instanceof AppError ? err.message : "Failed to send OTP. Try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function handleVerifyEmailOtp(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    if (emailOtp.trim().length !== 6) return setError("Enter the 6-digit OTP.");
+    setIsSubmitting(true);
+    try {
+      const res = await verifyOtp(emailOtpAddress.trim(), emailOtp.trim(), false, "login");
+      if (res.success) {
+        await refreshSession();
+        router.replace(redirectTo);
+        router.refresh();
+      } else {
+        setError("Invalid OTP. Please try again.");
+      }
+    } catch (err) {
+      logger.warn("Email OTP verify failed", err);
+      setError(err instanceof AppError ? err.message : "OTP verification failed.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   // ── Mobile OTP ───────────────────────────────────────────────────────────────
   async function handleSendOtp() {
     setError("");
-    if (!/^\d{10}$/.test(mobile.trim())) return setError("Enter a valid 10-digit mobile number.");
+    const cleanMobile = mobile.replace(/\D/g, "");
+    if (!/^[6-9]\d{9}$/.test(cleanMobile)) {
+      return setError("Enter a valid 10-digit Indian mobile number starting with 6-9.");
+    }
     setIsSubmitting(true);
     try {
-      // sendOtp currently takes email; backend also supports mobile via this flow
-      const res = (await sendOtp(mobile.trim())) as any;
+      const res = (await sendOtp(cleanMobile, true, "login")) as any;
       setOtpSent(true);
       setOtpTimer(60);
-      if (res && res.otp) {
+      if (res && res.otp && process.env.NODE_ENV !== "production") {
         setInfo(`[DEBUG] OTP: ${res.otp} (SMS service offline/fallback)`);
       } else {
         setInfo("OTP sent to your mobile number.");
@@ -127,7 +187,8 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
     if (otp.trim().length !== 6) return setError("Enter the 6-digit OTP.");
     setIsSubmitting(true);
     try {
-      const res = await verifyOtp(mobile.trim(), otp.trim());
+      const cleanMobile = mobile.replace(/\D/g, "");
+      const res = await verifyOtp(cleanMobile, otp.trim(), true, "login");
       if (res.success) {
         await refreshSession();
         router.replace(redirectTo);
@@ -196,6 +257,9 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
             <TabButton active={tab === "email"} onClick={() => { setTab("email"); setError(""); setInfo(""); }}>
               <Mail className="h-3.5 w-3.5" /> Email Login
             </TabButton>
+            <TabButton active={tab === "email_otp"} onClick={() => { setTab("email_otp"); setError(""); setInfo(""); }}>
+              <KeyRound className="h-3.5 w-3.5" /> Email OTP
+            </TabButton>
             <TabButton active={tab === "mobile"} onClick={() => { setTab("mobile"); setError(""); setInfo(""); }}>
               <Phone className="h-3.5 w-3.5" /> Mobile OTP
             </TabButton>
@@ -250,6 +314,53 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
             </form>
           )}
 
+          {/* ── Email OTP Form ── */}
+          {tab === "email_otp" && (
+            <div className="space-y-4">
+              <FormField icon={Mail} id="emailOtpAddress" label="Email Address" type="email" value={emailOtpAddress} onChange={setEmailOtpAddress} autoComplete="email" placeholder="Enter your email address" disabled={emailOtpSent} />
+
+              {!emailOtpSent ? (
+                <Button
+                  type="button"
+                  onClick={handleSendEmailOtp}
+                  disabled={isSubmitting}
+                  className="h-10 w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm flex items-center justify-center gap-1.5"
+                >
+                  {isSubmitting ? <Spinner className="h-4 w-4 text-white" /> : <><MessageSquare className="h-4 w-4" /> Send OTP</>}
+                </Button>
+              ) : (
+                <form className="space-y-4" onSubmit={handleVerifyEmailOtp} noValidate>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="emailOtp" className="text-xs font-bold text-slate-700">Enter 6-digit OTP</Label>
+                    <div className="relative">
+                      <KeyRound className="pointer-events-none absolute left-3 top-3 text-slate-400 h-4 w-4" />
+                      <Input
+                        id="emailOtp"
+                        type="text"
+                        maxLength={6}
+                        inputMode="numeric"
+                        value={emailOtp}
+                        onChange={(e) => setEmailOtp(e.target.value.replace(/\D/g, ""))}
+                        className="h-10 rounded-xl border-slate-200 bg-slate-50 text-xs pl-9 tracking-widest font-mono"
+                        placeholder="_ _ _ _ _ _"
+                        autoComplete="one-time-code"
+                      />
+                    </div>
+                    <div className="flex justify-between items-center text-[10px] text-slate-400 font-semibold">
+                      <span>OTP sent to {emailOtpAddress}</span>
+                      {emailOtpTimer > 0 ? (
+                        <span>Resend in {emailOtpTimer}s</span>
+                      ) : (
+                        <button type="button" onClick={handleSendEmailOtp} className="text-blue-600 hover:underline font-bold">Resend OTP</button>
+                      )}
+                    </div>
+                  </div>
+                  <SubmitBtn loading={isSubmitting} label="Verify & Sign In" />
+                </form>
+              )}
+            </div>
+          )}
+
           {/* ── Mobile OTP Form ── */}
           {tab === "mobile" && (
             <div className="space-y-4">
@@ -283,7 +394,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
                       />
                     </div>
                     <div className="flex justify-between items-center text-[10px] text-slate-400 font-semibold">
-                      <span>OTP sent to +91 {mobile}</span>
+                      <span>OTP sent to +91 {mobile.replace(/\D/g, "")}</span>
                       {otpTimer > 0 ? (
                         <span>Resend in {otpTimer}s</span>
                       ) : (
