@@ -112,11 +112,20 @@ export function SiteFooter() {
 
       {/* Copyright Footer */}
       <div className="bg-slate-950/80 py-6 text-xs text-slate-500 font-semibold">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© 2026 Techbes India. All rights reserved. Razorpay Secured Gateway.</p>
-          <div className="flex gap-4 text-[10px] uppercase tracking-wider">
-            <Link href="/privacy" className="hover:text-slate-400">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-slate-400">Terms of Use</Link>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-center justify-between gap-4">
+          <p className="text-center lg:text-left">© 2026 Techbes India. All rights reserved. Razorpay Secured Gateway.</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-[9px] sm:text-[10px] uppercase tracking-wider justify-center lg:justify-end">
+            <Link href="/privacy" className="hover:text-slate-400 transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-slate-400 transition-colors">Terms</Link>
+            <Link href="/cookie-policy" className="hover:text-slate-400 transition-colors">Cookies</Link>
+            <Link href="/refund-policy" className="hover:text-slate-400 transition-colors">Refunds</Link>
+            <Link href="/cancellation-policy" className="hover:text-slate-400 transition-colors">Cancellations</Link>
+            <Link href="/shipping-policy" className="hover:text-slate-400 transition-colors">Shipping</Link>
+            <Link href="/return-policy" className="hover:text-slate-400 transition-colors">Returns</Link>
+            <Link href="/disclaimer" className="hover:text-slate-400 transition-colors">Disclaimer</Link>
+            <Link href="/security-policy" className="hover:text-slate-400 transition-colors">Security</Link>
+            <Link href="/accessibility" className="hover:text-slate-400 transition-colors">Accessibility</Link>
+            <Link href="/responsible-disclosure" className="hover:text-slate-400 transition-colors">Disclosure</Link>
           </div>
         </div>
       </div>

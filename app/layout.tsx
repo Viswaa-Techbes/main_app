@@ -5,6 +5,7 @@ import Script from "next/script";
 
 import { AppProviders } from "@/providers/app-providers";
 import { AIAssistantWidget } from "@/components/AIAssistantWidget";
+import { CookieConsent } from "@/components/layout/cookie-consent";
 import { JsonLd } from "@/components/seo/json-ld";
 
 import "./globals.css";
@@ -45,6 +46,7 @@ export default function RootLayout({
         <AppProviders>
           {children}
           <AIAssistantWidget />
+          <CookieConsent />
         </AppProviders>
         <Analytics />
         <Script

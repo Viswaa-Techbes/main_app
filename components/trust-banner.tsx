@@ -21,7 +21,7 @@ export function TrustBanner() {
               Trusted by 500+ Businesses Across India
             </h2>
             <p className="mt-4 text-primary-foreground/80 text-lg">
-              Join thousands of businesses who rely on TechServe Pro for their 
+              Join thousands of businesses who rely on TechBes for their 
               IT infrastructure needs. From startups to enterprises, we deliver 
               quality service every time.
             </p>
