@@ -28,7 +28,7 @@ export function triggerBackendSync() {
   isSyncing = true;
   fetch("/api/cart")
     .then((r) => r.ok ? r.json().catch(() => ({})) : {})
-    .then((json) => {
+    .then((json: any) => {
       if (json.success && json.data?.items) {
         saveCctvCartLocal(json.data.items);
         (window as any)._cartSynced = true;
@@ -94,7 +94,7 @@ export function addCctvCartItem(item: Omit<CctvCartItem, "id"> & { id?: string }
       body: JSON.stringify({ item: newItem, replaceExisting }),
     })
       .then((r) => r.ok ? r.json().catch(() => ({})) : {})
-      .then((json) => {
+      .then((json: any) => {
         if (json.success && json.data?.items) {
           saveCctvCartLocal(json.data.items);
         }
@@ -112,7 +112,7 @@ export function removeCctvCartItem(id: string) {
       method: "DELETE",
     })
       .then((r) => r.ok ? r.json().catch(() => ({})) : {})
-      .then((json) => {
+      .then((json: any) => {
         if (json.success && json.data?.items) {
           saveCctvCartLocal(json.data.items);
         }
@@ -129,7 +129,7 @@ export function clearCctvCart() {
       method: "DELETE",
     })
       .then((r) => r.ok ? r.json().catch(() => ({})) : {})
-      .then((json) => {
+      .then((json: any) => {
         if (json.success && json.data?.items) {
           saveCctvCartLocal(json.data.items);
         }

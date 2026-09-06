@@ -52,6 +52,7 @@ export type UserBooking = {
   location?: string;
   assignedTechnician?: { name?: string; _id?: string; id?: string };
   rating?: number;
+  startJobOtp?: string;
 };
 
 export type UserPayment = {

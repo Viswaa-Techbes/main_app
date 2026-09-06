@@ -312,9 +312,9 @@ export default async function GeoPage({ params }: PageProps) {
               <span className="inline-flex rounded-full bg-blue-500/20 text-blue-450 text-[9px] font-bold uppercase tracking-wider px-3 py-1">
                 Bangalore Installation Support
               </span>
-              <h2 className="text-lg font-black tracking-tight">Need help wring or repairing cameras?</h2>
+              <h2 className="text-lg font-black tracking-tight">Need help wiring or repairing cameras?</h2>
               <p className="text-[11px] leading-relaxed text-slate-400 max-w-md font-semibold">
-                TechBes assigns certified technicians with test monitors, wring accessories, and official CP Plus/Hikvision models to audit and secure your property.
+                TechBes assigns certified technicians with test monitors, wiring accessories, and official CP Plus/Hikvision models to audit and secure your property.
               </p>
             </div>
             <div className="flex flex-col gap-2 shrink-0">

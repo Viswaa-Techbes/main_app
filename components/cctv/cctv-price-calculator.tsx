@@ -10,7 +10,7 @@ import { cctvApi, CctvAddon, CctvSubcategory, fallbackAddons } from "@/lib/cctv-
 import { useToast } from "@/hooks/use-toast";
 
 function money(value?: number) {
-  return `Rs. ${Math.round(value || 0).toLocaleString("en-IN")}`;
+  return `₹${Math.round(value || 0).toLocaleString("en-IN")}`;
 }
 
 import { getCctvCart } from "@/lib/cctv-cart";
@@ -512,7 +512,7 @@ export function CctvBookingConfigModal({
                   {s.formSchema?.step1?.title || "Step 1: Service Type"}
                 </label>
                 <select className="h-11 w-full rounded-md border border-slate-300 px-3 mt-2" value={serviceType} onChange={(e) => setServiceType(e.target.value)}>
-                  {serviceTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+                  {serviceTypes.map((t: any) => <option key={t} value={t}>{t}</option>)}
                 </select>
                 {s.formSchema?.step1?.options && (
                   <div className="mt-4 grid gap-2">
@@ -531,7 +531,7 @@ export function CctvBookingConfigModal({
               <div>
                 <p className="text-sm font-medium text-slate-700">{s.formSchema?.step2?.title || "Step 2: Materials Required"}</p>
                 <div className="mt-3 grid gap-3">
-                  {formattedMaterials.map((m) => {
+                  {formattedMaterials.map((m: any) => {
                     const hasQty = m.unit !== "none" && m.unit !== "checkbox" && m.unit !== "each";
                     return (
                       <div key={m.id} className="flex items-center gap-3 rounded-md border border-slate-200 px-3 py-2">
@@ -555,7 +555,7 @@ export function CctvBookingConfigModal({
               <div>
                 <p className="text-sm font-medium text-slate-700">{s.formSchema?.step3?.title || "Step 3: Parts Selection"}</p>
                 <div className="mt-3 grid gap-3">
-                  {formattedStep3Items.map((m) => {
+                  {formattedStep3Items.map((m: any) => {
                     const hasQty = m.unit !== "none" && m.unit !== "checkbox" && m.unit !== "each";
                     return (
                       <div key={m.id} className="flex items-center gap-3 rounded-md border border-slate-200 px-3 py-2">

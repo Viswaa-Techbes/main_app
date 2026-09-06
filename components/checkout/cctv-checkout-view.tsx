@@ -15,7 +15,7 @@ import dynamic from "next/dynamic";
 const LocationPicker = dynamic(() => import("@/components/booking/LocationPicker"), { ssr: false });
 
 function money(value?: number) {
-  return `Rs. ${Math.round(value || 0).toLocaleString("en-IN")}`;
+  return `₹${Math.round(value || 0).toLocaleString("en-IN")}`;
 }
 
 function parseCoordsFromUrl(url: string) {
@@ -138,7 +138,7 @@ export function CctvCheckoutView() {
     // Load Saved Addresses
     fetch("/api/user/addresses")
       .then((r) => r.ok ? r.json().catch(() => ({})) : {})
-      .then((json) => {
+      .then((json: any) => {
         if (json.success && Array.isArray(json.data)) {
           setSavedAddresses(json.data);
           // Auto-select default address if present
@@ -182,7 +182,7 @@ export function CctvCheckoutView() {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then((r) => r.ok ? r.json().catch(() => ({})) : {})
-      .then((json) => {
+      .then((json: any) => {
         if (json.success && json.data) {
           setProfile(json.data);
           setForm((prev) => ({

@@ -63,7 +63,7 @@ export interface MarketplaceService {
   reviews: Review[];
   recommendedFor: string[];
   timeSlots: string[];
-  configurableType?: "cctv";
+  configurableType?: "cctv" | string;
   overview?: string;
   excludedServices?: string[];
   supportedProducts?: string[];

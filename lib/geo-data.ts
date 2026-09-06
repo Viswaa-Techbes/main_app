@@ -81,7 +81,7 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     category: "Pillars",
     description: "A comprehensive guide to standard cabling routes, camera placement heights, and network configurations for security installations.",
     question: "How does the professional CCTV installation process work?",
-    answer: "A standard CCTV installation involves mapping optimal camera placement heights (typically 8 to 10 feet to avoid tampering), routing high-durability conduit pipes (PVC casing), wring either 3+1 coaxial or CAT6 cables, wring central power supplies (SMPS/PoE switch), and configuring the recording unit (DVR/NVR) with cloud network bindings for remote mobile view access.",
+    answer: "A standard CCTV installation involves mapping optimal camera placement heights (typically 8 to 10 feet to avoid tampering), routing high-durability conduit pipes (PVC casing), wiring either 3+1 coaxial or CAT6 cables, wiring central power supplies (SMPS/PoE switch), and configuring the recording unit (DVR/NVR) with cloud network bindings for remote mobile view access.",
     keyPoints: [
       "Mount cameras at 8-10 feet high to keep them out of reach of intruders.",
       "Route all indoor and outdoor cables inside PVC conduit casing to prevent rodent bites.",
@@ -99,12 +99,12 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
       },
       {
         title: "Step 3: Camera Mounting & Termination",
-        text: "Fix dome or bullet mounts on solid walls. Connect wring channels using waterproof junction boxes to cover the BNC/RJ45 connectors from humidity."
+        text: "Fix dome or bullet mounts on solid walls. Connect wiring channels using waterproof junction boxes to cover the BNC/RJ45 connectors from humidity."
       }
     ],
     faqs: [
       { question: "Is cabling included in the base installation price?", answer: "No, cabling is measured and billed on actual consumption per meter to ensure you only pay for what your site layout requires." },
-      { question: "Do technicians configure mobile remote view?", answer: "Yes, wring remote app view on your smartphone is included in our standard checklist." }
+      { question: "Do technicians configure mobile remote view?", answer: "Yes, wiring remote app view on your smartphone is included in our standard checklist." }
     ],
     relatedSlugs: ["cctv-buying-guide", "wifi-vs-wired", "free-site-survey-guide"]
   },
@@ -146,7 +146,7 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     keyPoints: [
       "Monitor server racks, reception desks, and physical fire exits.",
       "Structured CAT6 cabling paths avoid server room crosstalk.",
-      " مرکزی NVR units must reside inside locked racks with power backups (UPS).",
+      "Central NVR units must reside inside locked racks with power backups (UPS).",
       "Deploy warning signages to comply with local corporate guidelines."
     ],
     sections: [
@@ -220,7 +220,7 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     question: "What are the security requirements for cash counters and retail shops?",
     answer: "Retail shop security systems must feature high-resolution dome cameras directly above cash registers to record transactions and cash handling, wide-angle lenses for inventory showrooms to prevent shoplifting, and remote cloud backups to safeguard logs in case of recorder theft.",
     keyPoints: [
-      "Place high-definition cameras directly above cash cash tills.",
+      "Place high-definition cameras directly above cash tills.",
       "Wide-angle lenses cover maximum aisle space in showrooms.",
       "Cloud backup protects files from physical damage or theft.",
       "Ensure systems are integrated with internet lines for remote alerts."
@@ -304,7 +304,7 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     category: "Brands",
     description: "Complete setup and repair of Secureye high-definition security cameras, DVRs, NVRs, and biometric access controllers.",
     question: "How do Secureye security products integrate with business systems?",
-    answer: "Secureye is a leading security brand known for integrating video surveillance with access control and biometric attendance systems. Their cameras are durable, and their central controllers allow businesses in Bangalore to link employee check-ins with camera logs. TechBes provides official wring and support for Secureye devices.",
+    answer: "Secureye is a leading security brand known for integrating video surveillance with access control and biometric attendance systems. Their cameras are durable, and their central controllers allow businesses in Bangalore to link employee check-ins with camera logs. TechBes provides official wiring and support for Secureye devices.",
     keyPoints: [
       "Integrates with biometric fingerprint and face scanners.",
       "Provides durable dome and bullet analog/IP cameras.",
@@ -334,7 +334,7 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     category: "Brands",
     description: "High-grade Mikam multi-channel SMPS power boxes, adapters, and cabling accessories for CCTV installations in Bangalore.",
     question: "Why does TechBes recommend Mikam power components for CCTV?",
-    answer: "Mikam is the trusted brand for CCTV power supply units (SMPS) and cables in India. Their multi-channel power boxes feature built-in surge protection, overload cutoffs, and voltage adjusters, which are critical to protecting cameras during Bangalore's frequent power fluctuations and storms. TechBes utilizes Mikam components for standard wring setups.",
+    answer: "Mikam is the trusted brand for CCTV power supply units (SMPS) and cables in India. Their multi-channel power boxes feature built-in surge protection, overload cutoffs, and voltage adjusters, which are critical to protecting cameras during Bangalore's frequent power fluctuations and storms. TechBes utilizes Mikam components for standard wiring setups.",
     keyPoints: [
       "Built-in protection against voltage spikes and surges.",
       "Adjustable voltage dial compensates for cable voltage drop over long runs.",
@@ -435,7 +435,7 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     answer: "IP (network-based) systems are technologically superior, using single CAT6 cables to transmit up to 4K resolution, supporting PoE power, and offering smart AI alerts (line crossing, intrusion warnings). Analog systems are budget-friendly, run on thicker 3+1 coaxial cables, and are best for simple properties where basic video recording without smart notifications is sufficient.",
     keyPoints: [
       "IP setups use a single CAT6 cable for video, audio, and power.",
-      "Analog systems require separate power lines and wring channels.",
+      "Analog systems require separate power lines and wiring channels.",
       "IP supports smart analytics; analog provides simple continuous feed.",
       "IP is highly scalable; analog is restricted by DVR ports."
     ],
@@ -498,7 +498,7 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     category: "Comparisons",
     description: "Compare bandwidth, durability, and signal range of CAT6 network cables against standard 3+1 coaxial cables.",
     question: "CAT6 vs 3+1 Cable: Which wiring should I install?",
-    answer: "Choose **CAT6 Ethernet cabling** if you are wring a new property or deploying high-definition IP cameras, as it supports massive digital bandwidth, runs power (PoE), and is future-proof. Choose **3+1 Coaxial cabling** only if you are installing a budget-friendly analog DVR system or replacing cables in an existing analog setup.",
+    answer: "Choose **CAT6 Ethernet cabling** if you are wiring a new property or deploying high-definition IP cameras, as it supports massive digital bandwidth, runs power (PoE), and is future-proof. Choose **3+1 Coaxial cabling** only if you are installing a budget-friendly analog DVR system or replacing cables in an existing analog setup.",
     keyPoints: [
       "CAT6 supports gigabit speeds and POE; 3+1 is for analog signals.",
       "3+1 combines video and power lines in a single coaxial sheath.",
@@ -531,11 +531,11 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     category: "Comparisons",
     description: "Compare Digital Video Recorders (DVR) and Network Video Recorders (NVR) on camera processing, audio, and storage options.",
     question: "DVR vs NVR: Which recording unit is best for my security system?",
-    answer: "Choose an **NVR (Network Video Recorder)** if you are setting up modern IP network cameras, as NVRs process digital video directly from the cameras, support PoE wring, and offer smart AI notifications. Choose a **DVR (Digital Video Recorder)** if you are setting up analog cameras, as DVRs convert raw analog signals using internal encoders and are more budget-friendly.",
+    answer: "Choose an **NVR (Network Video Recorder)** if you are setting up modern IP network cameras, as NVRs process digital video directly from the cameras, support PoE wiring, and offer smart AI notifications. Choose a **DVR (Digital Video Recorder)** if you are setting up analog cameras, as DVRs convert raw analog signals using internal encoders and are more budget-friendly.",
     keyPoints: [
       "DVRs are for analog cameras; NVRs are for digital IP network setups.",
       "NVRs receive digital streams; DVRs encode raw analog input.",
-      "NVRs support wring over a single CAT6 cable; DVRs require coaxial paths.",
+      "NVRs support wiring over a single CAT6 cable; DVRs require coaxial paths.",
       "NVRs offer advanced search, alert analytics, and backups."
     ],
     sections: [
@@ -566,12 +566,12 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     category: "Service Guides",
     description: "Book urgent, same-day security camera installations across Bangalore with certified local technicians.",
     question: "How can I book same-day CCTV installation in Bangalore?",
-    answer: "Same-day CCTV installation is available across Bangalore for bookings confirmed before 11:00 AM. TechBes assigns verified technicians equipped with tools, wring lines, and mounting frames to complete the installation, wring, and mobile app setup within a few hours of confirmation.",
+    answer: "Same-day CCTV installation is available across Bangalore for bookings confirmed before 11:00 AM. TechBes assigns verified technicians equipped with tools, wiring lines, and mounting frames to complete the installation, wiring, and mobile app setup within a few hours of confirmation.",
     keyPoints: [
       "Available for bookings confirmed before 11:00 AM.",
-      "Technicians bring all wring, SMPS, and tools.",
+      "Technicians bring all wiring, SMPS, and tools.",
       "Covers all major neighborhoods including HSR, Jayanagar, Indiranagar.",
-      "Includes wring mobile app remote viewing."
+      "Includes wiring mobile app remote viewing."
     ],
     sections: [
       {
@@ -590,10 +590,10 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     category: "Service Guides",
     description: "Schedule a free on-site survey in Bangalore. Our engineers will design a custom layout diagram and provide an itemized quote.",
     question: "What is included in the TechBes free CCTV site survey?",
-    answer: "Our free site survey includes a certified security engineer visiting your Bangalore property to identify blind spots, calculate camera count requirements, map wring routes, and draft a layout diagram. You receive an itemized estimate with no hidden fees.",
+    answer: "Our free site survey includes a certified security engineer visiting your Bangalore property to identify blind spots, calculate camera count requirements, map wiring routes, and draft a layout diagram. You receive an itemized estimate with no hidden fees.",
     keyPoints: [
       "100% free on-site consultation with zero obligation.",
-      "Certified engineers map lens angles and wring paths.",
+      "Certified engineers map lens angles and wiring paths.",
       "Helps prevent over-buying cameras or cabling materials.",
       "Receive an itemized quote on the same day."
     ],
@@ -638,9 +638,9 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     slug: "nagarbhavi",
     title: "CCTV Installation & IT Services in Nagarbhavi, Bangalore",
     category: "Locations",
-    description: "Certified CCTV camera setup, wring, repairs, and corporate IT AMC services in Nagarbhavi, Papareddy Palya, and nearby areas.",
+    description: "Certified CCTV camera setup, wiring, repairs, and corporate IT AMC services in Nagarbhavi, Papareddy Palya, and nearby areas.",
     question: "Where can I book reliable CCTV installation in Nagarbhavi?",
-    answer: "TechBes corporate office is located in Nagarbhavi, Bangalore, allowing us to provide rapid response times for security camera setups, wring, repairs, and IT support. We serve all blocks of Nagarbhavi, Papareddy Palya, Deepa Complex, and nearby areas with verified technicians.",
+    answer: "TechBes corporate office is located in Nagarbhavi, Bangalore, allowing us to provide rapid response times for security camera setups, wiring, repairs, and IT support. We serve all blocks of Nagarbhavi, Papareddy Palya, Deepa Complex, and nearby areas with verified technicians.",
     keyPoints: [
       "HQ location guarantees fast technician dispatch.",
       "Authorized setups for Hikvision, CP Plus, and Secureye.",
@@ -667,9 +667,9 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     slug: "hsr-layout",
     title: "CCTV Installation & IT Services in HSR Layout, Bangalore",
     category: "Locations",
-    description: "Professional security camera setups, Wi-Fi wring, and office IT support AMC in HSR Layout sectors 1 to 7.",
+    description: "Professional security camera setups, Wi-Fi wiring, and office IT support AMC in HSR Layout sectors 1 to 7.",
     question: "Who provides the best CCTV installation in HSR Layout?",
-    answer: "TechBes offers professional CCTV installation, office structured cabling, firewall wring, and IT support AMC in HSR Layout. We serve tech startups, commercial offices, PG accommodations, and residential houses across Sectors 1 to 7 with verified engineers.",
+    answer: "TechBes offers professional CCTV installation, office structured cabling, firewall wiring, and IT support AMC in HSR Layout. We serve tech startups, commercial offices, PG accommodations, and residential houses across Sectors 1 to 7 with verified engineers.",
     keyPoints: [
       "Startups and office IT networking specialists.",
       "Centralized NVR racks and structured CAT6 cabling.",
@@ -679,11 +679,11 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     sections: [
       {
         title: "Securing Startups and Offices in HSR Layout",
-        text: "HSR Layout is Bangalore's startup hub. We specialize in setting up secure office networks, mounting centralized NVR systems, wring biometric locks, and configuring enterprise-grade firewalls (like Fortinet)."
+        text: "HSR Layout is Bangalore's startup hub. We specialize in setting up secure office networks, mounting centralized NVR systems, wiring biometric locks, and configuring enterprise-grade firewalls (like Fortinet)."
       }
     ],
     faqs: [
-      { question: "Do you offer networking services in HSR Layout?", answer: "Yes, we provide structured cabling, Wi-Fi mesh setups, router/switch configurations, and firewall wring for startup offices." }
+      { question: "Do you offer networking services in HSR Layout?", answer: "Yes, we provide structured cabling, Wi-Fi mesh setups, router/switch configurations, and firewall wiring for startup offices." }
     ],
     relatedSlugs: ["office-network-deployment", "office-cctv-guide"],
     locationInfo: {
@@ -708,11 +708,11 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     sections: [
       {
         title: "Enterprise Surveillance in Whitefield",
-        text: "Whitefield houses massive tech parks and logistics warehouses. We design high-bay inventory camera layouts, wring long-range outdoor bullets, and set up centralized security monitoring desks."
+        text: "Whitefield houses massive tech parks and logistics warehouses. We design high-bay inventory camera layouts, wiring long-range outdoor bullets, and set up centralized security monitoring desks."
       }
     ],
     faqs: [
-      { question: "Do you install industrial GI conduit wring?", answer: "Yes, we provide heavy-duty Galvanized Iron (GI) conduit pipe routing to protect cables in warehouses and factories." }
+      { question: "Do you install industrial GI conduit wiring?", answer: "Yes, we provide heavy-duty Galvanized Iron (GI) conduit pipe routing to protect cables in warehouses and factories." }
     ],
     relatedSlugs: ["warehouse-cctv-guide", "commercial-cctv"],
     locationInfo: {
@@ -725,9 +725,9 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     slug: "koramangala",
     title: "CCTV Installation & IT Services in Koramangala, Bangalore",
     category: "Locations",
-    description: "Showroom security camera setups, cash counter CCTV, and corporate network wring in Koramangala blocks 1 to 8.",
+    description: "Showroom security camera setups, cash counter CCTV, and corporate network wiring in Koramangala blocks 1 to 8.",
     question: "Where can I get quick CCTV repair or setup in Koramangala?",
-    answer: "TechBes offers professional CCTV setup, retail showroom security, cash counter cameras, and corporate network wring in Koramangala. We serve retail shops, cafes, offices, and apartments across Blocks 1 to 8 with verified local technicians.",
+    answer: "TechBes offers professional CCTV setup, retail showroom security, cash counter cameras, and corporate network wiring in Koramangala. We serve retail shops, cafes, offices, and apartments across Blocks 1 to 8 with verified local technicians.",
     keyPoints: [
       "Specialists in retail shop and cafe surveillance.",
       "Cash counter cameras with high-resolution details.",
@@ -754,7 +754,7 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     slug: "electronic-city",
     title: "CCTV Installation & IT Services in Electronic City, Bangalore",
     category: "Locations",
-    description: "Enterprise IT network wring, corporate CCTV setup, and server AMC services in Electronic City Phases 1 and 2.",
+    description: "Enterprise IT network wiring, corporate CCTV setup, and server AMC services in Electronic City Phases 1 and 2.",
     question: "Who provides IT networking and CCTV services in Electronic City?",
     answer: "TechBes provides professional IT networking, corporate CCTV installation, rack server setup, and IT support AMC in Electronic City. We cater to tech campuses, industrial zones, and residential apartments in Phases 1 and 2 with certified engineers.",
     keyPoints: [
@@ -766,7 +766,7 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     sections: [
       {
         title: "Supporting Electronic City Tech Campuses",
-        text: "Electronic City is Bangalore's primary electronics and IT hub. We specialize in structured ethernet wring, hypervisor config (ESXi), Active Directory setup, and enterprise CCTV network deployment."
+        text: "Electronic City is Bangalore's primary electronics and IT hub. We specialize in structured ethernet wiring, hypervisor config (ESXi), Active Directory setup, and enterprise CCTV network deployment."
       }
     ],
     faqs: [
@@ -783,14 +783,14 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     slug: "jayanagar",
     title: "CCTV Installation & IT Services in Jayanagar, Bangalore",
     category: "Locations",
-    description: "Residential security camera setups, villa CCTV wring, and commercial shop security in Jayanagar blocks.",
+    description: "Residential security camera setups, villa CCTV wiring, and commercial shop security in Jayanagar blocks.",
     question: "Where can I book home security camera setup in Jayanagar?",
-    answer: "TechBes offers residential security camera setup, villa CCTV wring, and commercial shop security in Jayanagar. We serve independent houses, commercial shops, and offices across Blocks 1 to 9 with verified technicians.",
+    answer: "TechBes offers residential security camera setup, villa CCTV wiring, and commercial shop security in Jayanagar. We serve independent houses, commercial shops, and offices across Blocks 1 to 9 with verified technicians.",
     keyPoints: [
       "Home and villa security specialists.",
       "weatherproof outdoor cameras for compound gates.",
       "Same-day installation for bookings confirmed before 11 AM.",
-      "Includes wring mobile app remote viewing."
+      "Includes wiring mobile app remote viewing."
     ],
     sections: [
       {
@@ -812,9 +812,9 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     slug: "jp-nagar",
     title: "CCTV Installation & IT Services in JP Nagar, Bangalore",
     category: "Locations",
-    description: "Smart home automation, security camera setup, and residential CCTV wring in JP Nagar phases 1 to 9.",
+    description: "Smart home automation, security camera setup, and residential CCTV wiring in JP Nagar phases 1 to 9.",
     question: "Who installs smart security cameras and home automation in JP Nagar?",
-    answer: "TechBes provides smart home automation, security camera setup, and residential CCTV wring in JP Nagar. We serve apartments, villas, and showrooms across Phases 1 to 9 with verified technicians.",
+    answer: "TechBes provides smart home automation, security camera setup, and residential CCTV wiring in JP Nagar. We serve apartments, villas, and showrooms across Phases 1 to 9 with verified technicians.",
     keyPoints: [
       "Smart home automation and security integration.",
       "Weatherproof cameras for apartments and villas.",
@@ -841,19 +841,19 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     slug: "yelahanka",
     title: "CCTV Installation & IT Services in Yelahanka, Bangalore",
     category: "Locations",
-    description: "CCTV camera wring, residential security systems, and office network support in Yelahanka and Yelahanka New Town.",
-    question: "Who provides security camera wring and setup in Yelahanka?",
-    answer: "TechBes offers professional CCTV camera setup, wring, residential security, and office network support in Yelahanka and Yelahanka New Town. We serve apartments, villas, and business offices with verified technicians.",
+    description: "CCTV camera wiring, residential security systems, and office network support in Yelahanka and Yelahanka New Town.",
+    question: "Who provides security camera wiring and setup in Yelahanka?",
+    answer: "TechBes offers professional CCTV camera setup, wiring, residential security, and office network support in Yelahanka and Yelahanka New Town. We serve apartments, villas, and business offices with verified technicians.",
     keyPoints: [
       "Residential and commercial security experts.",
       "weatherproof outdoor cameras for compound walls.",
-      "Structured ethernet wring and Wi-Fi setups.",
+      "Structured ethernet wiring and Wi-Fi setups.",
       "Official warranty support for Hikvision and CP Plus."
     ],
     sections: [
       {
         title: "Perimeter Security for Yelahanka Properties",
-        text: "Yelahanka features large gated communities and villas. We specialize in wring long-range outdoor bullet cameras along compound walls and connecting them to central NVR systems for continuous recording."
+        text: "Yelahanka features large gated communities and villas. We specialize in wiring long-range outdoor bullet cameras along compound walls and connecting them to central NVR systems for continuous recording."
       }
     ],
     faqs: [
@@ -870,9 +870,9 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     slug: "banashankari",
     title: "CCTV Installation & IT Services in Banashankari, Bangalore",
     category: "Locations",
-    description: "Residential CCTV wring, shop security camera setup, and network troubleshooting in Banashankari stages 1 to 6.",
+    description: "Residential CCTV wiring, shop security camera setup, and network troubleshooting in Banashankari stages 1 to 6.",
     question: "Where can I find certified CCTV technicians in Banashankari?",
-    answer: "TechBes offers residential CCTV wring, shop security camera setup, and network troubleshooting in Banashankari. We serve independent houses, commercial shops, and apartments across Stages 1 to 6 with verified technicians.",
+    answer: "TechBes offers residential CCTV wiring, shop security camera setup, and network troubleshooting in Banashankari. We serve independent houses, commercial shops, and apartments across Stages 1 to 6 with verified technicians.",
     keyPoints: [
       "Certified local security technicians.",
       "Dome and bullet camera options for homes.",
@@ -882,7 +882,7 @@ export const GEO_PAGES: Record<string, GeoPageData> = {
     sections: [
       {
         title: "Local Security Support in Banashankari",
-        text: "Banashankari is one of Bangalore's largest residential areas. We provide prompt on-site services for homes, apartments, and commercial shops, ensuring clean wring and reliable camera angles."
+        text: "Banashankari is one of Bangalore's largest residential areas. We provide prompt on-site services for homes, apartments, and commercial shops, ensuring clean wiring and reliable camera angles."
       }
     ],
     faqs: [

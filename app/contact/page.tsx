@@ -99,24 +99,24 @@ export default function ContactPage() {
               <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider pb-3 border-b border-slate-50">Send Message</h2>
               <form className="space-y-4 text-xs font-semibold text-slate-650">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="grid gap-1.5 text-slate-700">
-                    Full Name
-                    <Input className="h-10 rounded-xl border-slate-200 bg-slate-50 text-xs focus:ring-blue-500/20" placeholder="Your Name" required />
-                  </label>
-                  <label className="grid gap-1.5 text-slate-700">
-                    Email address
-                    <Input className="h-10 rounded-xl border-slate-200 bg-slate-50 text-xs focus:ring-blue-500/20" type="email" placeholder="email@example.com" required />
-                  </label>
+                  <div className="grid gap-1.5 text-slate-700">
+                    <label htmlFor="full-name">Full Name</label>
+                    <Input id="full-name" className="h-10 rounded-xl border-slate-200 bg-slate-50 text-xs focus:ring-blue-500/20" placeholder="Your Name" required />
+                  </div>
+                  <div className="grid gap-1.5 text-slate-700">
+                    <label htmlFor="email-address">Email address</label>
+                    <Input id="email-address" className="h-10 rounded-xl border-slate-200 bg-slate-50 text-xs focus:ring-blue-500/20" type="email" placeholder="email@example.com" required />
+                  </div>
                 </div>
-                <label className="grid gap-1.5 text-slate-700">
-                  Subject
-                  <Input className="h-10 rounded-xl border-slate-200 bg-slate-50 text-xs focus:ring-blue-500/20" placeholder="e.g. CCTV setup request" required />
-                </label>
-                <label className="grid gap-1.5 text-slate-700">
-                  Message
-                  <textarea className="min-h-28 rounded-xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-slate-50" placeholder="Enter query parameters..." required />
-                </label>
-                <Button className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-5 shadow-sm w-full flex items-center justify-center gap-1.5">
+                <div className="grid gap-1.5 text-slate-700">
+                  <label htmlFor="subject">Subject</label>
+                  <Input id="subject" className="h-10 rounded-xl border-slate-200 bg-slate-50 text-xs focus:ring-blue-500/20" placeholder="e.g. CCTV setup request" required />
+                </div>
+                <div className="grid gap-1.5 text-slate-700">
+                  <label htmlFor="message">Message</label>
+                  <textarea id="message" className="min-h-28 rounded-xl border border-slate-200 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-slate-50" placeholder="Enter query parameters..." required />
+                </div>
+                <Button type="submit" className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-5 shadow-sm w-full flex items-center justify-center gap-1.5">
                   Submit Support Ticket
                   <ArrowRight className="h-4 w-4" />
                 </Button>

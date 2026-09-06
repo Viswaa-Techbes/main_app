@@ -153,9 +153,9 @@ export function ServiceBookingConfigModal({
       .some(([type]) => type === "Analog Camera");
   }, [cctvSelectedCameraTypes]);
 
-  const isRecorderSelected = cctvDvrChannels && cctvDvrChannels !== "None";
-  const cctvDvrRequired = isRecorderSelected && hasAnalog;
-  const cctvNvrRequired = isRecorderSelected && !hasAnalog;
+  const isRecorderSelected = Boolean(cctvDvrChannels && cctvDvrChannels !== "None");
+  const cctvDvrRequired = Boolean(isRecorderSelected && hasAnalog);
+  const cctvNvrRequired = Boolean(isRecorderSelected && !hasAnalog);
 
   const showSdCardSection = useMemo(() => {
     return Object.entries(cctvSelectedCameraTypes)
@@ -379,7 +379,7 @@ export function ServiceBookingConfigModal({
       headers: { Authorization: `Bearer ${token}` }
     })
       .then((r) => (r.ok ? r.json() : {}))
-      .then((json) => {
+      .then((json: any) => {
         if (json.success && Array.isArray(json.data)) {
           setSavedAddresses(json.data);
           const def = json.data.find((a: any) => a.isDefault);
@@ -395,7 +395,7 @@ export function ServiceBookingConfigModal({
       headers: { Authorization: `Bearer ${token}` }
     })
       .then((r) => (r.ok ? r.json() : {}))
-      .then((json) => {
+      .then((json: any) => {
         if (json.success && json.data) {
           setCustomerName(json.data.name || "");
           setCustomerPhone(json.data.mobileNumber || json.data.phone || "");
@@ -436,7 +436,7 @@ export function ServiceBookingConfigModal({
       headers: { Authorization: `Bearer ${token}` }
     })
       .then((r) => (r.ok ? r.json() : {}))
-      .then((json) => {
+      .then((json: any) => {
         if (json.success && Array.isArray(json.data)) {
           const slots = json.data
             .filter((job: any) => job.bookingDate === date && job.status !== "Cancelled" && job.timeSlot)
@@ -877,7 +877,7 @@ export function ServiceBookingConfigModal({
           return;
         }
         if (cctvTotalCameras > 16) {
-          toast({ title: "Enterprise Booking Required", description: "CCTV bookings with more than 16 cameras are blocked online. Please contact our office.", variant: "destructive" });
+          toast({ title: "Enterprise Booking Required", description: "Please contact TechBes for a customized quotation.", variant: "destructive" });
           return;
         }
         const incompleteSelection = Object.entries(cctvSelectedCameraTypes)
@@ -1219,7 +1219,7 @@ export function ServiceBookingConfigModal({
                           <h4 className="font-extrabold text-base text-slate-900">{recommendedPkg.name}</h4>
                           <span className="font-black text-blue-600 text-base">₹{recommendedPkg.price}</span>
                         </div>
-                        <p className="text-xs text-slate-500 mt-2 leading-relaxed">{recommendedPkg.description}</p>
+                        <p className="text-xs text-slate-500 mt-2 leading-relaxed">{(recommendedPkg as any).description}</p>
                         {recommendedPkg.duration && (
                           <div className="text-[10px] text-slate-400 mt-3 font-bold">Estimated duration: {recommendedPkg.duration}</div>
                         )}
@@ -1758,19 +1758,19 @@ export function ServiceBookingConfigModal({
                             <div className="space-y-1">
                               <h3 className="font-extrabold text-sm uppercase tracking-wider text-blue-300">Large Enterprise Installation</h3>
                               <p className="text-[11px] text-slate-300 font-bold leading-relaxed">
-                                Installations above 16 cameras require a customized site assessment and quotation. Please contact our office to arrange a site survey.
+                                Please contact TechBes for a customized quotation. Installations above 16 cameras require a customized site assessment.
                               </p>
                             </div>
                           </div>
                           <div className="border-t border-white/10 pt-3 flex flex-wrap gap-2.5">
                             <a
-                              href="tel:+919900012345"
+                              href="tel:+919591144949"
                               className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider transition"
                             >
-                              <CalendarCheck className="h-3.5 w-3.5" /> Call Now
+                              <CalendarCheck className="h-3.5 w-3.5" /> Call +91 95911 44949
                             </a>
                             <a
-                              href="https://wa.me/919900012345?text=Hi%20Techbes,%20I%20need%20a%20custom%20quote%20for%20a%20large%20CCTV%20installation%20with%20more%20than%2016%20cameras."
+                              href="https://wa.me/919591144949?text=Hi%20Techbes,%20I%20need%20a%20customized%20quotation%20for%20a%20large%20CCTV%20installation%20with%20more%20than%2016%20cameras."
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider transition"
@@ -1778,7 +1778,7 @@ export function ServiceBookingConfigModal({
                               WhatsApp
                             </a>
                             <a
-                              href="/quote?service=install-new-cctv"
+                              href="/get-a-quote?service=cctv"
                               className="flex items-center gap-1.5 px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl text-[10px] uppercase tracking-wider transition"
                             >
                               Get a Quote
@@ -2119,7 +2119,7 @@ export function ServiceBookingConfigModal({
                     <div className="grid gap-2 grid-cols-5 mt-4">
                       {uploadedImages.map((imgUrl, i) => (
                         <div key={i} className="relative h-16 w-16 rounded-xl overflow-hidden border border-slate-200">
-                          <img src={imgUrl} alt="site" className="object-cover h-full w-full" />
+                          <img src={imgUrl} alt="Uploaded site layout preview" className="object-cover h-full w-full" />
                         </div>
                       ))}
                     </div>

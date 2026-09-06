@@ -45,7 +45,7 @@ export function SiteHeader() {
             </a>
           </div>
           <div className="flex items-center gap-6 text-slate-600">
-            <Link href="/services" className="hover:text-blue-600 transition">Support</Link>
+            <Link href="/contact" className="hover:text-blue-600 transition">Support</Link>
             <Link href="/dashboard" className="hover:text-blue-600 transition">Track Ticket</Link>
             {status === "authenticated" && user ? (
               <span className="font-semibold text-slate-800">{user.email}</span>
@@ -86,6 +86,7 @@ export function SiteHeader() {
           <div className="relative hidden max-w-xs xl:block">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
             <Input
+              aria-label="Search services"
               className="h-9 w-48 rounded-full border-slate-200 bg-slate-50 pl-9 text-xs focus:bg-white focus:ring-2 focus:ring-blue-500/20"
               placeholder="Search services..."
             />
@@ -153,6 +154,7 @@ export function SiteHeader() {
           <div className="relative mb-4">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <Input
+              aria-label="Search services"
               className="h-10 rounded-full bg-slate-50 pl-11 text-sm border-none"
               placeholder="Search services..."
             />

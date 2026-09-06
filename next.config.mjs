@@ -101,6 +101,59 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.techbes.co.in',
+          },
+        ],
+        destination: 'https://techbes.co.in/:path*',
+        permanent: true,
+      },
+    ];
+  },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(self)',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' https://checkout.razorpay.com https://api.razorpay.com",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "img-src 'self' data: blob: https://images.unsplash.com https://*.openstreetmap.org https://maps.googleapis.com https://*.cloudinary.com https://api.techbes.co.in",
+              "font-src 'self' data: https://fonts.gstatic.com",
+              "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com",
+              "frame-ancestors 'self'",
+              "connect-src 'self' https://api.techbes.co.in https://*.techbes.co.in https://nominatim.openstreetmap.org https://lumberjack.razorpay.com https://api.razorpay.com",
+            ].join('; '),
+          },
+        ],
+      },
+    ];
+  },
   async rewrites() {
     const backendUrl = process.env.BACKEND_API_URL || 'https://api.techbes.co.in';
     return [

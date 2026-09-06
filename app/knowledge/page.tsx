@@ -49,6 +49,7 @@ export default function KnowledgeHubLanding() {
             <div className="relative max-w-md mx-auto pt-4">
               <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
+                aria-label="Search buying guides, brands, comparisons"
                 type="text"
                 placeholder="Search buying guides, brands, comparisons..."
                 value={searchQuery}
@@ -85,7 +86,11 @@ export default function KnowledgeHubLanding() {
                 if (pagesInCat.length === 0) return null;
 
                 return (
-                  <div key={cat.name} className="space-y-4 pt-4 border-t border-slate-100 first:border-0 first:pt-0">
+                  <div 
+                    key={cat.name} 
+                    id={cat.name === "Locations" ? "service-areas" : undefined}
+                    className="space-y-4 pt-4 border-t border-slate-100 first:border-0 first:pt-0 scroll-mt-24"
+                  >
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pb-2">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">

@@ -96,7 +96,7 @@ export function CategorySidebar() {
             className="mt-4 w-full h-8.5 rounded-xl bg-white text-blue-600 hover:bg-slate-50 text-[11px] font-bold shadow-sm transition-transform hover:scale-102"
             asChild
           >
-            <Link href="/services">
+            <Link href="/get-a-quote">
               Book a Free Consultation
             </Link>
           </Button>

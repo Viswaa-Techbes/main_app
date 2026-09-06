@@ -1,7 +1,7 @@
 import React from "react";
 
 export interface JsonLdProps {
-  type: "organization" | "localbusiness" | "website" | "service" | "breadcrumb" | "faq" | "product" | "howto";
+  type: "organization" | "localbusiness" | "website" | "service" | "breadcrumb" | "faq" | "product" | "howto" | "article";
   data?: any;
 }
 
@@ -9,6 +9,35 @@ export function JsonLd({ type, data }: JsonLdProps) {
   let schema: any = null;
 
   switch (type) {
+    case "article":
+      if (data) {
+        schema = {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": data.title,
+          "description": data.description || "",
+          "image": data.image || "https://techbes.co.in/hero-illustration.png",
+          "author": {
+            "@type": "Organization",
+            "name": "TechBes",
+            "url": "https://techbes.co.in"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "TechBes",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://techbes.co.in/logo.png"
+            }
+          },
+          "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": `https://techbes.co.in/knowledge/${data.slug}`
+          }
+        };
+      }
+      break;
+
     case "howto":
       if (data) {
         schema = {

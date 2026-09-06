@@ -16,7 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 
 
 function money(value?: number) {
-  return `Rs. ${Math.round(value || 0).toLocaleString("en-IN")}`;
+  return `₹${Math.round(value || 0).toLocaleString("en-IN")}`;
 }
 
 export function CctvCartView() {

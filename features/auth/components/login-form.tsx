@@ -121,11 +121,10 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
       const res = (await sendOtp(cleanEmail, false, "login")) as any;
       setEmailOtpSent(true);
       setEmailOtpTimer(60);
-      if (res && res.otp && process.env.NODE_ENV !== "production") {
-        setInfo(`[DEBUG] OTP: ${res.otp} (Email service offline/fallback)`);
-      } else {
-        setInfo("OTP sent to your email address.");
+      if (res && res.otp && process.env.NODE_ENV === "development") {
+        logger.info("Dev OTP:", res.otp);
       }
+      setInfo("OTP sent to your email address.");
     } catch (err) {
       logger.warn("Email OTP send failed", err);
       setError(err instanceof AppError ? err.message : "Failed to send OTP. Try again.");
@@ -168,11 +167,10 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
       const res = (await sendOtp(cleanMobile, true, "login")) as any;
       setOtpSent(true);
       setOtpTimer(60);
-      if (res && res.otp && process.env.NODE_ENV !== "production") {
-        setInfo(`[DEBUG] OTP: ${res.otp} (SMS service offline/fallback)`);
-      } else {
-        setInfo("OTP sent to your mobile number.");
+      if (res && res.otp && process.env.NODE_ENV === "development") {
+        logger.info("Dev OTP:", res.otp);
       }
+      setInfo("OTP sent to your mobile number.");
     } catch (err) {
       logger.warn("OTP send failed", err);
       setError(err instanceof AppError ? err.message : "Failed to send OTP. Try again.");

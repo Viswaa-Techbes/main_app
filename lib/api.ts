@@ -1,7 +1,7 @@
-import { AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
+import { AUTH_TOKEN_STORAGE_KEY, getApiBaseUrl } from "@/core/api/config";
 
 export async function fetchAuthApi(endpoint: string, options: RequestInit = {}) {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+  const baseUrl = getApiBaseUrl();
   
   // We check if we're in the browser to access localStorage
   let token = null

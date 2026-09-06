@@ -6,10 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount)
+  return `₹${Math.round(amount || 0).toLocaleString("en-IN")}`;
 }
 
 export function formatDateTime(dateString: string | Date): string {

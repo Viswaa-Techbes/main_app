@@ -125,6 +125,7 @@ export function AIAssistantWidget() {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => { setIsOpen(true); setIsMinimized(false); }}
+        aria-label="Open AI Assistant"
         className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 rounded-full shadow-lg shadow-blue-500/40 flex items-center justify-center text-white z-50 hover:bg-blue-700 transition-colors"
       >
         <MessageSquare size={24} />
@@ -168,12 +169,14 @@ export function AIAssistantWidget() {
           <div className="flex items-center gap-1">
             <button 
               onClick={(e) => { e.stopPropagation(); setIsMinimized(!isMinimized); }} 
+              aria-label={isMinimized ? "Maximize assistant" : "Minimize assistant"}
               className="p-1.5 hover:bg-white/20 rounded text-white transition"
             >
               {isMinimized ? <Maximize2 size={16} /> : <Minus size={16} />}
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); setIsOpen(false); }} 
+              aria-label="Close assistant"
               className="p-1.5 hover:bg-rose-500/80 rounded text-white transition"
             >
               <X size={16} />
@@ -232,6 +235,7 @@ export function AIAssistantWidget() {
                   type="text"
                   value={input}
                   onChange={e => setInput(e.target.value)}
+                  aria-label="Ask Techbes Assistant"
                   placeholder="Ask about services, tracking..."
                   className="flex-1 bg-gray-100 text-sm border-none rounded-xl py-2 px-3 outline-none focus:ring-2 focus:ring-blue-500/50 transition"
                   disabled={isLoading}
@@ -239,6 +243,7 @@ export function AIAssistantWidget() {
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
+                  aria-label="Send message"
                   className="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center shrink-0 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700 transition"
                 >
                   <Send size={16} className={isLoading ? "animate-pulse" : ""} />

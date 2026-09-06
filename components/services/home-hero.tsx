@@ -65,7 +65,7 @@ export function HomeHero() {
                   </Link>
                 </Button>
                 <Button variant="outline" className="h-11 w-full sm:w-56 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 px-6 flex items-center justify-center" asChild>
-                  <Link href="/services">
+                  <Link href="/get-a-quote">
                     Book a Free Consultation
                   </Link>
                 </Button>
@@ -76,6 +76,7 @@ export function HomeHero() {
                 <div className="relative">
                   <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <Input
+                    aria-label="Search services"
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
                     placeholder="Search CCTV, networking, repairs..."

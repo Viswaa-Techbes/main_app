@@ -53,7 +53,7 @@ export function DashboardOverview() {
         comment: reviewComment,
         technicianId: techId,
         jobId: reviewBooking._id,
-        clientName: data.profile?.name || user?.email || "Customer",
+        clientName: data?.profile?.name || user?.email || "Customer",
       });
 
       setReviewBooking(null);

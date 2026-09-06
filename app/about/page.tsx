@@ -260,7 +260,7 @@ export default function AboutPage() {
                   <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Workmanship Guarantee</h3>
                 </div>
                 <p className="text-[11px] leading-relaxed text-slate-500 font-semibold">
-                  TechBes provides a 30-day post-service warranty on all manual terminations, mount structures, and wring paths, ensuring high stability.
+                  TechBes provides a 30-day post-service warranty on all manual terminations, mount structures, and wiring paths, ensuring high stability.
                 </p>
               </div>
               <div className="space-y-2">
@@ -276,11 +276,16 @@ export default function AboutPage() {
           </section>
 
           {/* Major Clients */}
-          <section className="space-y-6">
-            <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider text-center">Our Major Clients</h2>
-            <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-4 opacity-75">
+          <section className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-6">
+            <div className="text-center space-y-1">
+              <h2 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Our Major Clients</h2>
+              <p className="text-[11px] text-slate-400 font-semibold">Trusted by leading enterprises, government tribunals, and logistics hubs</p>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {majorClients.map((client) => (
-                <span key={client} className="text-xs font-extrabold text-slate-400 uppercase tracking-wider">{client}</span>
+                <div key={client} className="flex items-center justify-center rounded-xl bg-slate-50/80 border border-slate-100 p-3.5 text-center transition hover:bg-blue-50/40 hover:border-blue-100">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wide leading-snug">{client}</span>
+                </div>
               ))}
             </div>
           </section>

@@ -46,7 +46,7 @@ export default function AddressesPage() {
     setLoading(true);
     fetch("/api/user/addresses")
       .then((r) => r.ok ? r.json().catch(() => ({})) : {})
-      .then((json) => {
+      .then((json: any) => {
         if (json.success) {
           setAddresses(json.data || []);
           setError("");

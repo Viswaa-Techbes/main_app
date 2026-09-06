@@ -53,6 +53,7 @@ interface LocationPickerProps {
     deliveryInstructions?: string;
     manualNotes?: string;
     formattedAddress?: string;
+    address?: string;
   } | null;
 }
 

@@ -91,7 +91,7 @@ export function calculateFallbackCctvPrice(input: CctvPriceInput, cameraTypes = 
   const cameraCount = Math.max(Number(input.cameraCount) || 1, 1);
   const wireLength = Math.max(Number(input.wireLength) || 0, 0);
   const selectedAddons = addons
-    .filter((addon) => input.addonIds.includes(addon._id))
+    .filter((addon) => (input.addonIds || []).includes(addon._id))
     .map((addon) => ({ id: addon._id, name: addon.name, slug: addon.slug, price: addon.price, quantity: 1, total: addon.price }));
   const baseCharge = 499;
   const cameraTotal = cameraCount * cameraType.installationPrice;
@@ -106,7 +106,7 @@ export function calculateFallbackCctvPrice(input: CctvPriceInput, cameraTypes = 
   return {
     cameraType: { id: cameraType._id, name: cameraType.name, slug: cameraType.slug, unitPrice: cameraType.installationPrice },
     cameraCount,
-    installationArea: input.installationArea,
+    installationArea: input.installationArea || "indoor",
     wireLength,
     addons: selectedAddons,
     priceBreakdown: {

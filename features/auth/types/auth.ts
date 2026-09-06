@@ -2,9 +2,11 @@ export type UserRole = "admin" | "manager" | "technician" | "client" | "user";
 
 export type AuthUser = {
   id?: string;
+  _id?: string;
   name?: string;
   email: string;
   phone?: string;
+  mobileNumber?: string;
   role: UserRole;
   token?: string;
 };

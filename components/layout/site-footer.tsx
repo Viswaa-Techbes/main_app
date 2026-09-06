@@ -19,12 +19,15 @@ export function NewsletterBanner() {
             </p>
           </div>
           <form className="relative z-10 flex w-full max-w-sm items-center gap-2" onSubmit={(e) => e.preventDefault()}>
+            <label htmlFor="newsletter-email" className="sr-only">Email address for newsletter</label>
             <Input
+              id="newsletter-email"
+              aria-label="Email address for newsletter"
               type="email"
               placeholder="Enter your email address"
               className="h-10 flex-1 rounded-xl bg-white/15 border-white/20 text-xs text-white placeholder:text-blue-200 focus:bg-white/20 focus:ring-white/30"
             />
-            <Button type="submit" className="h-10 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-bold text-xs px-4 shadow-sm flex items-center gap-1.5 shrink-0">
+            <Button type="submit" aria-label="Subscribe to newsletter" className="h-10 rounded-xl bg-white text-blue-700 hover:bg-blue-50 font-bold text-xs px-4 shadow-sm flex items-center gap-1.5 shrink-0">
               Subscribe
               <Send className="h-3.5 w-3.5" />
             </Button>
@@ -77,7 +80,7 @@ export function SiteFooter() {
               <li><Link href="/knowledge" className="hover:text-white transition-colors">Knowledge Hub</Link></li>
               <li><Link href="/knowledge/cctv-buying-guide" className="hover:text-white transition-colors">CCTV Buying Guide</Link></li>
               <li><Link href="/knowledge/cp-plus-vs-hikvision" className="hover:text-white transition-colors">CP Plus vs Hikvision</Link></li>
-              <li><Link href="/knowledge/nagarbhavi" className="hover:text-white transition-colors">Service Areas</Link></li>
+              <li><Link href="/knowledge#service-areas" className="hover:text-white transition-colors">Service Areas</Link></li>
             </ul>
           </div>
 
@@ -85,7 +88,7 @@ export function SiteFooter() {
           <div>
             <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Support</h4>
             <ul className="mt-4 space-y-3 text-xs text-slate-400 font-semibold">
-              <li><Link href="/contact" className="hover:text-white transition-colors">Help Center</Link></li>
+              <li><Link href="/contact#faqs" className="hover:text-white transition-colors">Help Center & FAQs</Link></li>
               <li><Link href="/contact" className="hover:text-white transition-colors">Contact Support</Link></li>
               <li><Link href="/dashboard" className="hover:text-white transition-colors">Track Ticket</Link></li>
               <li><Link href="/about" className="hover:text-white transition-colors">About Techbes</Link></li>

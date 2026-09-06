@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { subscriptionPlans } from "@/lib/marketplace-data";
@@ -55,13 +56,16 @@ export function AmcPlans() {
               </div>
 
               <Button 
+                asChild
                 className={`mt-8 w-full h-10 rounded-xl text-xs font-bold shadow-sm transition-colors duration-150 ${
                   isRecommended 
                     ? "bg-blue-600 hover:bg-blue-700 text-white" 
                     : "bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200"
                 }`}
               >
-                Choose {plan.name}
+                <Link href={`/get-a-quote?category=AMC&plan=${encodeURIComponent(plan.name)}`}>
+                  Choose {plan.name}
+                </Link>
               </Button>
             </div>
           );
