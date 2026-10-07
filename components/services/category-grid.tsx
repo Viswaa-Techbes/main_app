@@ -2,7 +2,18 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { categories } from "@/lib/marketplace-data";
 
+const ALLOWED_CATEGORY_IDS = ["cctv", "networking", "website-development"];
+
 export function CategoryGrid() {
+  const visibleCategories = categories
+    .filter((c) => ALLOWED_CATEGORY_IDS.includes(c.id))
+    .map((c) => {
+      if (c.id === "website-development") {
+        return { ...c, title: "Web Designing" };
+      }
+      return c;
+    });
+
   return (
     <section className="py-10 bg-white rounded-3xl border border-slate-100 px-6 shadow-sm">
       <div className="text-center max-w-xl mx-auto mb-10">
@@ -10,28 +21,26 @@ export function CategoryGrid() {
         <p className="mt-1 text-[10px] text-blue-600 font-bold uppercase tracking-wider">Choose a category to get started</p>
       </div>
 
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
-        {categories.map((category) => {
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 max-w-5xl mx-auto">
+        {visibleCategories.map((category) => {
           const Icon = category.icon;
-          const isLaunchingSoon = category.id !== "cctv";
           return (
             <Link
               key={category.id}
               href={`/services?category=${category.id}`}
-              className="relative group flex flex-col items-center text-center p-5 rounded-2xl border border-slate-100 bg-slate-50/30 hover:bg-white hover:border-blue-100 hover:shadow-lg transition-all duration-300"
+              className="relative group flex flex-col items-center text-center p-6 rounded-2xl border border-slate-100 bg-slate-50/30 hover:bg-white hover:border-blue-200 hover:shadow-lg transition-all duration-300"
             >
-              {isLaunchingSoon && (
-                <span className="absolute top-2.5 right-2.5 bg-slate-200 text-slate-700 text-[8px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  Soon
-                </span>
-              )}
-              <div className="rounded-2xl bg-blue-50 text-blue-600 p-4 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-hover:scale-103 shadow-sm">
-                <Icon className="h-6 w-6" />
+              <div className="rounded-2xl bg-blue-50 text-blue-600 p-4 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white group-hover:scale-105 shadow-sm">
+                <Icon className="h-7 w-7" />
               </div>
-              <h3 className="mt-4 text-xs font-bold text-slate-800 group-hover:text-blue-600 transition-colors truncate w-full">{category.title}</h3>
-              <p className="mt-1.5 text-[9px] leading-relaxed text-slate-400 font-medium line-clamp-2 h-7">{category.description}</p>
-              <span className="mt-3 inline-flex items-center justify-center h-6 w-6 rounded-full bg-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition duration-150">
-                <ArrowRight className="h-3.5 w-3.5" />
+              <h3 className="mt-4 text-base font-bold text-slate-800 group-hover:text-blue-600 transition-colors truncate w-full">
+                {category.title}
+              </h3>
+              <p className="mt-2 text-xs leading-relaxed text-slate-500 font-medium line-clamp-2 h-9">
+                {category.description}
+              </p>
+              <span className="mt-4 inline-flex items-center justify-center h-8 w-8 rounded-full bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition duration-150">
+                <ArrowRight className="h-4 w-4" />
               </span>
             </Link>
           );

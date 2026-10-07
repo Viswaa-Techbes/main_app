@@ -19,11 +19,13 @@ import {
   Menu,
   X,
   ShieldCheck,
+  Receipt,
 } from "lucide-react";
 import { useAuth } from "@/features/auth/context/auth-context";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+  { href: "/dashboard/quotes", label: "My Quotations", icon: Receipt },
   { href: "/dashboard/bookings", label: "My Bookings", icon: ListOrdered },
   { href: "/dashboard/amc", label: "My AMC", icon: ShieldCheck },
   { href: "/dashboard/wallet", label: "Wallet & Points", icon: Wallet },

@@ -21,14 +21,7 @@ import { Button } from "@/components/ui/button";
 const sidebarCategories = [
   { id: "cctv", title: "CCTV", subtitle: "Installation, Repair & AMC", icon: Camera },
   { id: "networking", title: "Networking", subtitle: "Wired & Wireless Solutions", icon: Network },
-  { id: "laptop", title: "Laptop", subtitle: "Sales, Repair & Upgrade", icon: Laptop },
-  { id: "desktop", title: "Desktop", subtitle: "Sales, Repair & Upgrade", icon: Monitor },
-  { id: "server", title: "Server", subtitle: "Installation & Support", icon: Server },
-  { id: "electronic-contracts", title: "Electronic Contracts", subtitle: "Digital Contracts Made Easy", icon: FileCheck },
-  { id: "home-automation", title: "Home Automation", subtitle: "Smart Solutions for Home", icon: Home },
-  { id: "website-development", title: "Website Development", subtitle: "Professional Websites", icon: Globe },
-  { id: "software-licensing", title: "Software Licensing", subtitle: "Genuine Licenses", icon: Key },
-  { id: "cyber-security", title: "Cyber Security", subtitle: "Protect Your Data & Systems", icon: ShieldCheck },
+  { id: "website-development", title: "Web Designing", subtitle: "Custom Websites & Digital Solutions", icon: Globe },
 ];
 
 export function CategorySidebar() {

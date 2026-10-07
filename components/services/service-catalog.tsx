@@ -41,18 +41,20 @@ export function ServiceCatalog() {
   const [dbSubcategories, setDbSubcategories] = useState<CatalogSubCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const categoriesToUse = dbCategories.length > 0 ? dbCategories : [
+  const ALLOWED_CATEGORY_SLUGS = ["cctv", "networking", "website-development", "web-designing"];
+
+  const categoriesToUse = (dbCategories.length > 0 ? dbCategories : [
     { _id: "cctv", name: "CCTV", slug: "cctv", description: "", icon: "Camera", image: "", color: "", gradient: "", isActive: true, sortOrder: 1 },
     { _id: "networking", name: "Networking", slug: "networking", description: "", icon: "Network", image: "", color: "", gradient: "", isActive: true, sortOrder: 2 },
-    { _id: "laptop", name: "Laptop", slug: "laptop", description: "", icon: "Laptop", image: "", color: "", gradient: "", isActive: true, sortOrder: 3 },
-    { _id: "desktop", name: "Desktop", slug: "desktop", description: "", icon: "Monitor", image: "", color: "", gradient: "", isActive: true, sortOrder: 4 },
-    { _id: "server", name: "Server", slug: "server", description: "", icon: "Server", image: "", color: "", gradient: "", isActive: true, sortOrder: 5 },
-    { _id: "electronic-contracts", name: "Electronic Contracts", slug: "electronic-contracts", description: "", icon: "Zap", image: "", color: "", gradient: "", isActive: true, sortOrder: 6 },
-    { _id: "home-automation", name: "Home Automation", slug: "home-automation", description: "", icon: "Home", image: "", color: "", gradient: "", isActive: true, sortOrder: 7 },
-    { _id: "website-development", name: "Website Development", slug: "website-development", description: "", icon: "Globe", image: "", color: "", gradient: "", isActive: true, sortOrder: 8 },
-    { _id: "software-licensing", name: "Software Licensing", slug: "software-licensing", description: "", icon: "Key", image: "", color: "", gradient: "", isActive: true, sortOrder: 9 },
-    { _id: "cyber-security", name: "Cyber Security", slug: "cyber-security", description: "", icon: "Shield", image: "", color: "", gradient: "", isActive: true, sortOrder: 10 },
-  ];
+    { _id: "website-development", name: "Web Designing", slug: "website-development", description: "", icon: "Globe", image: "", color: "", gradient: "", isActive: true, sortOrder: 3 },
+  ])
+    .filter((c) => ALLOWED_CATEGORY_SLUGS.includes(c.slug.toLowerCase()))
+    .map((c) => {
+      if (c.slug.toLowerCase() === "website-development" || c.name.toLowerCase().includes("website")) {
+        return { ...c, name: "Web Designing" };
+      }
+      return c;
+    });
 
   // Load categories list on mount
   useEffect(() => {
@@ -60,7 +62,8 @@ export function ServiceCatalog() {
       try {
         const cats = await fetchCategories();
         if (cats && cats.length > 0) {
-          setDbCategories(cats);
+          const filtered = cats.filter((c) => ALLOWED_CATEGORY_SLUGS.includes(c.slug.toLowerCase()));
+          setDbCategories(filtered);
         }
       } catch (err) {
         console.error("Failed to load categories", err);
@@ -76,7 +79,14 @@ export function ServiceCatalog() {
       try {
         if (selectedCategory === "all") {
           const subs = await fetchAllSubcategories();
-          setDbSubcategories(subs);
+          const allowedSubs = subs.filter((sub) => {
+            const catSlug = typeof sub.categoryId === "object" && sub.categoryId !== null
+              ? (sub.categoryId as any).slug
+              : sub.categoryId;
+            return ALLOWED_CATEGORY_SLUGS.includes(String(catSlug).toLowerCase()) ||
+              categoriesToUse.some(c => c._id === sub.categoryId || c.slug === sub.categoryId);
+          });
+          setDbSubcategories(allowedSubs);
         } else {
           const subs = await fetchSubcategories(selectedCategory);
           setDbSubcategories(subs);
