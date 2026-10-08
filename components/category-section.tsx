@@ -5,6 +5,16 @@ import { ArrowRight } from "lucide-react";
 import { categories } from "@/lib/services-data";
 
 export function CategorySection() {
+  const ALLOWED_IDS = ["cctv", "networking", "website-development"];
+  const visibleCategories = categories
+    .filter((cat) => ALLOWED_IDS.includes(cat.id))
+    .map((cat) => {
+      if (cat.id === "website-development") {
+        return { ...cat, title: "Web Designing" };
+      }
+      return cat;
+    });
+
   return (
     <section className="py-16 md:py-20 bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,7 +25,7 @@ export function CategorySection() {
               What are you looking for?
             </h2>
             <p className="mt-2 text-muted-foreground">
-              Browse our wide range of IT services
+              Browse our verified core engineering and technology services
             </p>
           </div>
           <Link href="/services" className="hidden md:flex items-center gap-2 text-primary font-medium hover:underline">
@@ -24,34 +34,29 @@ export function CategorySection() {
         </div>
 
         {/* Category Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {categories.map((category) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          {visibleCategories.map((category) => (
             <Link
               key={category.id}
               href={`/services?category=${category.id}`}
-              className="group relative bg-card rounded-2xl p-5 md:p-6 border border-border hover:border-primary/30 hover:shadow-lg transition-all duration-300"
+              className="group relative bg-card rounded-2xl p-6 md:p-8 border border-border hover:border-primary/40 hover:shadow-xl transition-all duration-300 flex flex-col"
             >
-              {category.id !== "cctv" && (
-                <span className="absolute top-3.5 right-3.5 bg-slate-100 text-slate-500 text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                  Soon
-                </span>
-              )}
               {/* Icon */}
-              <div className={`w-12 h-12 md:w-14 md:h-14 rounded-xl ${category.color} flex items-center justify-center mb-4`}>
-                <category.icon className="w-6 h-6 md:w-7 md:h-7" />
+              <div className={`w-14 h-14 rounded-2xl ${category.color} flex items-center justify-center mb-5 shadow-sm`}>
+                <category.icon className="w-7 h-7" />
               </div>
 
               {/* Content */}
-              <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+              <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
                 {category.title}
               </h3>
-              <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed flex-1">
                 {category.description}
               </p>
               
               {/* Services count */}
-              <div className="mt-4 flex items-center justify-between">
-                <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+              <div className="mt-6 flex items-center justify-between pt-4 border-t border-border/50">
+                <span className="text-xs font-semibold text-primary bg-primary/10 px-2.5 py-1 rounded-full">
                   {category.services}
                 </span>
                 <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />

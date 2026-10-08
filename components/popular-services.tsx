@@ -6,8 +6,11 @@ import { Star, Clock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { services } from "@/lib/services-data";
 
-// Get top 6 services by reviews
+const ALLOWED_CATEGORY_IDS = ["cctv", "networking", "website-development"];
+
+// Get top 6 services by reviews belonging strictly to the 3 allowed categories
 const popularServices = services
+  .filter((s) => ALLOWED_CATEGORY_IDS.includes(s.categoryId))
   .sort((a, b) => {
     const aReviews = parseFloat(a.reviews.replace("K", "")) * (a.reviews.includes("K") ? 1000 : 1);
     const bReviews = parseFloat(b.reviews.replace("K", "")) * (b.reviews.includes("K") ? 1000 : 1);
@@ -81,9 +84,11 @@ export function PopularServices() {
 
                   {/* Price & CTA */}
                   <div className="mt-auto pt-4 flex items-center justify-between">
-                    <span className="font-semibold text-foreground">{service.price}</span>
+                    <span className="font-semibold text-primary text-xs uppercase tracking-wider bg-primary/10 px-2.5 py-1 rounded-full">
+                      Custom Quotation
+                    </span>
                     <span className="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
-                      View Details <ArrowRight className="w-4 h-4" />
+                      Request Quote <ArrowRight className="w-4 h-4" />
                     </span>
                   </div>
                 </div>

@@ -133,15 +133,14 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                   </div>
 
                   <div className="mt-6 border-t border-slate-50 pt-4">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">How much does it cost?</p>
-                    <p className="text-2xl font-black text-slate-800">{service.price}</p>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Pricing & Billing</p>
+                    <p className="text-xl font-black text-slate-800">Custom Quotation Upon Review</p>
+                    <p className="text-[11px] text-slate-500 font-medium mt-0.5">Submit your requirements to receive official itemized pricing from TechBes admin.</p>
                   </div>
 
                   <div className="mt-6 flex flex-wrap gap-2">
-                    <Button className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 shadow-sm" onClick={openBooking}>Book Now</Button>
-                    {cctvService && <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold px-4" onClick={() => setConfigOpen(true)}>Add To Cart</Button>}
-                    <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold px-4" asChild>
-                      <Link href={`/get-a-quote?service=${service.slug}`}>Request Quote</Link>
+                    <Button className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 shadow-sm" onClick={openBooking}>
+                      Request Quotation
                     </Button>
                   </div>
                 </div>
@@ -333,21 +332,20 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
             <div className="sticky top-28 space-y-4">
               <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-5">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">How much does it cost?</p>
-                  <p className="mt-1 text-3xl font-black text-slate-800">{service.price}</p>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Quotation Model</p>
+                  <p className="mt-1 text-2xl font-black text-slate-800">Custom Estimation</p>
+                  <p className="text-xs text-slate-500 font-medium mt-1">Specify items & quantities. Pricing is prepared by admin.</p>
                 </div>
                 
                 <div className="space-y-3.5 pt-4 border-t border-slate-50 text-[11px] font-semibold text-slate-600">
                   <Pill icon={<Clock3 className="h-4 w-4 text-blue-600" />} text={`Duration: ${service.duration}`} />
                   <Pill icon={<MapPin className="h-4 w-4 text-blue-600" />} text="Bangalore & Metro Zones" />
-                  <Pill icon={<TicketPercent className="h-4 w-4 text-amber-500" />} text="Coupons applied at checkout" />
+                  <Pill icon={<ShieldCheck className="h-4 w-4 text-emerald-600" />} text="No payment required upfront" />
                 </div>
 
                 <div className="grid gap-2 pt-2">
-                  <Button className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs" onClick={openBooking}>Book Now</Button>
-                  {cctvService && <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold" onClick={() => setConfigOpen(true)}>Add To Cart</Button>}
-                  <Button variant="outline" className="h-10 rounded-xl border-slate-200 text-xs font-bold w-full" asChild>
-                    <Link href={`/get-a-quote?service=${service.slug}`}>Request Quote</Link>
+                  <Button className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs w-full" onClick={openBooking}>
+                    Request Quotation
                   </Button>
                 </div>
               </div>

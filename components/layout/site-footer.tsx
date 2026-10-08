@@ -69,7 +69,7 @@ export function SiteFooter() {
               <li><Link href="/services?category=cctv" className="hover:text-white transition-colors">CCTV Installation</Link></li>
               <li><Link href="/services?category=networking" className="hover:text-white transition-colors">Structured Cabling</Link></li>
               <li><Link href="/services?category=networking" className="hover:text-white transition-colors">Network Setup</Link></li>
-              <li><Link href="/services?category=server" className="hover:text-white transition-colors">Server Maintenance</Link></li>
+              <li><Link href="/services?category=website-development" className="hover:text-white transition-colors">Web Designing</Link></li>
             </ul>
           </div>
 

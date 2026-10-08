@@ -374,7 +374,7 @@ export function ServiceCatalog() {
 
         {/* Catalog Grid */}
         <div className="min-w-0 flex-1">
-          {selectedCategory !== "all" && selectedCategory !== "cctv" ? (
+          {selectedCategory !== "all" && !ALLOWED_CATEGORY_SLUGS.includes(selectedCategory.toLowerCase()) ? (
             <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-100 bg-white px-8 py-20 text-center shadow-sm">
               <div className="rounded-full bg-blue-50 p-6 mb-6">
                 <Rocket className="h-10 w-10 text-blue-600" />
