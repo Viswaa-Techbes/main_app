@@ -73,13 +73,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const catalogSubcategories = await fetchAllSubcategories();
     if (Array.isArray(catalogSubcategories)) {
       for (const sub of catalogSubcategories) {
+        const subSlug = (sub as any)?.slug;
         if (
-          sub?.slug &&
-          !ALIAS_REDIRECTS.has(sub.slug) &&
-          !EXCLUDED_SERVICES.has(sub.slug) &&
-          !sub.slug.includes("test")
+          subSlug &&
+          !ALIAS_REDIRECTS.has(subSlug) &&
+          !EXCLUDED_SERVICES.has(subSlug) &&
+          !subSlug.includes("test")
         ) {
-          serviceSlugs.add(sub.slug);
+          serviceSlugs.add(subSlug);
         }
       }
     }
