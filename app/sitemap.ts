@@ -28,7 +28,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/responsible-disclosure`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  // 2. Canonical Service Slugs
+  // 2. Canonical Service Slugs — Restricted to Three Priority Categories (Task 1C)
+  // Allowed Priority Category Slugs & Database Identifiers:
+  // 1. CCTV (ID: 6a44a3d1ef917a689f762693, slug: "cctv")
+  // 2. Networking (ID: 6a44a3d2ef917a689f7626a1, slug: "networking")
+  // 3. Website Development / Web Designing (ID: 6a44a3daef917a689f7626ff, slug: "website-development")
+  const ALLOWED_CATEGORY_SLUGS = new Set([
+    "cctv",
+    "networking",
+    "website-development",
+  ]);
+
+  const ALLOWED_CATEGORY_IDS = new Set([
+    "6a44a3d1ef917a689f762693", // CCTV
+    "6a44a3d2ef917a689f7626a1", // Networking
+    "6a44a3daef917a689f7626ff", // Website Development
+  ]);
+
   // Non-canonical alias redirects that must NEVER be in sitemap:
   const ALIAS_REDIRECTS = new Set([
     "cctv-installation",
@@ -42,23 +58,61 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "rupee-one-test-service",
   ]);
 
-  // Core canonical CCTV services:
-  const CANONICAL_CORE_SERVICES = [
+  // Verified canonical services for the 3 priority categories (37 services):
+  const CANONICAL_PRIORITY_SERVICES = [
+    // CCTV (6 services)
     "install-new-cctv",
     "repair-existing-cctv",
     "maintenance-amc",
     "upgrade-existing-cctv",
     "buy-cctv-products",
     "free-site-survey",
+
+    // Networking (12 services)
+    "office-network-deployment",
+    "new-network-setup",
+    "wifi-internet-issues",
+    "router-modem",
+    "office-network",
+    "structured-cabling",
+    "network-upgrade",
+    "network-security",
+    "network-amc",
+    "network-accessories",
+    "network-troubleshooting",
+    "network-survey",
+
+    // Website / Web Designing (19 services)
+    "website-development",
+    "new-website",
+    "business-website",
+    "ecommerce-website",
+    "landing-page",
+    "portfolio-website",
+    "web-app",
+    "web-redesign",
+    "web-maintenance",
+    "speed-optimization",
+    "web-security",
+    "domain-hosting",
+    "seo-optimization",
+    "web-content",
+    "web-migration",
+    "web-support",
+    "web-amc",
+    "digital-marketing",
+    "web-consultation",
   ];
 
-  const serviceSlugs = new Set<string>(CANONICAL_CORE_SERVICES);
+  const serviceSlugs = new Set<string>(CANONICAL_PRIORITY_SERVICES);
 
-  // Add marketplace services (skipping aliases and test items)
+  // Add marketplace services filtered strictly to the three allowed categories
   if (Array.isArray(marketplaceServices)) {
     for (const service of marketplaceServices) {
       if (
         service?.slug &&
+        service?.categoryId &&
+        ALLOWED_CATEGORY_SLUGS.has(service.categoryId) &&
         !ALIAS_REDIRECTS.has(service.slug) &&
         !EXCLUDED_SERVICES.has(service.slug) &&
         !service.slug.includes("test")
@@ -68,13 +122,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Attempt dynamic fetch from Catalog API if backend is accessible
+  // Attempt dynamic fetch from Catalog API if backend is accessible, filtering strictly to allowed categories
   try {
     const catalogSubcategories = await fetchAllSubcategories();
     if (Array.isArray(catalogSubcategories)) {
       for (const sub of catalogSubcategories) {
         const subSlug = (sub as any)?.slug;
+        const catSlug = typeof (sub as any)?.categoryId === "object"
+          ? (sub as any)?.categoryId?.slug
+          : null;
+        const catId = typeof (sub as any)?.categoryId === "object"
+          ? (sub as any)?.categoryId?._id
+          : (sub as any)?.categoryId;
+
+        const isAllowedCategory =
+          (catSlug && ALLOWED_CATEGORY_SLUGS.has(catSlug)) ||
+          (catId && ALLOWED_CATEGORY_IDS.has(catId));
+
         if (
+          isAllowedCategory &&
           subSlug &&
           !ALIAS_REDIRECTS.has(subSlug) &&
           !EXCLUDED_SERVICES.has(subSlug) &&
