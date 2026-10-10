@@ -548,7 +548,87 @@ export function ServiceBookingConfigModal({
   const finalItemsToSubmit = useMemo(() => {
     const list: { productName: string; quantity: number }[] = [];
 
-    if (isInstallNewCctv) {
+    if (isNetworking) {
+      // 1. Premises and Users Scope
+      list.push({
+        productName: `${service.name} (${networkPremisesType}, ${networkUsers})`,
+        quantity: 1,
+      });
+
+      // 2. Hardware Equipment
+      NETWORKING_EQUIPMENT_OPTIONS.forEach((item) => {
+        if (networkEquipmentSelected[item.key]) {
+          const qty = networkEquipmentQuantities[item.key] || item.defaultQty || 1;
+          list.push({
+            productName: item.label,
+            quantity: qty,
+          });
+        }
+      });
+
+      // 3. Structured Cabling
+      if (networkStructuredCabling) {
+        list.push({
+          productName: `Structured Cabling — ${networkCableType} (${networkLanPoints} Drops / ~${networkCableLength}m)`,
+          quantity: 1,
+        });
+      }
+
+      // 4. Wi-Fi Requirement
+      if (networkWifiRequirement) {
+        list.push({
+          productName: `Wi-Fi Scope: ${networkWifiRequirement}`,
+          quantity: 1,
+        });
+      }
+
+      // 5. Troubleshooting Scope
+      if (networkTroubleshootingScope.trim()) {
+        list.push({
+          productName: `Troubleshooting Focus: ${networkTroubleshootingScope.trim()}`,
+          quantity: 1,
+        });
+      }
+    } else if (isWebDesigning) {
+      // 1. Project Type & Page Count Scope
+      list.push({
+        productName: `${webProjectType} (${webPageCount})`,
+        quantity: 1,
+      });
+
+      // 2. Hosting & Domain
+      list.push({
+        productName: `Domain & Hosting: ${webHostingStatus}`,
+        quantity: 1,
+      });
+
+      // 3. Selected Features
+      const chosenFeatures = WEB_FEATURE_OPTIONS.filter((f) => webFeatures[f.key]).map(
+        (f) => f.label
+      );
+      if (chosenFeatures.length > 0) {
+        list.push({
+          productName: `Core Features: ${chosenFeatures.join("; ")}`,
+          quantity: 1,
+        });
+      }
+
+      // 4. Existing URL
+      if (webExistingUrl.trim()) {
+        list.push({
+          productName: `Existing Website URL: ${webExistingUrl.trim()}`,
+          quantity: 1,
+        });
+      }
+
+      // 5. E-Commerce Requirements
+      if (webEcommerceRequirements.trim()) {
+        list.push({
+          productName: `E-Commerce Scope: ${webEcommerceRequirements.trim()}`,
+          quantity: 1,
+        });
+      }
+    } else if (isInstallNewCctv) {
       // Camera Hardware
       Object.entries(cctvSelectedCameraTypes).forEach(([type, checked]) => {
         if (checked) {
@@ -659,7 +739,7 @@ export function ServiceBookingConfigModal({
     });
 
     // Fallback if none of the above but service is selected
-    if (list.length === 0 && !isInstallNewCctv && !isBuyCctvProducts) {
+    if (list.length === 0) {
       list.push({
         productName: `${service.name} Standard Requirement`,
         quantity: 1,
@@ -668,6 +748,24 @@ export function ServiceBookingConfigModal({
 
     return list;
   }, [
+    isNetworking,
+    networkPremisesType,
+    networkUsers,
+    networkEquipmentSelected,
+    networkEquipmentQuantities,
+    networkStructuredCabling,
+    networkCableType,
+    networkLanPoints,
+    networkCableLength,
+    networkWifiRequirement,
+    networkTroubleshootingScope,
+    isWebDesigning,
+    webProjectType,
+    webPageCount,
+    webFeatures,
+    webHostingStatus,
+    webExistingUrl,
+    webEcommerceRequirements,
     isInstallNewCctv,
     isBuyCctvProducts,
     cctvSelectedCameraTypes,
@@ -781,7 +879,11 @@ export function ServiceBookingConfigModal({
         serviceCategory: serviceCategoryLabel,
         subcategory: service.name,
         items: finalItemsToSubmit,
-        propertyType: cctvPropertyType || undefined,
+        propertyType: isNetworking
+          ? networkPremisesType
+          : isWebDesigning
+          ? webProjectType
+          : cctvPropertyType || undefined,
         additionalRequirements: notes.trim() || undefined,
         voiceNote: voiceNoteData
           ? {
@@ -966,8 +1068,126 @@ export function ServiceBookingConfigModal({
                 </h3>
               </div>
 
-              {/* CCTV Property Type Selection */}
-              {isInstallNewCctv ? (
+              {/* Category-Specific Scope Selection */}
+              {isNetworking ? (
+                <div className="space-y-4">
+                  <div className="space-y-2.5">
+                    <label className="text-xs font-bold text-slate-700 block">
+                      Premises / Facility Type *
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        "Small Office (1-10 Pax)",
+                        "Corporate / Enterprise",
+                        "Multi-Floor Building",
+                        "Warehouse / Factory",
+                        "Co-Working Space",
+                        "Home Office / Villa",
+                        "Retail Store / Branch",
+                      ].map((t) => (
+                        <button
+                          type="button"
+                          key={t}
+                          onClick={() => setNetworkPremisesType(t)}
+                          className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
+                            networkPremisesType === t
+                              ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <label className="text-xs font-bold text-slate-700 block">
+                      Active Users / Connected Workstations *
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        "1 - 10 Users",
+                        "11 - 25 Users",
+                        "26 - 50 Users",
+                        "51 - 100 Users",
+                        "100+ Enterprise",
+                      ].map((u) => (
+                        <button
+                          type="button"
+                          key={u}
+                          onClick={() => setNetworkUsers(u)}
+                          className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
+                            networkUsers === u
+                              ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                          }`}
+                        >
+                          {u}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : isWebDesigning ? (
+                <div className="space-y-4">
+                  <div className="space-y-2.5">
+                    <label className="text-xs font-bold text-slate-700 block">
+                      Website / Project Type *
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        "Corporate Business Website",
+                        "E-Commerce Online Store",
+                        "Landing Page / Sales Funnel",
+                        "Custom Web Application / Portal",
+                        "Website UI/UX Redesign",
+                        "Portfolio / Creative Showcase",
+                      ].map((t) => (
+                        <button
+                          type="button"
+                          key={t}
+                          onClick={() => setWebProjectType(t)}
+                          className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
+                            webProjectType === t
+                              ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                          }`}
+                        >
+                          {t}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    <label className="text-xs font-bold text-slate-700 block">
+                      Estimated Page Count *
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        "1 - 5 Pages (Starter)",
+                        "5 - 10 Pages (Standard Business)",
+                        "10 - 25 Pages (Comprehensive)",
+                        "25+ Pages / Custom Scope",
+                      ].map((p) => (
+                        <button
+                          type="button"
+                          key={p}
+                          onClick={() => setWebPageCount(p)}
+                          className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
+                            webPageCount === p
+                              ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                          }`}
+                        >
+                          {p}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : isInstallNewCctv ? (
                 <div className="space-y-2.5">
                   <label className="text-xs font-bold text-slate-700 block">
                     Property Type *
@@ -981,63 +1201,6 @@ export function ServiceBookingConfigModal({
                       "Warehouse",
                       "Factory",
                       "Other",
-                    ].map((t) => (
-                      <button
-                        type="button"
-                        key={t}
-                        onClick={() => setCctvPropertyType(t)}
-                        className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
-                          cctvPropertyType === t
-                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                        }`}
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : isNetworking ? (
-                <div className="space-y-2.5">
-                  <label className="text-xs font-bold text-slate-700 block">
-                    Premises / Network Setup Scope
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      "Office / Corporate",
-                      "Commercial Space",
-                      "Multi-Floor Building",
-                      "Home / Villa",
-                      "Warehouse / Factory",
-                      "Retail Store",
-                    ].map((t) => (
-                      <button
-                        type="button"
-                        key={t}
-                        onClick={() => setCctvPropertyType(t)}
-                        className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
-                          cctvPropertyType === t
-                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                        }`}
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : isWebDesigning ? (
-                <div className="space-y-2.5">
-                  <label className="text-xs font-bold text-slate-700 block">
-                    Project Type
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      "Corporate Business Website",
-                      "E-Commerce Online Store",
-                      "Landing Page / Sales Funnel",
-                      "Custom Web Application",
-                      "Website Redesign",
                     ].map((t) => (
                       <button
                         type="button"
@@ -1101,11 +1264,276 @@ export function ServiceBookingConfigModal({
               <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
                 <div className="w-2 h-4 bg-blue-600 rounded-full" />
                 <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">
-                  PRODUCTS & QUANTITIES
+                  {isNetworking
+                    ? "NETWORKING HARDWARE & CABLING"
+                    : isWebDesigning
+                    ? "WEBSITE FEATURES & SCOPE"
+                    : "PRODUCTS & QUANTITIES"}
                 </h3>
               </div>
 
-              {/* CCTV Camera Hardware selection with quantities */}
+              {/* ────────── NETWORKING REQUIREMENTS ────────── */}
+              {isNetworking && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 block mb-2">
+                      Network Hardware & Equipment Types *
+                    </label>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {NETWORKING_EQUIPMENT_OPTIONS.map((item) => {
+                        const isChecked = !!networkEquipmentSelected[item.key];
+                        const qty = networkEquipmentQuantities[item.key] || item.defaultQty || 1;
+                        return (
+                          <div
+                            key={item.key}
+                            className={`p-3 rounded-2xl border transition-all ${
+                              isChecked
+                                ? "border-blue-500 bg-blue-50/20 shadow-xs"
+                                : "border-slate-200 bg-white hover:border-slate-300"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-slate-800">
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={(e) => {
+                                    setNetworkEquipmentSelected((prev) => ({
+                                      ...prev,
+                                      [item.key]: e.target.checked,
+                                    }));
+                                    if (e.target.checked && !networkEquipmentQuantities[item.key]) {
+                                      setNetworkEquipmentQuantities((prev) => ({
+                                        ...prev,
+                                        [item.key]: item.defaultQty || 1,
+                                      }));
+                                    }
+                                  }}
+                                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                />
+                                <span>{item.label}</span>
+                              </label>
+
+                              {isChecked && (
+                                <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white h-8 shadow-xs">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setNetworkEquipmentQuantities((prev) => ({
+                                        ...prev,
+                                        [item.key]: Math.max((prev[item.key] || 1) - 1, 1),
+                                      }))
+                                    }
+                                    className="h-full px-2.5 text-xs font-bold text-slate-500 hover:bg-slate-100"
+                                  >
+                                    -
+                                  </button>
+                                  <span className="px-2 text-xs font-black text-slate-800">
+                                    {qty}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setNetworkEquipmentQuantities((prev) => ({
+                                        ...prev,
+                                        [item.key]: (prev[item.key] || 1) + 1,
+                                      }))
+                                    }
+                                    className="h-full px-2.5 text-xs font-bold text-slate-500 hover:bg-slate-100"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Structured Cabling Section */}
+                  <div className="space-y-3 bg-slate-50/70 rounded-2xl p-4 border border-slate-200/70">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800">
+                      <input
+                        type="checkbox"
+                        checked={networkStructuredCabling}
+                        onChange={(e) => setNetworkStructuredCabling(e.target.checked)}
+                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span>Structured Cat6 / Fiber Ethernet Cabling Required</span>
+                    </label>
+
+                    {networkStructuredCabling && (
+                      <div className="grid gap-3 sm:grid-cols-3 pt-1">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                            Cable Specification
+                          </label>
+                          <select
+                            value={networkCableType}
+                            onChange={(e) => setNetworkCableType(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="Cat6 Solid Copper">Cat6 Solid Copper (1 Gbps standard)</option>
+                            <option value="Cat6A Shielded (10G)">Cat6A Shielded (10 Gbps Enterprise)</option>
+                            <option value="Cat6 CCA Standard">Cat6 CCA Standard (Budget)</option>
+                            <option value="Fiber Optic (Multi-Mode)">Fiber Optic (Multi-Mode Backbone)</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                            LAN Points / Drops Count
+                          </label>
+                          <input
+                            type="number"
+                            min={1}
+                            value={networkLanPoints}
+                            onChange={(e) => setNetworkLanPoints(Math.max(1, Number(e.target.value)))}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                            Estimated Cable Run (meters)
+                          </label>
+                          <input
+                            type="number"
+                            min={10}
+                            step={10}
+                            value={networkCableLength}
+                            onChange={(e) => setNetworkCableLength(Math.max(10, Number(e.target.value)))}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Wi-Fi & Optimization Requirements */}
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">
+                        Wi-Fi Coverage & Roaming Scope
+                      </label>
+                      <select
+                        value={networkWifiRequirement}
+                        onChange={(e) => setNetworkWifiRequirement(e.target.value)}
+                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                      >
+                        <option value="Dual-Band Wi-Fi 6 (Seamless Roaming)">Dual-Band Wi-Fi 6 (Seamless Roaming)</option>
+                        <option value="Multi-SSID with Guest Network Isolation">Multi-SSID with Guest Network Isolation</option>
+                        <option value="High-Density Office Wi-Fi (50+ devices)">High-Density Office Wi-Fi (50+ devices)</option>
+                        <option value="Long Range / Outdoor Wi-Fi Access Point">Long Range / Outdoor Wi-Fi Access Point</option>
+                        <option value="Existing Wi-Fi Speed & Latency Optimization">Existing Wi-Fi Speed & Latency Optimization</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">
+                        Troubleshooting / Service Detail
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Wi-Fi dead zones, NAS setup, frequent disconnects"
+                        value={networkTroubleshootingScope}
+                        onChange={(e) => setNetworkTroubleshootingScope(e.target.value)}
+                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700 placeholder:text-slate-400"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ────────── WEB DESIGNING REQUIREMENTS ────────── */}
+              {isWebDesigning && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 block mb-2">
+                      Required Website Features & Integrations *
+                    </label>
+                    <div className="grid gap-2.5 sm:grid-cols-2">
+                      {WEB_FEATURE_OPTIONS.map((feat) => {
+                        const isChecked = !!webFeatures[feat.key];
+                        return (
+                          <div
+                            key={feat.key}
+                            className={`p-3 rounded-2xl border transition-all ${
+                              isChecked
+                                ? "border-blue-500 bg-blue-50/20 shadow-xs"
+                                : "border-slate-200 bg-white hover:border-slate-300"
+                            }`}
+                          >
+                            <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-slate-800">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) =>
+                                  setWebFeatures((prev) => ({
+                                    ...prev,
+                                    [feat.key]: e.target.checked,
+                                  }))
+                                }
+                                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span>{feat.label}</span>
+                            </label>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Domain & Cloud Hosting Options */}
+                  <div className="grid gap-3 sm:grid-cols-2 bg-slate-50/70 rounded-2xl p-4 border border-slate-200/70">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                        Domain & Hosting Status
+                      </label>
+                      <select
+                        value={webHostingStatus}
+                        onChange={(e) => setWebHostingStatus(e.target.value)}
+                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                      >
+                        <option value="Need Domain & High-Speed Cloud Hosting">Need Domain & High-Speed Cloud Hosting</option>
+                        <option value="Already Have Domain & Hosting">Already Have Domain & Hosting</option>
+                        <option value="Need Domain Transfer / Cloud Migration">Need Domain Transfer / Cloud Migration</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                        Existing Website URL (if any / redesign)
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://example.com"
+                        value={webExistingUrl}
+                        onChange={(e) => setWebExistingUrl(e.target.value)}
+                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700 placeholder:text-slate-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* E-Commerce Scope (if ecommerce is selected or relevant) */}
+                  {(webProjectType.toLowerCase().includes("commerce") || (service.slug || "").includes("ecommerce")) && (
+                    <div className="space-y-1.5 bg-blue-50/40 rounded-2xl p-4 border border-blue-200/60">
+                      <label className="text-xs font-bold text-blue-900 block">
+                        E-Commerce Store Details (Catalog Size & Integrations)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Approx 50 products, Razorpay payment gateway, shipping integration"
+                        value={webEcommerceRequirements}
+                        onChange={(e) => setWebEcommerceRequirements(e.target.value)}
+                        className="h-9 w-full rounded-xl border border-blue-200 px-3 bg-white text-xs font-semibold text-slate-800 placeholder:text-slate-400"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ────────── CCTV HARDWARE SELECTION (CCTV ONLY) ────────── */}
               {isInstallNewCctv && (
                 <div className="space-y-4">
                   <div>
