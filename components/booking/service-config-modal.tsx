@@ -38,8 +38,29 @@ import { useToast } from "@/hooks/use-toast";
 import dynamic from "next/dynamic";
 import { AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
 import { VoiceNoteRecorder } from "@/components/quotation/VoiceNoteRecorder";
+import { QUOTATION_CATEGORIES } from "@/lib/service-quotation-data";
 
 const LocationPicker = dynamic(() => import("./LocationPicker"), { ssr: false });
+
+export const NETWORKING_EQUIPMENT_OPTIONS = [
+  { key: "wifiAp", label: "Ceiling / Wall Mount Wi-Fi 6 Access Points", defaultQty: 2 },
+  { key: "gigabitSwitch", label: "8-Port / 16-Port / 24-Port Gigabit Switches", defaultQty: 1 },
+  { key: "routerGateway", label: "Enterprise Router / Firewall Gateway", defaultQty: 1 },
+  { key: "serverRack", label: "6U / 9U / 12U Network Wall-Mount Rack", defaultQty: 1 },
+  { key: "patchPanel", label: "Cat6 Patch Panel (24 Ports) & IO Wall Plates", defaultQty: 1 },
+  { key: "nasStorage", label: "NAS Storage / Local Backup Server Unit", defaultQty: 1 },
+];
+
+export const WEB_FEATURE_OPTIONS = [
+  { key: "mobileResponsive", label: "100% Mobile Responsive & Fast Loading" },
+  { key: "whatsappChat", label: "WhatsApp Chat & Floating Contact Button" },
+  { key: "leadForms", label: "Contact Forms & Lead Capture System" },
+  { key: "paymentGateway", label: "Online Payment Gateway (Razorpay / Stripe)" },
+  { key: "shoppingCart", label: "Product Catalog, Cart & Order System" },
+  { key: "userPortal", label: "User Login / Client Portal Dashboard" },
+  { key: "seoSetup", label: "Basic On-Page SEO & Google Analytics" },
+  { key: "cmsBlog", label: "Blog / Dynamic Content Management (CMS)" },
+];
 
 interface QuotationItem {
   id: string;
@@ -179,25 +200,36 @@ export function ServiceBookingConfigModal({
   const [submittedQuote, setSubmittedQuote] = useState<any | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Category detection
-  const isNetworking = useMemo(() => {
+  // Robust Category detection matching the 3 supported categories
+  const { isNetworking, isWebDesigning, isCctv } = useMemo(() => {
     const slug = (service.slug || "").toLowerCase();
     const cat = String(service.categoryId || "").toLowerCase();
-    return (
-      slug.includes("network") ||
-      cat.includes("network") ||
-      (service.name || "").toLowerCase().includes("network")
-    );
-  }, [service]);
+    const name = (service.name || "").toLowerCase();
 
-  const isWebDesigning = useMemo(() => {
-    const slug = (service.slug || "").toLowerCase();
-    const cat = String(service.categoryId || "").toLowerCase();
-    return (
-      slug.includes("web") ||
-      cat.includes("web") ||
-      (service.name || "").toLowerCase().includes("web")
-    );
+    const netServices = QUOTATION_CATEGORIES.find((c) => c.id === "networking")?.services || [];
+    const webServices = QUOTATION_CATEGORIES.find((c) => c.id === "website-development")?.services || [];
+
+    const isNet =
+      cat === "networking" ||
+      cat.includes("network") ||
+      slug.includes("network") ||
+      name.includes("network") ||
+      netServices.some((s) => s.slug === slug || s.name.toLowerCase() === name);
+
+    const isWeb =
+      !isNet &&
+      (cat === "website-development" ||
+        cat === "web-designing" ||
+        cat.includes("web") ||
+        slug.includes("web") ||
+        name.includes("web") ||
+        webServices.some((s) => s.slug === slug || s.name.toLowerCase() === name));
+
+    return {
+      isNetworking: isNet,
+      isWebDesigning: isWeb,
+      isCctv: !isNet && !isWeb,
+    };
   }, [service]);
 
   const serviceCategoryLabel = useMemo(() => {
@@ -206,10 +238,91 @@ export function ServiceBookingConfigModal({
     return "CCTV";
   }, [isNetworking, isWebDesigning]);
 
-  const isBuyCctvProducts = service.slug === "buy-cctv-products";
-  const isInstallNewCctv =
-    service.slug === "install-new-cctv" ||
-    (!isNetworking && !isWebDesigning && !isBuyCctvProducts);
+  const isBuyCctvProducts = isCctv && service.slug === "buy-cctv-products";
+  const isInstallNewCctv = isCctv && !isBuyCctvProducts;
+
+  // Networking Specific Requirements States
+  const [networkPremisesType, setNetworkPremisesType] = useState<string>("Small Office (1-10 Pax)");
+  const [networkUsers, setNetworkUsers] = useState<string>("11 - 25 Users");
+  const [networkEquipmentSelected, setNetworkEquipmentSelected] = useState<Record<string, boolean>>({
+    wifiAp: true,
+    gigabitSwitch: true,
+  });
+  const [networkEquipmentQuantities, setNetworkEquipmentQuantities] = useState<Record<string, number>>({
+    wifiAp: 2,
+    gigabitSwitch: 1,
+    routerGateway: 1,
+    serverRack: 1,
+    patchPanel: 1,
+    nasStorage: 1,
+  });
+  const [networkStructuredCabling, setNetworkStructuredCabling] = useState<boolean>(true);
+  const [networkCableType, setNetworkCableType] = useState<string>("Cat6 Solid Copper");
+  const [networkLanPoints, setNetworkLanPoints] = useState<number>(16);
+  const [networkCableLength, setNetworkCableLength] = useState<number>(100);
+  const [networkWifiRequirement, setNetworkWifiRequirement] = useState<string>(
+    "Dual-Band Wi-Fi 6 (Seamless Roaming)"
+  );
+  const [networkTroubleshootingScope, setNetworkTroubleshootingScope] = useState<string>("");
+
+  // Web Designing Specific Requirements States
+  const [webProjectType, setWebProjectType] = useState<string>("Corporate Business Website");
+  const [webPageCount, setWebPageCount] = useState<string>("5 - 10 Pages (Standard Business)");
+  const [webFeatures, setWebFeatures] = useState<Record<string, boolean>>({
+    mobileResponsive: true,
+    whatsappChat: true,
+    leadForms: true,
+    paymentGateway: false,
+    shoppingCart: false,
+    userPortal: false,
+    seoSetup: true,
+    cmsBlog: false,
+  });
+  const [webHostingStatus, setWebHostingStatus] = useState<string>(
+    "Need Domain & High-Speed Cloud Hosting"
+  );
+  const [webExistingUrl, setWebExistingUrl] = useState<string>("");
+  const [webEcommerceRequirements, setWebEcommerceRequirements] = useState<string>("");
+
+  // Subcategory Presets on mount or service change
+  useEffect(() => {
+    if (!service) return;
+    const slug = (service.slug || "").toLowerCase();
+    const name = (service.name || "").toLowerCase();
+
+    if (isNetworking) {
+      if (slug.includes("server") || slug.includes("nas") || name.includes("storage")) {
+        setNetworkEquipmentSelected({ nasStorage: true, gigabitSwitch: true, serverRack: true });
+        setNetworkPremisesType("Corporate / Enterprise");
+      } else if (slug.includes("cabling") || name.includes("cabling")) {
+        setNetworkEquipmentSelected({ patchPanel: true, serverRack: true, gigabitSwitch: true });
+        setNetworkStructuredCabling(true);
+      } else if (slug.includes("wifi") || slug.includes("speed") || name.includes("wi-fi")) {
+        setNetworkEquipmentSelected({ wifiAp: true, routerGateway: true });
+        setNetworkWifiRequirement("Dual-Band Wi-Fi 6 (Seamless Roaming)");
+      } else if (slug.includes("troubleshoot") || name.includes("troubleshoot")) {
+        setNetworkTroubleshootingScope("Resolve packet drops, latency & disconnections");
+      }
+    } else if (isWebDesigning) {
+      if (slug.includes("ecommerce") || name.includes("ecommerce") || name.includes("e-commerce")) {
+        setWebProjectType("E-Commerce Online Store");
+        setWebFeatures((prev) => ({
+          ...prev,
+          paymentGateway: true,
+          shoppingCart: true,
+          userPortal: true,
+        }));
+      } else if (slug.includes("landing") || name.includes("landing")) {
+        setWebProjectType("Landing Page / Sales Funnel");
+        setWebPageCount("1 - 5 Pages (Starter)");
+      } else if (slug.includes("app") || name.includes("application") || slug.includes("portal")) {
+        setWebProjectType("Custom Web Application / Portal");
+        setWebFeatures((prev) => ({ ...prev, userPortal: true, leadForms: true }));
+      } else if (slug.includes("redesign") || name.includes("redesign")) {
+        setWebProjectType("Website UI/UX Redesign");
+      }
+    }
+  }, [service, isNetworking, isWebDesigning]);
 
   const [availableProducts, setAvailableProducts] = useState<any[]>([]);
   const [selectedProductsCheckboxes, setSelectedProductsCheckboxes] = useState<

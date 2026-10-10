@@ -64,7 +64,7 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
 
   function openBooking() {
     const catSlug = service.categoryId || "cctv";
-    router.push(`/quote?category=${catSlug}&service=${service.slug}`);
+    router.push(`/services?category=${encodeURIComponent(catSlug)}&booking=${encodeURIComponent(service.slug)}`);
   }
 
   async function submitQuote(event: FormEvent) {

@@ -176,13 +176,13 @@ export function ServiceCatalog() {
     return [...dynamicServices, ...missing];
   })();
 
-  const bookingSlug = searchParams.get("booking");
+  const bookingSlug = searchParams.get("booking") || searchParams.get("service") || searchParams.get("slug");
 
   useEffect(() => {
     if (bookingSlug && servicesToUse.length > 0 && !bookingOpen) {
-      const foundService = servicesToUse.find(s => s.slug === bookingSlug);
+      const foundService = servicesToUse.find((s) => s.slug === bookingSlug);
       if (foundService) {
-        const cctvService = foundService.managedService || {
+        const serviceObj = foundService.managedService || {
           _id: foundService.slug,
           slug: foundService.slug,
           name: foundService.title,
@@ -204,20 +204,28 @@ export function ServiceCatalog() {
           supportedProducts: (foundService as any).supportedProducts || [],
           supportedSpareParts: (foundService as any).supportedSpareParts || [],
         };
-        
-        if (!isAuthenticated) {
-          window.localStorage.setItem("techbes_pending_service", String(foundService.id));
-          router.push(`/login?redirect=${encodeURIComponent(`/services?category=cctv&booking=${bookingSlug}`)}`);
-        } else {
-          setBookingService(cctvService);
-          setBookingOpen(true);
-        }
+
+        setBookingService(serviceObj);
+        setBookingOpen(true);
       }
     }
-  }, [bookingSlug, servicesToUse, isAuthenticated, router, bookingOpen]);
+  }, [bookingSlug, servicesToUse, bookingOpen]);
 
-  const handleCctvClick = (clickedService: MarketplaceService) => {
-    const cctvService = clickedService.managedService || {
+  // Handle browser back navigation to close quotation modal gracefully
+  useEffect(() => {
+    const handlePopState = () => {
+      const currentParams = new URLSearchParams(window.location.search);
+      const currentBooking = currentParams.get("booking") || currentParams.get("service");
+      if (!currentBooking && bookingOpen) {
+        setBookingOpen(false);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [bookingOpen]);
+
+  const handleServiceClick = (clickedService: MarketplaceService) => {
+    const serviceObj = clickedService.managedService || {
       _id: clickedService.slug,
       slug: clickedService.slug,
       name: clickedService.title,
@@ -240,12 +248,22 @@ export function ServiceCatalog() {
       supportedSpareParts: (clickedService as any).supportedSpareParts || [],
     };
 
-    if (!isAuthenticated) {
-      window.localStorage.setItem("techbes_pending_service", String(clickedService.id));
-      router.push(`/login?redirect=${encodeURIComponent(`/services?category=cctv&booking=${clickedService.slug}`)}`);
-    } else {
-      setBookingService(cctvService);
-      setBookingOpen(true);
+    setBookingService(serviceObj);
+    setBookingOpen(true);
+
+    // Update browser URL query parameter to preserve category & service state without full page reload
+    const catParam = selectedCategory !== "all" ? selectedCategory : clickedService.categoryId;
+    const targetUrl = `/services?category=${encodeURIComponent(catParam)}&booking=${encodeURIComponent(clickedService.slug)}`;
+    window.history.pushState(null, "", targetUrl);
+  };
+
+  const handleBookingOpenChange = (open: boolean) => {
+    setBookingOpen(open);
+    if (!open) {
+      // Clean up booking parameter from URL while preserving selected category
+      const catParam = selectedCategory !== "all" ? selectedCategory : "all";
+      const targetUrl = catParam === "all" ? "/services" : `/services?category=${encodeURIComponent(catParam)}`;
+      window.history.replaceState(null, "", targetUrl);
     }
   };
 
@@ -462,7 +480,13 @@ export function ServiceCatalog() {
           ) : filteredServices.length > 0 ? (
             <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
               {filteredServices.map((service) => (
-                <CatalogCard key={service.slug} service={service} selectedCategory={selectedCategory} onCctvClick={handleCctvClick} />
+                <CatalogCard
+                  key={service.slug}
+                  service={service}
+                  selectedCategory={selectedCategory}
+                  onServiceClick={handleServiceClick}
+                  onCctvClick={handleServiceClick}
+                />
               ))}
             </div>
           ) : (
@@ -491,7 +515,7 @@ export function ServiceCatalog() {
       {bookingService && (
         <ServiceBookingConfigModal
           open={bookingOpen}
-          onOpenChange={setBookingOpen}
+          onOpenChange={handleBookingOpenChange}
           service={bookingService}
         />
       )}
@@ -521,37 +545,35 @@ const categoryIcons: Record<string, any> = {
   "cyber-security": Shield,
 };
 
-function CatalogCard({ service, selectedCategory, isActive = false, onCctvClick }: { service: MarketplaceService; selectedCategory?: string, isActive?: boolean, onCctvClick?: (s: MarketplaceService) => void }) {
+function CatalogCard({
+  service,
+  selectedCategory,
+  isActive = false,
+  onServiceClick,
+  onCctvClick,
+}: {
+  service: MarketplaceService;
+  selectedCategory?: string;
+  isActive?: boolean;
+  onServiceClick?: (s: MarketplaceService) => void;
+  onCctvClick?: (s: MarketplaceService) => void;
+}) {
   const Icon = categoryIcons[service.categoryId] || Settings;
 
-  const isCctv =
-    service.categoryId === "cctv" ||
-    normalizeCategoryId(service.categoryId) === "cctv" ||
-    [
-      "cctv-installation",
-      "install-new-cctv",
-      "repair-existing-cctv",
-      "cctv-repair",
-      "maintenance-amc",
-      "cctv-maintenance",
-      "upgrade-existing-cctv",
-      "buy-cctv-products",
-      "free-site-survey",
-    ].includes(service.slug);
-
   const handleClick = (e: React.MouseEvent) => {
-    console.log(service.slug);
-    console.log(service.id);
-    console.log((service as any).onClick);
-    if (isCctv && onCctvClick) {
-      e.preventDefault();
+    e.preventDefault();
+    if (onServiceClick) {
+      onServiceClick(service);
+    } else if (onCctvClick) {
       onCctvClick(service);
     }
   };
 
+  const catParam = selectedCategory && selectedCategory !== "all" ? selectedCategory : service.categoryId;
+
   return (
     <Link
-      href={`/services/${service.slug}${selectedCategory && selectedCategory !== 'all' ? `?category=${selectedCategory}` : ''}`}
+      href={`/services?category=${encodeURIComponent(catParam)}&booking=${encodeURIComponent(service.slug)}`}
       onClick={handleClick}
       className={`group relative flex flex-col items-center text-center p-4 rounded-[18px] border transition-all duration-300 ease-out hover:-translate-y-[6px] ${
         isActive 
