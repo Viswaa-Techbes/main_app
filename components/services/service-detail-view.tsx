@@ -63,12 +63,8 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
       };
 
   function openBooking() {
-    if (!isAuthenticated) {
-      window.localStorage.setItem("techbes_pending_service", String(service.id));
-      router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
-      return;
-    }
-    setConfigOpen(true);
+    const catSlug = service.categoryId || "cctv";
+    router.push(`/quote?category=${catSlug}&service=${service.slug}`);
   }
 
   async function submitQuote(event: FormEvent) {

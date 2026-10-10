@@ -14,6 +14,7 @@ import { managedServiceToMarketplaceService, normalizeCategoryId } from "@/lib/c
 import { Spinner } from "@/components/ui/spinner";
 import { ServiceBookingConfigModal } from "@/components/booking/service-config-modal";
 import { useAuth } from "@/features/auth/context/auth-context";
+import { QUOTATION_CATEGORIES } from "@/lib/service-quotation-data";
 
 
 
@@ -135,7 +136,45 @@ export function ServiceCatalog() {
     } as any, index);
   });
 
-  const servicesToUse = dynamicServices;
+  // Canonical fallback to guarantee all 37 services (6 CCTV, 12 Networking, 19 Web Designing)
+  const canonicalServices: MarketplaceService[] = QUOTATION_CATEGORIES.flatMap((cat, catIdx) =>
+    cat.services.map((svc, svcIdx) => ({
+      id: catIdx * 100 + svcIdx + 1,
+      slug: svc.slug,
+      title: svc.name,
+      categoryId: cat.slug,
+      category: cat.name,
+      tagline: svc.description,
+      description: svc.description,
+      price: "From Rs. 499",
+      priceValue: 499,
+      rating: 4.8,
+      reviewCount: 120 + svcIdx * 8,
+      duration: "Flexible",
+      durationMinutes: 120,
+      image:
+        cat.slug === "cctv"
+          ? "https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800&fit=crop"
+          : cat.slug === "networking"
+          ? "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=800&fit=crop"
+          : "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&fit=crop",
+      gallery: [],
+      features: [svc.description],
+      includes: ["Verified Technician", "Transparent Estimation", "Workmanship Warranty"],
+      steps: ["Select Service", "Submit Quotation Request", "Technician Review"],
+      faqs: [],
+      reviews: [],
+      recommendedFor: ["Offices", "Residences", "Commercial"],
+      timeSlots: ["10:00 AM", "02:00 PM"],
+    }))
+  );
+
+  const servicesToUse = (() => {
+    if (dynamicServices.length >= 37) return dynamicServices;
+    const existingSlugs = new Set(dynamicServices.map((s) => s.slug));
+    const missing = canonicalServices.filter((s) => !existingSlugs.has(s.slug));
+    return [...dynamicServices, ...missing];
+  })();
 
   const bookingSlug = searchParams.get("booking");
 
@@ -218,8 +257,10 @@ export function ServiceCatalog() {
       service.tagline.toLowerCase().includes(search.toLowerCase());
     const matchesCategory =
       selectedCategory === "all"
-        ? (service.categoryId === "cctv" || normalizeCategoryId(service.categoryId) === "cctv")
-        : (service.categoryId === selectedCategory || normalizeCategoryId(service.categoryId) === normalizeCategoryId(selectedCategory));
+        ? true
+        : (service.categoryId === selectedCategory ||
+           normalizeCategoryId(service.categoryId) === normalizeCategoryId(selectedCategory) ||
+           (selectedCategory === "website-development" && (service.categoryId === "web-designing" || service.category.toLowerCase().includes("web"))));
     const matchesRating = service.rating >= minRating;
     const matchesPrice = service.priceValue <= maxPrice;
     const matchesDuration =
@@ -289,11 +330,10 @@ export function ServiceCatalog() {
             <FilterGroup label="Category">
               <div className="flex flex-col gap-1">
                 {["all", ...categoriesToUse.map((category) => category.slug)].map((categoryId) => {
-                  const isLaunchingSoon = categoryId !== "all" && categoryId !== "cctv";
                   const label =
                     categoryId === "all"
                       ? "All Services"
-                      : `${categoriesToUse.find((category) => category.slug === categoryId)?.name ?? categoryId}${isLaunchingSoon ? " (Soon)" : ""}`;
+                      : categoriesToUse.find((category) => category.slug === categoryId)?.name ?? categoryId;
                   const isSelected = selectedCategory === categoryId;
                   return (
                     <button
@@ -537,6 +577,10 @@ function CatalogCard({ service, selectedCategory, isActive = false, onCctvClick 
 
       <h3 className="relative z-10 mt-3 text-[13px] font-[700] text-slate-900 transition-colors truncate w-full">{service.title}</h3>
       <p className="relative z-10 mt-1 text-[10px] leading-relaxed text-slate-600 font-medium line-clamp-2 h-7">{service.tagline || service.description}</p>
+      <div className="relative z-10 mt-3 pt-2 w-full border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-blue-600 group-hover:text-blue-700">
+        <span>Get Quotation</span>
+        <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+      </div>
     </Link>
   );
 }
