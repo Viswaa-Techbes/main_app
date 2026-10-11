@@ -23,6 +23,7 @@ import {
   Network,
   Globe,
   SlidersHorizontal,
+  Sparkles,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
