@@ -1930,6 +1930,7 @@ export function ServiceBookingConfigModal({
                   <div className="flex-1">
                     <ProductAutocomplete
                       category={serviceCategoryLabel}
+                      showPrice={isBuyCctvProducts}
                       placeholder={
                         isNetworking
                           ? "Search networking hardware (e.g. Cisco, Gigabit Switch, Cat6, AP)..."
@@ -2044,8 +2045,8 @@ export function ServiceBookingConfigModal({
                               )}
                             </div>
 
-                            {/* Base price and GST tag if available */}
-                            {hasPrice ? (
+                            {/* Price display for Buy Products, or Service Quotation note */}
+                            {hasPrice && isBuyCctvProducts ? (
                               <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500 flex-wrap">
                                 <span>Base: ₹{base.toLocaleString("en-IN")} × {q} = ₹{lineTaxable.toLocaleString("en-IN")}</span>
                                 <span className="font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200/50">
@@ -2056,8 +2057,9 @@ export function ServiceBookingConfigModal({
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-[10px] text-slate-400 mt-0.5 block">
-                                Custom requirement (Pricing quoted on inspection)
+                              <span className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5 font-medium">
+                                <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-[10px] font-bold">Qty {q}</span>
+                                <span>• Hardware selected for site quotation</span>
                               </span>
                             )}
                           </div>
@@ -2099,8 +2101,8 @@ export function ServiceBookingConfigModal({
                       );
                     })}
 
-                    {/* Dynamic Live Price & GST Summary Card */}
-                    {priceCalculations.hasPricedItems && (
+                    {/* Dynamic Live Price & GST Summary Card for Buy Products */}
+                    {priceCalculations.hasPricedItems && isBuyCctvProducts ? (
                       <div className="p-3.5 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50/60 shadow-xs mt-2 space-y-2">
                         <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
                           <span>Items Taxable Base Subtotal:</span>
@@ -2122,9 +2124,19 @@ export function ServiceBookingConfigModal({
                             ₹{priceCalculations.totalAmount.toLocaleString("en-IN")}
                           </span>
                         </div>
-                        <p className="text-[10px] text-slate-500 italic text-right">
-                          * Price &amp; GST calculated authoritatively from active database catalog
-                        </p>
+                      </div>
+                    ) : (
+                      <div className="p-3 rounded-xl border border-blue-200/80 bg-blue-50/50 flex items-center justify-between text-xs mt-2">
+                        <div className="flex items-center gap-2 text-slate-700">
+                          <span className="text-sm">📋</span>
+                          <div>
+                            <span className="font-bold text-slate-900 block">{quotationItems.length} Hardware Item(s) Selected</span>
+                            <span className="text-[11px] text-slate-500">TechBes engineering will review requirements and prepare official quotation.</span>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
+                          Free Quotation
+                        </span>
                       </div>
                     )}
                   </div>

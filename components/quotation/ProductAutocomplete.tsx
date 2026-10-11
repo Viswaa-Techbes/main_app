@@ -36,6 +36,7 @@ interface ProductAutocompleteProps {
   onSelectProduct: (product: InventoryProduct) => void;
   className?: string;
   autoFocus?: boolean;
+  showPrice?: boolean;
 }
 
 export function ProductAutocomplete({
@@ -44,6 +45,7 @@ export function ProductAutocomplete({
   onSelectProduct,
   className = "",
   autoFocus = false,
+  showPrice = false,
 }: ProductAutocompleteProps) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<InventoryProduct[]>([]);
@@ -289,17 +291,26 @@ export function ProductAutocomplete({
                     </div>
                   </div>
 
-                  {/* Right: Base Price & GST Pill */}
+                  {/* Right: Price or Availability Badge */}
                   <div className="text-right shrink-0">
-                    <div className="text-xs font-black text-slate-900">
-                      ₹{base.toLocaleString("en-IN")}
-                      <span className="text-[10px] font-semibold text-slate-400 ml-1">
-                        + GST
+                    {showPrice ? (
+                      <>
+                        <div className="text-xs font-black text-slate-900">
+                          ₹{base.toLocaleString("en-IN")}
+                          <span className="text-[10px] font-semibold text-slate-400 ml-1">
+                            + GST
+                          </span>
+                        </div>
+                        <div className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60 mt-0.5 inline-block">
+                          {rate}% GST (Total: ₹{total.toLocaleString("en-IN")})
+                        </div>
+                      </>
+                    ) : (
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/70 inline-flex items-center gap-1">
+                        <Check className="w-3 h-3 text-emerald-600" />
+                        Available
                       </span>
-                    </div>
-                    <div className="text-[10px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200/60 mt-0.5 inline-block">
-                      {rate}% GST (Total: ₹{total.toLocaleString("en-IN")})
-                    </div>
+                    )}
                   </div>
                 </div>
               );
