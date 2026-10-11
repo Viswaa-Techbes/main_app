@@ -515,6 +515,33 @@ export function ServiceBookingConfigModal({
   }, [open, isInstallNewCctv, isBuyCctvProducts]);
 
   // Add Item / Manage Items helpers
+  const handleSelectInventoryProduct = (prod: InventoryProduct) => {
+    const base = prod.basePrice ?? prod.price ?? 0;
+    const rate = typeof prod.gstRate === "number" ? prod.gstRate : 18;
+    const isInc = Boolean(prod.isTaxInclusive);
+
+    setQuotationItems((prev) => [
+      ...prev,
+      {
+        id: "item-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
+        productId: prod._id || prod.id,
+        productName: prod.name,
+        brand: prod.brand || "",
+        sku: prod.sku || "",
+        variant: prod.variant || "",
+        quantity: Math.max(1, newItemQty || 1),
+        basePrice: base,
+        gstRate: rate,
+        isTaxInclusive: isInc,
+      },
+    ]);
+    setNewItemQty(1);
+    toast({
+      title: "Product Added",
+      description: `${prod.name} added with ₹${base.toLocaleString("en-IN")} base price (${rate}% GST).`,
+    });
+  };
+
   const handleAddCustomItem = (nameToAdd?: string, qtyToAdd?: number) => {
     const name = (nameToAdd || newItemName).trim();
     const qty = qtyToAdd || newItemQty;
@@ -552,9 +579,60 @@ export function ServiceBookingConfigModal({
     setQuotationItems((prev) => prev.filter((it) => it.id !== id));
   };
 
-  // Compile final quotation items list (Name & Quantity only - NO PRICING EXPOSED)
+  // Live GST & Price calculation across inventory-linked items
+  const priceCalculations = useMemo(() => {
+    let taxableSubtotal = 0;
+    let totalGst = 0;
+    let totalAmount = 0;
+    let hasPricedItems = false;
+
+    quotationItems.forEach((item) => {
+      if (typeof item.basePrice === "number" && item.basePrice > 0) {
+        hasPricedItems = true;
+        const base = item.basePrice;
+        const rate = typeof item.gstRate === "number" ? item.gstRate : 18;
+        const q = item.quantity || 1;
+
+        let taxable = 0;
+        let gst = 0;
+        let lineTot = 0;
+
+        if (item.isTaxInclusive) {
+          lineTot = Math.round(base * q * 100) / 100;
+          taxable = Math.round((lineTot / (1 + rate / 100)) * 100) / 100;
+          gst = Math.round((lineTot - taxable) * 100) / 100;
+        } else {
+          taxable = Math.round(base * q * 100) / 100;
+          gst = Math.round(((taxable * rate) / 100) * 100) / 100;
+          lineTot = Math.round((taxable + gst) * 100) / 100;
+        }
+
+        taxableSubtotal += taxable;
+        totalGst += gst;
+        totalAmount += lineTot;
+      }
+    });
+
+    return {
+      hasPricedItems,
+      taxableSubtotal: Math.round(taxableSubtotal * 100) / 100,
+      totalGst: Math.round(totalGst * 100) / 100,
+      totalAmount: Math.round(totalAmount * 100) / 100,
+    };
+  }, [quotationItems]);
+
+  // Compile final quotation items list
   const finalItemsToSubmit = useMemo(() => {
-    const list: { productName: string; quantity: number }[] = [];
+    const list: {
+      productId?: string;
+      productName: string;
+      quantity: number;
+      brand?: string;
+      sku?: string;
+      variant?: string;
+      unitPrice?: number;
+      gstRate?: number;
+    }[] = [];
 
     if (isNetworking) {
       // 1. Premises and Users Scope
@@ -741,9 +819,18 @@ export function ServiceBookingConfigModal({
       }
     }
 
-    // Add extra user-specified custom items
+    // Add extra user-specified custom items (including inventory details if linked)
     quotationItems.forEach((it) => {
-      list.push({ productName: it.productName, quantity: it.quantity });
+      list.push({
+        productId: it.productId,
+        productName: it.productName,
+        quantity: it.quantity,
+        brand: it.brand,
+        sku: it.sku,
+        variant: it.variant,
+        unitPrice: it.basePrice,
+        gstRate: it.gstRate,
+      });
     });
 
     // Fallback if none of the above but service is selected
@@ -1820,142 +1907,228 @@ export function ServiceBookingConfigModal({
                 </div>
               )}
 
-              {/* Unified Product / Item Addition Bar with Quantity */}
-              <div className="p-4 rounded-2xl border border-dashed border-blue-200 bg-blue-50/20 space-y-3">
+              {/* Real-Time Product Autocomplete & Hardware Inventory Integration */}
+              <div className="p-4 sm:p-5 rounded-2xl border border-blue-200 bg-blue-50/20 space-y-4">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-                    <Plus className="w-3.5 h-3.5 text-blue-600" />
-                    <span>Add Item / Specific Product & Quantity</span>
-                  </label>
-                  <span className="text-[10px] text-slate-400 font-semibold">
-                    {quotationItems.length} custom item(s) added
+                  <div>
+                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                      <span>Search & Select Hardware from Inventory</span>
+                    </label>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Type product name or brand (e.g. &quot;CP&quot;, &quot;2MP&quot;, &quot;Router&quot;) to auto-populate authoritative base price &amp; GST
+                    </p>
+                  </div>
+                  <span className="text-[10px] text-slate-400 font-bold bg-white px-2.5 py-1 rounded-full border border-slate-200">
+                    {quotationItems.length} item(s) selected
                   </span>
                 </div>
 
-                {/* Quick suggestions pills */}
-                <div className="flex flex-wrap gap-1.5">
-                  {currentSuggestions.slice(0, 6).map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => handleAddCustomItem(tag, 1)}
-                      className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-white border border-slate-200 hover:bg-blue-50 hover:text-blue-700 text-slate-600 transition"
-                    >
-                      + {tag}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Dropdown / Input + Quantity Selector + Add Button */}
-                <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center pt-1">
-                  <div className="flex-1 flex gap-2">
-                    <select
-                      value={newItemName}
-                      onChange={(e) => setNewItemName(e.target.value)}
-                      className="h-10 rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 max-w-[210px] truncate"
-                    >
-                      <option value="">-- Select from list --</option>
-                      {currentSuggestions.map((sug) => (
-                        <option key={sug} value={sug}>
-                          {sug}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="text"
-                      placeholder="Or type custom item name..."
-                      value={newItemName}
-                      onChange={(e) => setNewItemName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddCustomItem();
-                        }
-                      }}
-                      className="flex-1 h-10 rounded-xl border border-slate-200 px-3 text-xs font-medium text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                {/* Real-time backend search autocomplete */}
+                <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
+                  <div className="flex-1">
+                    <ProductAutocomplete
+                      category={serviceCategoryLabel}
+                      placeholder={
+                        isNetworking
+                          ? "Search networking hardware (e.g. Cisco, Gigabit Switch, Cat6, AP)..."
+                          : "Search CCTV cameras & accessories (e.g. 'CP', 'Hikvision', '4MP')..."
+                      }
+                      onSelectProduct={handleSelectInventoryProduct}
                     />
                   </div>
 
-                  <div className="flex items-center justify-between sm:justify-start gap-2">
-                    <div className="flex items-center border border-slate-200 rounded-xl bg-white h-10 px-1 shadow-xs">
-                      <span className="text-[10px] font-bold uppercase text-slate-400 px-1.5">
-                        Qty
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setNewItemQty((q) => Math.max(q - 1, 1))}
-                        className="h-8 w-7 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center justify-center"
-                      >
-                        -
-                      </button>
-                      <span className="w-8 text-center text-xs font-extrabold text-slate-900">
-                        {newItemQty}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setNewItemQty((q) => q + 1)}
-                        className="h-8 w-7 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center justify-center"
-                      >
-                        +
-                      </button>
-                    </div>
-                    <Button
+                  {/* Quantity selector for addition */}
+                  <div className="flex items-center border border-slate-200 rounded-xl bg-white h-11 px-2 shadow-xs shrink-0">
+                    <span className="text-[10px] font-bold uppercase text-slate-400 px-1">
+                      Qty
+                    </span>
+                    <button
                       type="button"
-                      onClick={() => handleAddCustomItem()}
-                      className="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl"
+                      onClick={() => setNewItemQty((q) => Math.max(q - 1, 1))}
+                      className="h-8 w-7 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center justify-center"
                     >
-                      + Add Item
-                    </Button>
+                      -
+                    </button>
+                    <span className="w-8 text-center text-xs font-extrabold text-slate-900">
+                      {newItemQty}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setNewItemQty((q) => q + 1)}
+                      className="h-8 w-7 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 flex items-center justify-center"
+                    >
+                      +
+                    </button>
                   </div>
                 </div>
 
-                {/* Custom Items Added List */}
-                {quotationItems.length > 0 && (
-                  <div className="space-y-2 mt-3 pt-3 border-t border-blue-100/80">
-                    {quotationItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200/80 bg-white text-xs shadow-xs"
+                {/* Quick suggestions pills */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Quick additions &amp; service scopes
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {currentSuggestions.slice(0, 6).map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => handleAddCustomItem(tag, 1)}
+                        className="px-2.5 py-1 text-[10px] font-bold rounded-lg bg-white border border-slate-200 hover:bg-blue-50 hover:text-blue-700 text-slate-600 transition"
                       >
-                        <span className="font-semibold text-slate-800">
-                          {item.productName}
-                        </span>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white h-7">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleUpdateItemQty(item.id, item.quantity - 1)
-                              }
-                              className="h-full px-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
-                            >
-                              -
-                            </button>
-                            <span className="px-2 text-xs font-black text-slate-800">
-                              {item.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleUpdateItemQty(item.id, item.quantity + 1)
-                              }
-                              className="h-full px-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
-                            >
-                              +
-                            </button>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveItem(item.id)}
-                            className="text-slate-400 hover:text-rose-600 transition p-1"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
+                        + {tag}
+                      </button>
                     ))}
                   </div>
+                </div>
+
+                {/* Custom text fallback input */}
+                <div className="flex gap-2 pt-1 border-t border-blue-100/60">
+                  <input
+                    type="text"
+                    placeholder="Or enter custom equipment / scope requirement..."
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddCustomItem();
+                      }
+                    }}
+                    className="flex-1 h-9 rounded-xl border border-slate-200 px-3 text-xs font-medium text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => handleAddCustomItem()}
+                    className="h-9 px-3.5 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl"
+                  >
+                    + Add Custom
+                  </Button>
+                </div>
+
+                {/* Selected Quotation Items List */}
+                {quotationItems.length > 0 && (
+                  <div className="space-y-2.5 mt-3 pt-3 border-t border-blue-200/80">
+                    <div className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+                      Selected Items &amp; Pricing Breakdown
+                    </div>
+                    {quotationItems.map((item) => {
+                      const hasPrice = typeof item.basePrice === "number" && item.basePrice > 0;
+                      const base = item.basePrice || 0;
+                      const rate = item.gstRate ?? 18;
+                      const q = item.quantity || 1;
+                      const lineTaxable = Math.round(base * q * 100) / 100;
+                      const lineGst = Math.round(((lineTaxable * rate) / 100) * 100) / 100;
+                      const lineTot = Math.round((lineTaxable + lineGst) * 100) / 100;
+
+                      return (
+                        <div
+                          key={item.id}
+                          className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl border border-slate-200 bg-white shadow-xs gap-2"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {item.brand && (
+                                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-blue-600 text-white tracking-wider">
+                                  {item.brand}
+                                </span>
+                              )}
+                              <span className="font-bold text-xs text-slate-900 truncate">
+                                {item.productName}
+                              </span>
+                              {item.variant && (
+                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                                  {item.variant}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Base price and GST tag if available */}
+                            {hasPrice ? (
+                              <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500 flex-wrap">
+                                <span>Base: ₹{base.toLocaleString("en-IN")} × {q} = ₹{lineTaxable.toLocaleString("en-IN")}</span>
+                                <span className="font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200/50">
+                                  +{rate}% GST (₹{lineGst.toLocaleString("en-IN")})
+                                </span>
+                                <span className="font-extrabold text-slate-900">
+                                  = ₹{lineTot.toLocaleString("en-IN")}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-[10px] text-slate-400 mt-0.5 block">
+                                Custom requirement (Pricing quoted on inspection)
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                            <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white h-7">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleUpdateItemQty(item.id, item.quantity - 1)
+                                }
+                                className="h-full px-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
+                              >
+                                -
+                              </button>
+                              <span className="px-2 text-xs font-black text-slate-800">
+                                {item.quantity}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleUpdateItemQty(item.id, item.quantity + 1)
+                                }
+                                className="h-full px-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
+                              >
+                                +
+                              </button>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveItem(item.id)}
+                              className="text-slate-400 hover:text-rose-600 transition p-1"
+                              title="Remove item"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* Dynamic Live Price & GST Summary Card */}
+                    {priceCalculations.hasPricedItems && (
+                      <div className="p-3.5 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50/60 shadow-xs mt-2 space-y-2">
+                        <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
+                          <span>Items Taxable Base Subtotal:</span>
+                          <span className="font-bold text-slate-900">
+                            ₹{priceCalculations.taxableSubtotal.toLocaleString("en-IN")}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs font-semibold text-amber-800">
+                          <span>Calculated GST Amount:</span>
+                          <span className="font-bold text-amber-900">
+                            + ₹{priceCalculations.totalGst.toLocaleString("en-IN")}
+                          </span>
+                        </div>
+                        <div className="border-t border-blue-200/80 pt-2 flex items-center justify-between">
+                          <span className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">
+                            Estimated Total (Including GST):
+                          </span>
+                          <span className="text-sm font-black text-blue-700">
+                            ₹{priceCalculations.totalAmount.toLocaleString("en-IN")}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 italic text-right">
+                          * Price &amp; GST calculated authoritatively from active database catalog
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 )}
+              </div>
               </div>
             </section>
 
