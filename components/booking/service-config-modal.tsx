@@ -2129,7 +2129,6 @@ export function ServiceBookingConfigModal({
                   </div>
                 )}
               </div>
-              </div>
             </section>
 
             {/* ────────── SECTION 3: ADDITIONAL REQUIREMENTS ────────── */}
