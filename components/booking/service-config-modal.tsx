@@ -39,6 +39,7 @@ import dynamic from "next/dynamic";
 import { AUTH_TOKEN_STORAGE_KEY } from "@/core/api/config";
 import { VoiceNoteRecorder } from "@/components/quotation/VoiceNoteRecorder";
 import { QUOTATION_CATEGORIES } from "@/lib/service-quotation-data";
+import { ProductAutocomplete, InventoryProduct } from "@/components/quotation/ProductAutocomplete";
 
 const LocationPicker = dynamic(() => import("./LocationPicker"), { ssr: false });
 
@@ -64,8 +65,15 @@ export const WEB_FEATURE_OPTIONS = [
 
 interface QuotationItem {
   id: string;
+  productId?: string;
   productName: string;
+  brand?: string;
+  sku?: string;
+  variant?: string;
   quantity: number;
+  basePrice?: number;
+  gstRate?: number;
+  isTaxInclusive?: boolean;
 }
 
 // Quick suggestions per category
