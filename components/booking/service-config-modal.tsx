@@ -209,8 +209,29 @@ export function ServiceBookingConfigModal({
   const [submittedQuote, setSubmittedQuote] = useState<any | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Robust Category detection matching the 3 supported categories
-  const { isNetworking, isWebDesigning, isCctv } = useMemo(() => {
+  // Robust Category & Subcategory detection matching TechBes services
+  const {
+    isNetworking,
+    isWebDesigning,
+    isCctv,
+    isCctvInstall,
+    isCctvRepair,
+    isCctvAmc,
+    isCctvUpgrade,
+    isCctvBuy,
+    isCctvSurvey,
+    isNetTroubleshoot,
+    isNetWifi,
+    isNetCabling,
+    isNetServer,
+    isNetSecurity,
+    isNetAmc,
+    isNetSurvey,
+    isNetOfficeOrCabling,
+    isWebEcommerce,
+    isWebRedesignOrSeo,
+    isWebNewOrBusiness,
+  } = useMemo(() => {
     const slug = (service.slug || "").toLowerCase();
     const cat = String(service.categoryId || "").toLowerCase();
     const name = (service.name || "").toLowerCase();
@@ -234,10 +255,58 @@ export function ServiceBookingConfigModal({
         name.includes("web") ||
         webServices.some((s) => s.slug === slug || s.name.toLowerCase() === name));
 
+    const isCctvCat = !isNet && !isWeb;
+
+    // Specific CCTV subcategories
+    const isCctvRepairSub = isCctvCat && (slug === "repair-existing-cctv" || slug.includes("repair") || name.includes("repair"));
+    const isCctvAmcSub = isCctvCat && !isCctvRepairSub && (slug === "maintenance-amc" || slug.includes("amc") || slug.includes("maintenance") || name.includes("amc") || name.includes("maintenance"));
+    const isCctvUpgradeSub = isCctvCat && !isCctvRepairSub && !isCctvAmcSub && (slug === "upgrade-existing-cctv" || slug.includes("upgrade") || name.includes("upgrade"));
+    const isCctvBuySub = isCctvCat && !isCctvRepairSub && !isCctvAmcSub && !isCctvUpgradeSub && (slug === "buy-cctv-products" || slug.includes("buy") || name.includes("buy"));
+    const isCctvSurveySub = isCctvCat && !isCctvRepairSub && !isCctvAmcSub && !isCctvUpgradeSub && !isCctvBuySub && (slug === "free-site-survey" || slug.includes("survey") || name.includes("survey") || name.includes("site audit"));
+    const isCctvInstallSub = isCctvCat && !isCctvRepairSub && !isCctvAmcSub && !isCctvUpgradeSub && !isCctvBuySub && !isCctvSurveySub;
+
+    // Specific Networking subcategories
+    const isNetTroubleshootSub = isNet && (slug === "network-troubleshooting" || slug.includes("troubleshoot") || name.includes("troubleshoot"));
+    const isNetWifiSub = isNet && !isNetTroubleshootSub && (slug === "wifi-internet-issues" || slug === "router-modem" || slug.includes("wifi") || name.includes("wi-fi") || name.includes("speed"));
+    const isNetCablingSub = isNet && !isNetTroubleshootSub && (slug === "structured-cabling" || slug.includes("cabling") || name.includes("cabling"));
+    const isNetServerSub = isNet && !isNetTroubleshootSub && (slug === "server-storage" || slug.includes("server") || slug.includes("nas") || name.includes("server") || name.includes("storage"));
+    const isNetSecuritySub = isNet && !isNetTroubleshootSub && (slug === "network-security" || slug.includes("security") || slug.includes("firewall") || name.includes("firewall"));
+    const isNetAmcSub = isNet && !isNetTroubleshootSub && (slug === "network-amc" || slug.includes("amc") || name.includes("amc"));
+    const isNetSurveySub = isNet && !isNetTroubleshootSub && (slug === "network-survey" || slug.includes("survey") || slug.includes("audit") || name.includes("survey") || name.includes("audit"));
+    const isNetOfficeSub = isNet && !isNetTroubleshootSub && !isNetWifiSub && !isNetCablingSub && !isNetServerSub && !isNetSecuritySub && !isNetAmcSub && !isNetSurveySub;
+
+    // Specific Web Designing subcategories
+    const isWebEcomSub = isWeb && (slug === "ecommerce-website" || slug === "payment-gateway" || slug.includes("ecommerce") || slug.includes("e-commerce") || name.includes("ecommerce") || name.includes("e-commerce"));
+    const isWebRedesignSub = isWeb && !isWebEcomSub && (
+      slug === "web-redesign" || slug === "web-maintenance" || slug === "speed-optimization" ||
+      slug === "seo-services" || slug === "digital-marketing" || slug === "web-security" ||
+      slug.includes("redesign") || slug.includes("maintenance") || slug.includes("speed") ||
+      slug.includes("seo") || slug.includes("marketing") || name.includes("redesign") ||
+      name.includes("maintenance") || name.includes("seo") || name.includes("speed")
+    );
+    const isWebNewSub = isWeb && !isWebEcomSub && !isWebRedesignSub;
+
     return {
       isNetworking: isNet,
       isWebDesigning: isWeb,
-      isCctv: !isNet && !isWeb,
+      isCctv: isCctvCat,
+      isCctvInstall: isCctvInstallSub,
+      isCctvRepair: isCctvRepairSub,
+      isCctvAmc: isCctvAmcSub,
+      isCctvUpgrade: isCctvUpgradeSub,
+      isCctvBuy: isCctvBuySub,
+      isCctvSurvey: isCctvSurveySub,
+      isNetTroubleshoot: isNetTroubleshootSub,
+      isNetWifi: isNetWifiSub,
+      isNetCabling: isNetCablingSub,
+      isNetServer: isNetServerSub,
+      isNetSecurity: isNetSecuritySub,
+      isNetAmc: isNetAmcSub,
+      isNetSurvey: isNetSurveySub,
+      isNetOfficeOrCabling: isNetOfficeSub,
+      isWebEcommerce: isWebEcomSub,
+      isWebRedesignOrSeo: isWebRedesignSub,
+      isWebNewOrBusiness: isWebNewSub,
     };
   }, [service]);
 
@@ -247,10 +316,70 @@ export function ServiceBookingConfigModal({
     return "CCTV";
   }, [isNetworking, isWebDesigning]);
 
-  const isBuyCctvProducts = isCctv && service.slug === "buy-cctv-products";
-  const isInstallNewCctv = isCctv && !isBuyCctvProducts;
+  const isBuyCctvProducts = isCctvBuy;
+  const isInstallNewCctv = isCctvInstall;
 
-  // Networking Specific Requirements States
+  // ──────── CCTV Specific States ────────
+  // CCTV Repair
+  const [cctvRepairCameraQty, setCctvRepairCameraQty] = useState<string>("1 - 4 Cameras");
+  const [cctvRepairCameraType, setCctvRepairCameraType] = useState<string>("Analog HD (Coaxial)");
+  const [cctvRepairProblem, setCctvRepairProblem] = useState<string>("Camera Not Working / No Video Display");
+  const [cctvRepairBrand, setCctvRepairBrand] = useState<string>("CP Plus");
+  const [cctvRepairFaultyCount, setCctvRepairFaultyCount] = useState<number>(1);
+
+  // CCTV AMC
+  const [cctvAmcCameraCount, setCctvAmcCameraCount] = useState<string>("1 - 8 Cameras");
+  const [cctvAmcSystemType, setCctvAmcSystemType] = useState<string>("IP Network Cameras");
+  const [cctvAmcBrand, setCctvAmcBrand] = useState<string>("Hikvision / CP Plus");
+  const [cctvAmcScope, setCctvAmcScope] = useState<string>("Quarterly Preventive Visits (4 Visits/Year)");
+
+  // CCTV Upgrade
+  const [cctvUpgradeCurrentSystem, setCctvUpgradeCurrentSystem] = useState<string>("4-Channel Analog DVR System");
+  const [cctvUpgradeCurrentQty, setCctvUpgradeCurrentQty] = useState<number>(4);
+  const [cctvUpgradeTargetQty, setCctvUpgradeTargetQty] = useState<number>(8);
+  const [cctvUpgradeObjectives, setCctvUpgradeObjectives] = useState<Record<string, boolean>>({
+    convertIp: true,
+    addCameras: true,
+    upgradeHdd: false,
+    mobileRemote: true,
+    replaceDvr: false,
+  });
+
+  // CCTV Site Survey
+  const [cctvSurveyPropertyType, setCctvSurveyPropertyType] = useState<string>("Home / Villa");
+  const [cctvSurveyPurpose, setCctvSurveyPurpose] = useState<string>("New CCTV Security Planning & Camera Placement");
+  const [cctvSurveyEstCameras, setCctvSurveyEstCameras] = useState<string>("4 - 8 Cameras (Estimated)");
+  const [cctvSurveyKeyAreas, setCctvSurveyKeyAreas] = useState<string>("Main Entrance & Boundary Perimeters");
+
+  // CCTV Buy Products
+  const [cctvBuyIncludeInstallation, setCctvBuyIncludeInstallation] = useState<boolean>(false);
+
+  // ──────── Networking Specific States ────────
+  // Troubleshooting
+  const [netTroubleIssue, setNetTroubleIssue] = useState<string>("Internet Frequent Disconnections / Packet Drops");
+  const [netTroubleAffectedDevices, setNetTroubleAffectedDevices] = useState<string>("Whole Office / Multiple Users");
+  const [netTroubleExistingEquipment, setNetTroubleExistingEquipment] = useState<string>("ISP Router + Unmanaged Switch + Wi-Fi APs");
+
+  // Wi-Fi
+  const [netWifiStandard, setNetWifiStandard] = useState<string>("Dual-Band Wi-Fi 6 (Seamless Roaming)");
+  const [netWifiApCount, setNetWifiApCount] = useState<number>(2);
+  const [netWifiCoverage, setNetWifiCoverage] = useState<string>("Single Floor (~2,000 sq.ft)");
+
+  // Server / Storage
+  const [netServerType, setNetServerType] = useState<string>("Synology / QNAP NAS Storage");
+  const [netServerCapacity, setNetServerCapacity] = useState<string>("4TB Storage (RAID 1 Mirroring)");
+  const [netServerUsers, setNetServerUsers] = useState<string>("10 - 25 Users");
+
+  // Security & Firewall
+  const [netSecurityFirewall, setNetSecurityFirewall] = useState<string>("Hardware Firewall (Fortinet / SonicWall / Sophos)");
+  const [netSecurityUsers, setNetSecurityUsers] = useState<string>("25 - 50 Connected Users");
+
+  // Network AMC
+  const [netAmcFrequency, setNetAmcFrequency] = useState<string>("Monthly Health Check & Proactive Monitoring");
+  const [netAmcUsers, setNetAmcUsers] = useState<string>("11 - 25 Users");
+  const [netAmcDevices, setNetAmcDevices] = useState<string>("Up to 5 Network Switches & Routers");
+
+  // Networking General Setup / Cabling
   const [networkPremisesType, setNetworkPremisesType] = useState<string>("Small Office (1-10 Pax)");
   const [networkUsers, setNetworkUsers] = useState<string>("11 - 25 Users");
   const [networkEquipmentSelected, setNetworkEquipmentSelected] = useState<Record<string, boolean>>({
@@ -274,7 +403,26 @@ export function ServiceBookingConfigModal({
   );
   const [networkTroubleshootingScope, setNetworkTroubleshootingScope] = useState<string>("");
 
-  // Web Designing Specific Requirements States
+  // ──────── Web Designing Specific States ────────
+  // E-Commerce
+  const [webEcomProducts, setWebEcomProducts] = useState<string>("50 - 200 Products");
+  const [webEcomGateways, setWebEcomGateways] = useState<string>("Razorpay / PhonePe (UPI, Cards, Netbanking)");
+  const [webEcomShipping, setWebEcomShipping] = useState<string>("Shiprocket / Automated Courier Dispatch");
+  const [webEcomFeatures, setWebEcomFeatures] = useState<Record<string, boolean>>({
+    variants: true,
+    coupons: true,
+    wishlist: true,
+    whatsappAlerts: true,
+    customerAccounts: true,
+  });
+
+  // Redesign / SEO / Maintenance
+  const [webRedesignScope, setWebRedesignScope] = useState<string>("Complete Visual Modernization & Mobile UX Revamp");
+  const [webRedesignGoals, setWebRedesignGoals] = useState<string>("Improve Google PageSpeed, SEO & Conversions");
+  const [webTimeline, setWebTimeline] = useState<string>("Standard (2 - 4 Weeks)");
+  const [webContentReadiness, setWebContentReadiness] = useState<string>("I have ready text content & product images");
+
+  // New / Business Website
   const [webProjectType, setWebProjectType] = useState<string>("Corporate Business Website");
   const [webPageCount, setWebPageCount] = useState<string>("5 - 10 Pages (Standard Business)");
   const [webFeatures, setWebFeatures] = useState<Record<string, boolean>>({
@@ -635,87 +783,74 @@ export function ServiceBookingConfigModal({
       gstRate?: number;
     }[] = [];
 
-    if (isNetworking) {
-      // 1. Premises and Users Scope
+    if (isCctvRepair) {
       list.push({
-        productName: `${service.name} (${networkPremisesType}, ${networkUsers})`,
+        productName: `CCTV Repair — ${cctvRepairProblem} (${cctvRepairFaultyCount} faulty device(s))`,
+        quantity: cctvRepairFaultyCount || 1,
+      });
+      list.push({
+        productName: `Existing System: ${cctvRepairCameraQty} ${cctvRepairCameraType} (${cctvRepairBrand})`,
         quantity: 1,
       });
-
-      // 2. Hardware Equipment
-      NETWORKING_EQUIPMENT_OPTIONS.forEach((item) => {
-        if (networkEquipmentSelected[item.key]) {
-          const qty = networkEquipmentQuantities[item.key] || item.defaultQty || 1;
-          list.push({
-            productName: item.label,
-            quantity: qty,
-          });
+    } else if (isCctvAmc) {
+      list.push({
+        productName: `CCTV AMC — ${cctvAmcScope}`,
+        quantity: 1,
+      });
+      list.push({
+        productName: `Covered Setup: ${cctvAmcCameraCount} (${cctvAmcSystemType}, ${cctvAmcBrand})`,
+        quantity: 1,
+      });
+    } else if (isCctvUpgrade) {
+      list.push({
+        productName: `CCTV System Upgrade — Current: ${cctvUpgradeCurrentQty} Cameras (${cctvUpgradeCurrentSystem}) ➔ Upgrading to: ${cctvUpgradeTargetQty} Cameras`,
+        quantity: 1,
+      });
+      const chosenObjectives = [];
+      if (cctvUpgradeObjectives.convertIp) chosenObjectives.push("Convert Analog to 4K IP");
+      if (cctvUpgradeObjectives.addCameras) chosenObjectives.push("Add Extra Cameras");
+      if (cctvUpgradeObjectives.upgradeHdd) chosenObjectives.push("Expand Storage HDD");
+      if (cctvUpgradeObjectives.mobileRemote) chosenObjectives.push("Mobile App Remote Setup");
+      if (cctvUpgradeObjectives.replaceDvr) chosenObjectives.push("Replace DVR / NVR Unit");
+      if (chosenObjectives.length > 0) {
+        list.push({
+          productName: `Upgrade Objectives: ${chosenObjectives.join("; ")}`,
+          quantity: 1,
+        });
+      }
+    } else if (isCctvSurvey) {
+      list.push({
+        productName: `Free CCTV Site Survey — ${cctvSurveyPurpose} (${cctvSurveyPropertyType})`,
+        quantity: 1,
+      });
+      list.push({
+        productName: `Survey Scope: ~${cctvSurveyEstCameras} (Priority: ${cctvSurveyKeyAreas})`,
+        quantity: 1,
+      });
+    } else if (isCctvBuy) {
+      // Products from store
+      Object.entries(selectedProductsCheckboxes).forEach(([prodId, checked]) => {
+        if (checked) {
+          const p = availableProducts.find(
+            (item) => item._id === prodId || item.id === prodId
+          );
+          if (p) {
+            const v = selectedProductVariants[prodId];
+            const q = selectedProductQuantities[prodId] || 1;
+            list.push({
+              productName: `${p.name || p.title}${v ? ` (${v})` : ""}`,
+              quantity: q,
+            });
+          }
         }
       });
-
-      // 3. Structured Cabling
-      if (networkStructuredCabling) {
+      if (cctvBuyIncludeInstallation) {
         list.push({
-          productName: `Structured Cabling — ${networkCableType} (${networkLanPoints} Drops / ~${networkCableLength}m)`,
+          productName: "Professional On-Site Fitting & Setup Service",
           quantity: 1,
         });
       }
-
-      // 4. Wi-Fi Requirement
-      if (networkWifiRequirement) {
-        list.push({
-          productName: `Wi-Fi Scope: ${networkWifiRequirement}`,
-          quantity: 1,
-        });
-      }
-
-      // 5. Troubleshooting Scope
-      if (networkTroubleshootingScope.trim()) {
-        list.push({
-          productName: `Troubleshooting Focus: ${networkTroubleshootingScope.trim()}`,
-          quantity: 1,
-        });
-      }
-    } else if (isWebDesigning) {
-      // 1. Project Type & Page Count Scope
-      list.push({
-        productName: `${webProjectType} (${webPageCount})`,
-        quantity: 1,
-      });
-
-      // 2. Hosting & Domain
-      list.push({
-        productName: `Domain & Hosting: ${webHostingStatus}`,
-        quantity: 1,
-      });
-
-      // 3. Selected Features
-      const chosenFeatures = WEB_FEATURE_OPTIONS.filter((f) => webFeatures[f.key]).map(
-        (f) => f.label
-      );
-      if (chosenFeatures.length > 0) {
-        list.push({
-          productName: `Core Features: ${chosenFeatures.join("; ")}`,
-          quantity: 1,
-        });
-      }
-
-      // 4. Existing URL
-      if (webExistingUrl.trim()) {
-        list.push({
-          productName: `Existing Website URL: ${webExistingUrl.trim()}`,
-          quantity: 1,
-        });
-      }
-
-      // 5. E-Commerce Requirements
-      if (webEcommerceRequirements.trim()) {
-        list.push({
-          productName: `E-Commerce Scope: ${webEcommerceRequirements.trim()}`,
-          quantity: 1,
-        });
-      }
-    } else if (isInstallNewCctv) {
+    } else if (isCctvInstall) {
       // Camera Hardware
       Object.entries(cctvSelectedCameraTypes).forEach(([type, checked]) => {
         if (checked) {
@@ -793,25 +928,158 @@ export function ServiceBookingConfigModal({
           quantity: 1,
         });
       }
-    } else if (isBuyCctvProducts) {
-      // Products from store
-      Object.entries(selectedProductsCheckboxes).forEach(([prodId, checked]) => {
-        if (checked) {
-          const p = availableProducts.find(
-            (item) => item._id === prodId || item.id === prodId
-          );
-          if (p) {
-            const v = selectedProductVariants[prodId];
-            const q = selectedProductQuantities[prodId] || 1;
-            list.push({
-              productName: `${p.name || p.title}${v ? ` (${v})` : ""}`,
-              quantity: q,
-            });
-          }
+    } else if (isNetTroubleshoot) {
+      list.push({
+        productName: `Network Troubleshooting — ${netTroubleIssue} (${netTroubleAffectedDevices})`,
+        quantity: 1,
+      });
+      list.push({
+        productName: `Existing Equipment: ${netTroubleExistingEquipment}`,
+        quantity: 1,
+      });
+    } else if (isNetWifi) {
+      list.push({
+        productName: `Wi-Fi Optimization & Setup — ${netWifiStandard} (${netWifiApCount} APs, ~${netWifiCoverage})`,
+        quantity: 1,
+      });
+    } else if (isNetCabling) {
+      list.push({
+        productName: `Structured Cabling — ${networkCableType} (${networkLanPoints} Drops / ~${networkCableLength}m)`,
+        quantity: 1,
+      });
+    } else if (isNetServer) {
+      list.push({
+        productName: `Server & NAS Storage — ${netServerType} (${netServerCapacity}, ${netServerUsers})`,
+        quantity: 1,
+      });
+    } else if (isNetSecurity) {
+      list.push({
+        productName: `Network Security & Firewall — ${netSecurityFirewall} (${netSecurityUsers})`,
+        quantity: 1,
+      });
+    } else if (isNetAmc) {
+      list.push({
+        productName: `Network AMC — ${netAmcFrequency} (${netAmcUsers}, ${netAmcDevices})`,
+        quantity: 1,
+      });
+    } else if (isNetSurvey) {
+      list.push({
+        productName: `Free Network Site Audit — ${networkPremisesType} (${networkUsers})`,
+        quantity: 1,
+      });
+    } else if (isNetworking) {
+      // General office setup / deployment
+      list.push({
+        productName: `${service.name} (${networkPremisesType}, ${networkUsers})`,
+        quantity: 1,
+      });
+
+      NETWORKING_EQUIPMENT_OPTIONS.forEach((item) => {
+        if (networkEquipmentSelected[item.key]) {
+          const qty = networkEquipmentQuantities[item.key] || item.defaultQty || 1;
+          list.push({
+            productName: item.label,
+            quantity: qty,
+          });
         }
       });
+
+      if (networkStructuredCabling) {
+        list.push({
+          productName: `Structured Cabling — ${networkCableType} (${networkLanPoints} Drops / ~${networkCableLength}m)`,
+          quantity: 1,
+        });
+      }
+
+      if (networkWifiRequirement) {
+        list.push({
+          productName: `Wi-Fi Scope: ${networkWifiRequirement}`,
+          quantity: 1,
+        });
+      }
+    } else if (isWebEcommerce) {
+      list.push({
+        productName: `E-Commerce Store — Catalog: ${webEcomProducts} (${webEcomGateways})`,
+        quantity: 1,
+      });
+      list.push({
+        productName: `Shipping Integration: ${webEcomShipping}`,
+        quantity: 1,
+      });
+      const chosenEcomFeats = Object.entries(webEcomFeatures)
+        .filter(([_, checked]) => checked)
+        .map(([k]) => {
+          if (k === "variants") return "Product Variations";
+          if (k === "coupons") return "Discount Coupons";
+          if (k === "wishlist") return "Wishlist";
+          if (k === "whatsappAlerts") return "WhatsApp Order Alerts";
+          if (k === "customerAccounts") return "Customer Accounts / Login";
+          return k;
+        });
+      if (chosenEcomFeats.length > 0) {
+        list.push({
+          productName: `Store Features: ${chosenEcomFeats.join("; ")}`,
+          quantity: 1,
+        });
+      }
+      list.push({
+        productName: `Domain & Hosting: ${webHostingStatus}`,
+        quantity: 1,
+      });
+      if (webExistingUrl.trim()) {
+        list.push({
+          productName: `Existing Store URL: ${webExistingUrl.trim()}`,
+          quantity: 1,
+        });
+      }
+    } else if (isWebRedesignOrSeo) {
+      list.push({
+        productName: `${service.name} — Target Site: ${webExistingUrl.trim() || "URL to be shared"}`,
+        quantity: 1,
+      });
+      list.push({
+        productName: `Scope & Focus: ${webRedesignScope}`,
+        quantity: 1,
+      });
+      list.push({
+        productName: `Goals: ${webRedesignGoals}`,
+        quantity: 1,
+      });
+      list.push({
+        productName: `Timeline: ${webTimeline}`,
+        quantity: 1,
+      });
+    } else if (isWebDesigning) {
+      // New / Corporate / Landing Page / Web App
+      list.push({
+        productName: `${webProjectType} (${webPageCount})`,
+        quantity: 1,
+      });
+      list.push({
+        productName: `Domain & Hosting: ${webHostingStatus}`,
+        quantity: 1,
+      });
+      list.push({
+        productName: `Content Readiness: ${webContentReadiness}`,
+        quantity: 1,
+      });
+      const chosenFeatures = WEB_FEATURE_OPTIONS.filter((f) => webFeatures[f.key]).map(
+        (f) => f.label
+      );
+      if (chosenFeatures.length > 0) {
+        list.push({
+          productName: `Core Features: ${chosenFeatures.join("; ")}`,
+          quantity: 1,
+        });
+      }
+      if (webExistingUrl.trim()) {
+        list.push({
+          productName: `Reference Website / Competitor: ${webExistingUrl.trim()}`,
+          quantity: 1,
+        });
+      }
     } else {
-      // General service or scope package
+      // General package fallback
       if (selectedPackageId) {
         const pkg = service.packages?.find((p: any) => p._id === selectedPackageId);
         if (pkg) {
@@ -834,7 +1102,7 @@ export function ServiceBookingConfigModal({
       });
     });
 
-    // Fallback if none of the above but service is selected
+    // Fallback if empty
     if (list.length === 0) {
       list.push({
         productName: `${service.name} Standard Requirement`,
@@ -844,26 +1112,34 @@ export function ServiceBookingConfigModal({
 
     return list;
   }, [
-    isNetworking,
-    networkPremisesType,
-    networkUsers,
-    networkEquipmentSelected,
-    networkEquipmentQuantities,
-    networkStructuredCabling,
-    networkCableType,
-    networkLanPoints,
-    networkCableLength,
-    networkWifiRequirement,
-    networkTroubleshootingScope,
-    isWebDesigning,
-    webProjectType,
-    webPageCount,
-    webFeatures,
-    webHostingStatus,
-    webExistingUrl,
-    webEcommerceRequirements,
-    isInstallNewCctv,
-    isBuyCctvProducts,
+    isCctvRepair,
+    cctvRepairProblem,
+    cctvRepairFaultyCount,
+    cctvRepairCameraQty,
+    cctvRepairCameraType,
+    cctvRepairBrand,
+    isCctvAmc,
+    cctvAmcScope,
+    cctvAmcCameraCount,
+    cctvAmcSystemType,
+    cctvAmcBrand,
+    isCctvUpgrade,
+    cctvUpgradeCurrentQty,
+    cctvUpgradeCurrentSystem,
+    cctvUpgradeTargetQty,
+    cctvUpgradeObjectives,
+    isCctvSurvey,
+    cctvSurveyPurpose,
+    cctvSurveyPropertyType,
+    cctvSurveyEstCameras,
+    cctvSurveyKeyAreas,
+    isCctvBuy,
+    selectedProductsCheckboxes,
+    availableProducts,
+    selectedProductVariants,
+    selectedProductQuantities,
+    cctvBuyIncludeInstallation,
+    isCctvInstall,
     cctvSelectedCameraTypes,
     cctvCameraQuantities,
     cctvCameraBrands,
@@ -883,10 +1159,53 @@ export function ServiceBookingConfigModal({
     cctvRackType,
     cctvNetworkRack,
     cctvMonitorMounting,
-    selectedProductsCheckboxes,
-    availableProducts,
-    selectedProductVariants,
-    selectedProductQuantities,
+    isNetTroubleshoot,
+    netTroubleIssue,
+    netTroubleAffectedDevices,
+    netTroubleExistingEquipment,
+    isNetWifi,
+    netWifiStandard,
+    netWifiApCount,
+    netWifiCoverage,
+    isNetCabling,
+    isNetServer,
+    netServerType,
+    netServerCapacity,
+    netServerUsers,
+    isNetSecurity,
+    netSecurityFirewall,
+    netSecurityUsers,
+    isNetAmc,
+    netAmcFrequency,
+    netAmcUsers,
+    netAmcDevices,
+    isNetSurvey,
+    isNetworking,
+    networkPremisesType,
+    networkUsers,
+    networkEquipmentSelected,
+    networkEquipmentQuantities,
+    networkStructuredCabling,
+    networkCableType,
+    networkLanPoints,
+    networkCableLength,
+    networkWifiRequirement,
+    isWebEcommerce,
+    webEcomProducts,
+    webEcomGateways,
+    webEcomShipping,
+    webEcomFeatures,
+    webHostingStatus,
+    webExistingUrl,
+    isWebRedesignOrSeo,
+    webRedesignScope,
+    webRedesignGoals,
+    webTimeline,
+    isWebDesigning,
+    webProjectType,
+    webPageCount,
+    webContentReadiness,
+    webFeatures,
     selectedPackageId,
     service.packages,
     service.name,
@@ -907,19 +1226,32 @@ export function ServiceBookingConfigModal({
       return;
     }
 
+    // 1b. Validate Website URL if Redesign / SEO
+    if (isWebRedesignOrSeo && !webExistingUrl.trim()) {
+      toast({
+        title: "Website URL Required",
+        description: "Please enter your existing website URL for our technical audit & redesign quote.",
+        variant: "destructive",
+      });
+      requirementsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+
     // 2. Validate Preferred Date
     if (!date) {
       toast({
         title: "Preferred Date Required",
-        description: "Please choose your preferred site visit date.",
+        description: isWebDesigning
+          ? "Please choose your preferred discussion date."
+          : "Please choose your preferred site visit date.",
         variant: "destructive",
       });
       scheduleRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
-    // 3. Validate Service Location
-    if (!address.trim() && !formattedAddress.trim()) {
+    // 3. Validate Service Location (Mandatory for CCTV & Networking physical visits)
+    if (!isWebDesigning && !address.trim() && !formattedAddress.trim()) {
       toast({
         title: "Service Location Required",
         description:
@@ -979,6 +1311,14 @@ export function ServiceBookingConfigModal({
           ? networkPremisesType
           : isWebDesigning
           ? undefined
+          : isCctvRepair
+          ? `${cctvRepairCameraQty} ${cctvRepairCameraType}`
+          : isCctvAmc
+          ? `${cctvAmcCameraCount} (${cctvAmcSystemType})`
+          : isCctvUpgrade
+          ? cctvUpgradeCurrentSystem
+          : isCctvSurvey
+          ? cctvSurveyPropertyType
           : cctvPropertyType || undefined,
         additionalRequirements: notes.trim() || undefined,
         voiceNote: voiceNoteData
@@ -989,13 +1329,13 @@ export function ServiceBookingConfigModal({
               mimeType: voiceNoteData.mimeType,
             }
           : undefined,
-        locality:
-          area ||
-          district ||
-          city ||
-          (address ? address.split(",")[0] : "Bangalore"),
+        locality: isWebDesigning
+          ? (city || area || "Remote Digital")
+          : (area || district || city || (address ? address.split(",")[0] : "Bangalore")),
         pincode: pincode || undefined,
-        address: formattedAddress || address,
+        address: isWebDesigning
+          ? (formattedAddress || address || "Remote Consultation / Digital Delivery")
+          : (formattedAddress || address),
         latitude: latitude || 12.9716,
         longitude: longitude || 77.5946,
         preferredVisitDate: date || undefined,
@@ -1155,212 +1495,1072 @@ export function ServiceBookingConfigModal({
         ) : (
           /* ONE SINGLE SCROLLABLE QUOTATION FORM */
           <div className="space-y-8 mt-5">
-            {/* ────────── SECTION 1: SERVICE / CCTV REQUIREMENTS ────────── */}
+            {/* ────────── SECTION 1: SERVICE SPECIFIC REQUIREMENTS ────────── */}
             <section ref={requirementsRef} className="space-y-4">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
                 <div className="w-2 h-4 bg-blue-600 rounded-full" />
                 <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">
-                  {serviceCategoryLabel.toUpperCase()} REQUIREMENTS
+                  {service.name.toUpperCase()} SPECIFICATIONS
                 </h3>
               </div>
 
-              {/* Category-Specific Scope Selection */}
-              {isNetworking ? (
+              {/* ────── 1. WEB DESIGNING SERVICES ────── */}
+              {isWebDesigning ? (
                 <div className="space-y-4">
-                  <div className="space-y-2.5">
-                    <label className="text-xs font-bold text-slate-700 block">
-                      Premises / Facility Type *
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        "Small Office (1-10 Pax)",
-                        "Corporate / Enterprise",
-                        "Multi-Floor Building",
-                        "Warehouse / Factory",
-                        "Co-Working Space",
-                        "Home Office / Villa",
-                        "Retail Store / Branch",
-                      ].map((t) => (
-                        <button
-                          type="button"
-                          key={t}
-                          onClick={() => setNetworkPremisesType(t)}
-                          className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
-                            networkPremisesType === t
-                              ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                          }`}
-                        >
-                          {t}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  {isWebRedesignOrSeo ? (
+                    /* Redesign / SEO / Maintenance / Marketing */
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-800 flex items-center justify-between">
+                          <span>Target Website / Existing Domain URL <span className="text-rose-500">*</span></span>
+                          <span className="text-[10px] font-bold text-blue-600 uppercase">Mandatory for Audit</span>
+                        </label>
+                        <input
+                          type="url"
+                          required
+                          placeholder="https://yourwebsite.com"
+                          value={webExistingUrl}
+                          onChange={(e) => setWebExistingUrl(e.target.value)}
+                          className="h-10 w-full rounded-xl border border-slate-200 px-3.5 bg-white text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        />
+                      </div>
 
-                  <div className="space-y-2.5">
-                    <label className="text-xs font-bold text-slate-700 block">
-                      Active Users / Connected Workstations *
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        "1 - 10 Users",
-                        "11 - 25 Users",
-                        "26 - 50 Users",
-                        "51 - 100 Users",
-                        "100+ Enterprise",
-                      ].map((u) => (
-                        <button
-                          type="button"
-                          key={u}
-                          onClick={() => setNetworkUsers(u)}
-                          className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
-                            networkUsers === u
-                              ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                          }`}
-                        >
-                          {u}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : isWebDesigning ? (
-                <div className="space-y-4">
-                  <div className="space-y-2.5">
-                    <label className="text-xs font-bold text-slate-700 block">
-                      Website / Project Type *
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        "Corporate Business Website",
-                        "E-Commerce Online Store",
-                        "Landing Page / Sales Funnel",
-                        "Custom Web Application / Portal",
-                        "Website UI/UX Redesign",
-                        "Portfolio / Creative Showcase",
-                      ].map((t) => (
-                        <button
-                          type="button"
-                          key={t}
-                          onClick={() => setWebProjectType(t)}
-                          className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
-                            webProjectType === t
-                              ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                          }`}
-                        >
-                          {t}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    <label className="text-xs font-bold text-slate-700 block">
-                      Estimated Page Count *
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        "1 - 5 Pages (Starter)",
-                        "5 - 10 Pages (Standard Business)",
-                        "10 - 25 Pages (Comprehensive)",
-                        "25+ Pages / Custom Scope",
-                      ].map((p) => (
-                        <button
-                          type="button"
-                          key={p}
-                          onClick={() => setWebPageCount(p)}
-                          className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
-                            webPageCount === p
-                              ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                              : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                          }`}
-                        >
-                          {p}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : isInstallNewCctv ? (
-                <div className="space-y-2.5">
-                  <label className="text-xs font-bold text-slate-700 block">
-                    Property Type *
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      "Home",
-                      "Apartment",
-                      "Office",
-                      "Shop",
-                      "Warehouse",
-                      "Factory",
-                      "Other",
-                    ].map((t) => (
-                      <button
-                        type="button"
-                        key={t}
-                        onClick={() => setCctvPropertyType(t)}
-                        className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
-                          cctvPropertyType === t
-                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
-                        }`}
-                      >
-                        {t}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Service packages if available */}
-              {service.packages && service.packages.length > 0 && !isInstallNewCctv && !isBuyCctvProducts && (
-                <div className="space-y-2.5 pt-2">
-                  <label className="text-xs font-bold text-slate-700 block">
-                    Select Service Package Scope (Optional)
-                  </label>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {service.packages.map((pkg: any) => {
-                      const isSelected = selectedPackageId === pkg._id;
-                      return (
-                        <div
-                          key={pkg._id}
-                          onClick={() =>
-                            setSelectedPackageId(isSelected ? "" : pkg._id)
-                          }
-                          className={`cursor-pointer rounded-2xl border p-4 transition-all hover:shadow-sm ${
-                            isSelected
-                              ? "border-blue-600 bg-blue-50/20 ring-1 ring-blue-600 shadow-xs"
-                              : "border-slate-200 bg-white"
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-bold text-xs text-slate-900">
-                              {pkg.name}
-                            </h4>
-                            {isSelected && (
-                              <CheckCircle2 className="w-4 h-4 text-blue-600" />
-                            )}
-                          </div>
-                          <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">
-                            {pkg.description}
-                          </p>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Service Focus &amp; Scope <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            "Complete Visual Modernization & Mobile UX Revamp",
+                            "Speed Optimization & Core Web Vitals Enhancement",
+                            "Monthly Website Maintenance & Security Patching",
+                            "On-Page SEO & Google Search Ranking Growth",
+                            "Digital Marketing & Lead Generation Setup",
+                            "UI/UX Design & Conversion Rate Optimization",
+                          ].map((scope) => (
+                            <button
+                              type="button"
+                              key={scope}
+                              onClick={() => setWebRedesignScope(scope)}
+                              className={`px-3 py-1.5 text-xs font-bold rounded-xl border text-left transition ${
+                                webRedesignScope === scope
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {scope}
+                            </button>
+                          ))}
                         </div>
-                      );
-                    })}
-                  </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Primary Goal <span className="text-rose-500">*</span>
+                          </label>
+                          <select
+                            value={webRedesignGoals}
+                            onChange={(e) => setWebRedesignGoals(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="Improve Google PageSpeed, SEO & Conversions">Improve Google PageSpeed, SEO & Conversions</option>
+                            <option value="Modern High-End Brand Appearance">Modern High-End Brand Appearance</option>
+                            <option value="Fix Bugs, Broken Links & Outdated Plugins">Fix Bugs, Broken Links & Outdated Plugins</option>
+                            <option value="Increase Monthly Inbound Phone Calls & Leads">Increase Monthly Inbound Phone Calls & Leads</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Preferred Delivery Timeline
+                          </label>
+                          <select
+                            value={webTimeline}
+                            onChange={(e) => setWebTimeline(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="Urgent (Within 1 - 2 Weeks)">Urgent (Within 1 - 2 Weeks)</option>
+                            <option value="Standard (2 - 4 Weeks)">Standard (2 - 4 Weeks)</option>
+                            <option value="Flexible / Ongoing Monthly Scope">Flexible / Ongoing Monthly Scope</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  ) : isWebEcommerce ? (
+                    /* E-Commerce Website */
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Product Catalog Size <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            "Up to 50 Products (Starter Store)",
+                            "50 - 200 Products (Standard Catalog)",
+                            "200 - 1000 Products (Comprehensive)",
+                            "1000+ Products (Enterprise Mega Store)",
+                          ].map((p) => (
+                            <button
+                              type="button"
+                              key={p}
+                              onClick={() => setWebEcomProducts(p)}
+                              className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition ${
+                                webEcomProducts === p
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {p}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Payment Gateway Requirement <span className="text-rose-500">*</span>
+                          </label>
+                          <select
+                            value={webEcomGateways}
+                            onChange={(e) => setWebEcomGateways(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="Razorpay / PhonePe (UPI, Cards, Netbanking)">Razorpay / PhonePe (UPI, Cards, Netbanking)</option>
+                            <option value="Cash on Delivery (COD) + UPI QR">Cash on Delivery (COD) + UPI QR</option>
+                            <option value="Stripe (International USD + Indian INR)">Stripe (International USD + Indian INR)</option>
+                            <option value="Multiple Gateways (Razorpay + PayTM + Cashfree)">Multiple Gateways (Razorpay + PayTM + Cashfree)</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Shipping Logistics Integration
+                          </label>
+                          <select
+                            value={webEcomShipping}
+                            onChange={(e) => setWebEcomShipping(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="Shiprocket / Automated Courier Dispatch">Shiprocket / Automated Courier Dispatch</option>
+                            <option value="Delhivery Direct API">Delhivery Direct API</option>
+                            <option value="Flat Rate Shipping / Free Shipping Rules">Flat Rate Shipping / Free Shipping Rules</option>
+                            <option value="Hyperlocal Delivery (Dunzo / Borzo API)">Hyperlocal Delivery (Dunzo / Borzo API)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2 bg-slate-50/70 rounded-2xl p-4 border border-slate-200/70">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                            Domain &amp; Cloud Hosting
+                          </label>
+                          <select
+                            value={webHostingStatus}
+                            onChange={(e) => setWebHostingStatus(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="Need Domain & High-Speed Cloud Hosting">Need Domain & High-Speed Cloud Hosting</option>
+                            <option value="Already Have Domain & Hosting">Already Have Domain & Hosting</option>
+                            <option value="Need Cloud Hosting Migration">Need Cloud Hosting Migration</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                            Existing Store URL (if migrating)
+                          </label>
+                          <input
+                            type="url"
+                            placeholder="https://currentstore.com (optional)"
+                            value={webExistingUrl}
+                            onChange={(e) => setWebExistingUrl(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700 placeholder:text-slate-400"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* New / Business Website / Landing Page / Web App */
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Website / Project Type <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            "Corporate Business Website",
+                            "High-Converting Landing Page",
+                            "Custom Web Application / Portal",
+                            "Startup / Technology Platform",
+                            "Services & Portfolio Showcase",
+                          ].map((t) => (
+                            <button
+                              type="button"
+                              key={t}
+                              onClick={() => setWebProjectType(t)}
+                              className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
+                                webProjectType === t
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Approximate Page Count <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            "Single Page (Landing Page)",
+                            "5 - 10 Pages (Standard Business)",
+                            "10 - 25 Pages (Comprehensive)",
+                            "25+ Pages / Custom SaaS Scope",
+                          ].map((p) => (
+                            <button
+                              type="button"
+                              key={p}
+                              onClick={() => setWebPageCount(p)}
+                              className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
+                                webPageCount === p
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {p}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2 bg-slate-50/70 rounded-2xl p-4 border border-slate-200/70">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                            Domain &amp; Cloud Hosting Status
+                          </label>
+                          <select
+                            value={webHostingStatus}
+                            onChange={(e) => setWebHostingStatus(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="Need Domain & High-Speed Cloud Hosting">Need Domain & High-Speed Cloud Hosting</option>
+                            <option value="Already Have Domain & Hosting">Already Have Domain & Hosting</option>
+                            <option value="Need Domain Transfer / Cloud Setup">Need Domain Transfer / Cloud Setup</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                            Content &amp; Graphics Readiness
+                          </label>
+                          <select
+                            value={webContentReadiness}
+                            onChange={(e) => setWebContentReadiness(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="I have ready text content & product images">I have ready text content & product images</option>
+                            <option value="TechBes to create copywriting, content & graphics">TechBes to create copywriting, content & graphics</option>
+                            <option value="Mix of ready content and custom designs">Mix of ready content and custom designs</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Reference Websites or Example URLs (Optional)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. https://competitor.com, https://reference-site.com"
+                          value={webExistingUrl}
+                          onChange={(e) => setWebExistingUrl(e.target.value)}
+                          className="h-10 w-full rounded-xl border border-slate-200 px-3.5 bg-white text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : isNetworking ? (
+                /* ────── 2. NETWORKING SERVICES ────── */
+                <div className="space-y-4">
+                  {isNetTroubleshoot ? (
+                    /* Troubleshooting */
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Primary Network Issue / Symptom <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            "Internet Frequent Disconnections / Packet Drops",
+                            "Slow Bandwidth / High Latency Across LAN",
+                            "Wi-Fi Dead Zones & Signal Dropping Between Rooms",
+                            "Local Printer / Network Shared Folders Unreachable",
+                            "IP Address Conflict & DHCP Allocation Failures",
+                            "Firewall / VPN Blocking Office Applications",
+                          ].map((iss) => (
+                            <button
+                              type="button"
+                              key={iss}
+                              onClick={() => setNetTroubleIssue(iss)}
+                              className={`px-3 py-1.5 text-xs font-bold rounded-xl border text-left transition ${
+                                netTroubleIssue === iss
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {iss}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Affected Workstations / Devices <span className="text-rose-500">*</span>
+                          </label>
+                          <select
+                            value={netTroubleAffectedDevices}
+                            onChange={(e) => setNetTroubleAffectedDevices(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="1 - 5 Workstations / Isolated">1 - 5 Workstations / Isolated</option>
+                            <option value="6 - 15 Devices in Specific Department">6 - 15 Devices in Specific Department</option>
+                            <option value="Whole Office / Multiple Users">Whole Office / Multiple Users</option>
+                            <option value="Entire Building / Multi-Floor Down">Entire Building / Multi-Floor Down</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Existing Network Hardware In Use
+                          </label>
+                          <select
+                            value={netTroubleExistingEquipment}
+                            onChange={(e) => setNetTroubleExistingEquipment(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="ISP Router + Unmanaged Switch + Wi-Fi APs">ISP Router + Unmanaged Switch + Wi-Fi APs</option>
+                            <option value="Managed PoE Switch + Enterprise Router + APs">Managed PoE Switch + Enterprise Router + APs</option>
+                            <option value="Mesh Wi-Fi System Only">Mesh Wi-Fi System Only</option>
+                            <option value="Custom Server Rack & Hardware Firewall">Custom Server Rack & Hardware Firewall</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  ) : isNetWifi ? (
+                    /* Wi-Fi & Optimization */
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Wi-Fi Architecture &amp; Standard <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            "Dual-Band Wi-Fi 6 (Seamless Roaming)",
+                            "High-Density Office APs (50+ devices)",
+                            "Multi-SSID with Guest Network Isolation",
+                            "Mesh Wi-Fi System for Multi-Floor Villa",
+                            "Long-Range Outdoor Directional APs",
+                          ].map((std) => (
+                            <button
+                              type="button"
+                              key={std}
+                              onClick={() => setNetWifiStandard(std)}
+                              className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition ${
+                                netWifiStandard === std
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {std}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Access Points Required <span className="text-rose-500">*</span>
+                          </label>
+                          <div className="flex items-center border border-slate-200 rounded-xl bg-white h-9 px-2 shadow-xs">
+                            <button
+                              type="button"
+                              onClick={() => setNetWifiApCount((c) => Math.max(1, c - 1))}
+                              className="h-7 w-7 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded"
+                            >
+                              -
+                            </button>
+                            <span className="flex-1 text-center text-xs font-bold text-slate-800">
+                              {netWifiApCount} AP Unit(s)
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setNetWifiApCount((c) => c + 1)}
+                              className="h-7 w-7 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Premises Coverage Area
+                          </label>
+                          <select
+                            value={netWifiCoverage}
+                            onChange={(e) => setNetWifiCoverage(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="Single Floor (~1,500 - 2,500 sq.ft)">Single Floor (~1,500 - 2,500 sq.ft)</option>
+                            <option value="Duplex / 2-Floor Facility (~3,500 sq.ft)">Duplex / 2-Floor Facility (~3,500 sq.ft)</option>
+                            <option value="Multi-Floor Commercial Building (3+ Floors)">Multi-Floor Commercial Building (3+ Floors)</option>
+                            <option value="Warehouse / Open Industrial Floor">Warehouse / Open Industrial Floor</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  ) : isNetServer ? (
+                    /* Server & NAS Storage */
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Server / Storage Architecture <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            "Synology / QNAP NAS Storage Unit",
+                            "Local Windows / Linux Shared File Server",
+                            "Network Automated Backup & Snapshot Server",
+                            "High-Speed 10G Video Editing Local Storage",
+                          ].map((t) => (
+                            <button
+                              type="button"
+                              key={t}
+                              onClick={() => setNetServerType(t)}
+                              className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition ${
+                                netServerType === t
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Storage Usable Capacity <span className="text-rose-500">*</span>
+                          </label>
+                          <select
+                            value={netServerCapacity}
+                            onChange={(e) => setNetServerCapacity(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="2TB Storage (RAID 1 Mirroring)">2TB Storage (RAID 1 Mirroring)</option>
+                            <option value="4TB Storage (RAID 1 Mirroring)">4TB Storage (RAID 1 Mirroring)</option>
+                            <option value="8TB Storage (RAID 5 Parity)">8TB Storage (RAID 5 Parity)</option>
+                            <option value="16TB Storage (RAID 5/6 High Availability)">16TB Storage (RAID 5/6 High Availability)</option>
+                            <option value="32TB+ Enterprise Array">32TB+ Enterprise Array</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Connected Users
+                          </label>
+                          <select
+                            value={netServerUsers}
+                            onChange={(e) => setNetServerUsers(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="1 - 10 Users">1 - 10 Users</option>
+                            <option value="10 - 25 Users">10 - 25 Users</option>
+                            <option value="26 - 50 Users">26 - 50 Users</option>
+                            <option value="50+ Users">50+ Users</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  ) : isNetSecurity ? (
+                    /* Network Security */
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Security &amp; Firewall Scope <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            "Hardware Firewall (Fortinet / SonicWall / Sophos)",
+                            "Guest Wi-Fi Isolation & Captive Portal",
+                            "Secure IPSec / SSL VPN for Remote Staff",
+                            "Dual-WAN Failover (Auto Broadband Backup)",
+                            "Content Filtering & URL Category Blocking",
+                          ].map((sec) => (
+                            <button
+                              type="button"
+                              key={sec}
+                              onClick={() => setNetSecurityFirewall(sec)}
+                              className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition ${
+                                netSecurityFirewall === sec
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {sec}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Protected Workstation &amp; User Capacity <span className="text-rose-500">*</span>
+                        </label>
+                        <select
+                          value={netSecurityUsers}
+                          onChange={(e) => setNetSecurityUsers(e.target.value)}
+                          className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                        >
+                          <option value="10 - 25 Connected Users">10 - 25 Connected Users</option>
+                          <option value="25 - 50 Connected Users">25 - 50 Connected Users</option>
+                          <option value="51 - 100 Connected Users">51 - 100 Connected Users</option>
+                          <option value="100+ Enterprise Capacity">100+ Enterprise Capacity</option>
+                        </select>
+                      </div>
+                    </div>
+                  ) : isNetAmc ? (
+                    /* Network AMC */
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          AMC Maintenance Scope &amp; Frequency <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            "Monthly Health Check & Proactive Monitoring",
+                            "Bi-Monthly Preventive Audit (6 Visits/Year)",
+                            "Quarterly Scheduled Maintenance (4 Visits/Year)",
+                            "Comprehensive On-Call Support with 4hr SLA",
+                          ].map((freq) => (
+                            <button
+                              type="button"
+                              key={freq}
+                              onClick={() => setNetAmcFrequency(freq)}
+                              className={`px-3 py-1.5 text-xs font-bold rounded-xl border transition ${
+                                netAmcFrequency === freq
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {freq}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Covered Office Users
+                          </label>
+                          <select
+                            value={netAmcUsers}
+                            onChange={(e) => setNetAmcUsers(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="1 - 10 Users">1 - 10 Users</option>
+                            <option value="11 - 25 Users">11 - 25 Users</option>
+                            <option value="26 - 50 Users">26 - 50 Users</option>
+                            <option value="50+ Enterprise Users">50+ Enterprise Users</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Active Network Hardware Devices
+                          </label>
+                          <select
+                            value={netAmcDevices}
+                            onChange={(e) => setNetAmcDevices(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="Up to 5 Network Switches & Routers">Up to 5 Network Switches & Routers</option>
+                            <option value="6 - 15 Switches, Routers & APs">6 - 15 Switches, Routers & APs</option>
+                            <option value="16+ Multi-Rack Enterprise Infrastructure">16+ Multi-Rack Enterprise Infrastructure</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* General Office Setup / Structured Cabling / Network Upgrade */
+                    <div className="space-y-4">
+                      <div className="space-y-2.5">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Premises / Facility Type <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            "Small Office (1-10 Pax)",
+                            "Corporate / Enterprise",
+                            "Multi-Floor Building",
+                            "Warehouse / Factory",
+                            "Co-Working Space",
+                            "Home Office / Villa",
+                            "Retail Store / Branch",
+                          ].map((t) => (
+                            <button
+                              type="button"
+                              key={t}
+                              onClick={() => setNetworkPremisesType(t)}
+                              className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
+                                networkPremisesType === t
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2.5">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Active Users / Workstations <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            "1 - 10 Users",
+                            "11 - 25 Users",
+                            "26 - 50 Users",
+                            "51 - 100 Users",
+                            "100+ Enterprise",
+                          ].map((u) => (
+                            <button
+                              type="button"
+                              key={u}
+                              onClick={() => setNetworkUsers(u)}
+                              className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
+                                networkUsers === u
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {u}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* ────── 3. CCTV SERVICES ────── */
+                <div className="space-y-4">
+                  {isCctvRepair ? (
+                    /* CCTV Repair Form */
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Primary CCTV Issue / Problem <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            "Camera Not Working / No Video Display",
+                            "Black Screen / Video Signal Loss",
+                            "Recording / Hard Drive Playback Error",
+                            "DVR / NVR Continuous Beeping or Rebooting",
+                            "Cable / Power Adapter (SMPS) Burnt",
+                            "Mobile Remote Viewing Offline",
+                            "Blurry Lens / Night Vision IR Failure",
+                          ].map((prob) => (
+                            <button
+                              type="button"
+                              key={prob}
+                              onClick={() => setCctvRepairProblem(prob)}
+                              className={`px-3 py-1.5 text-xs font-bold rounded-xl border text-left transition ${
+                                cctvRepairProblem === prob
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {prob}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Existing System Type <span className="text-rose-500">*</span>
+                          </label>
+                          <select
+                            value={cctvRepairCameraType}
+                            onChange={(e) => setCctvRepairCameraType(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="Analog HD (Coaxial)">Analog HD (Coaxial)</option>
+                            <option value="IP Network Camera (PoE / Cat6)">IP Network Camera (PoE / Cat6)</option>
+                            <option value="Wireless / WiFi Smart Camera">Wireless / WiFi Smart Camera</option>
+                            <option value="Mixed / Don't Know">Mixed / Don&apos;t Know</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Existing Brand (if known)
+                          </label>
+                          <select
+                            value={cctvRepairBrand}
+                            onChange={(e) => setCctvRepairBrand(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="CP Plus">CP Plus</option>
+                            <option value="Hikvision">Hikvision</option>
+                            <option value="Dahua / IMOU">Dahua / IMOU</option>
+                            <option value="HiFocus / Prama">HiFocus / Prama</option>
+                            <option value="Other / Unknown">Other / Unknown</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Number of Faulty Devices
+                          </label>
+                          <div className="flex items-center border border-slate-200 rounded-xl bg-white h-9 px-2 shadow-xs">
+                            <button
+                              type="button"
+                              onClick={() => setCctvRepairFaultyCount((c) => Math.max(1, c - 1))}
+                              className="h-7 w-7 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded"
+                            >
+                              -
+                            </button>
+                            <span className="flex-1 text-center text-xs font-bold text-slate-800">
+                              {cctvRepairFaultyCount} Device(s)
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setCctvRepairFaultyCount((c) => c + 1)}
+                              className="h-7 w-7 text-xs font-bold text-slate-500 hover:bg-slate-100 rounded"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : isCctvAmc ? (
+                    /* CCTV Maintenance AMC */
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Inspection Frequency &amp; AMC Scope <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            "Quarterly Preventive Visits (4 Visits/Year)",
+                            "Bi-Monthly Preventive Visits (6 Visits/Year)",
+                            "Monthly Comprehensive Maintenance (12 Visits/Year)",
+                            "Comprehensive AMC (Includes Repair Labour & Priority Visits)",
+                          ].map((scope) => (
+                            <button
+                              type="button"
+                              key={scope}
+                              onClick={() => setCctvAmcScope(scope)}
+                              className={`px-3 py-1.5 text-xs font-bold rounded-xl border text-left transition ${
+                                cctvAmcScope === scope
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {scope}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Camera Quantity Installed <span className="text-rose-500">*</span>
+                          </label>
+                          <select
+                            value={cctvAmcCameraCount}
+                            onChange={(e) => setCctvAmcCameraCount(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="1 - 8 Cameras">1 - 8 Cameras</option>
+                            <option value="9 - 16 Cameras">9 - 16 Cameras</option>
+                            <option value="17 - 32 Cameras">17 - 32 Cameras</option>
+                            <option value="32+ Enterprise Scale">32+ Enterprise Scale</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            System Architecture
+                          </label>
+                          <select
+                            value={cctvAmcSystemType}
+                            onChange={(e) => setCctvAmcSystemType(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="IP Network Cameras">IP Network Cameras</option>
+                            <option value="Analog HD Cameras">Analog HD Cameras</option>
+                            <option value="Mixed Setup">Mixed Setup</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Installed Brand
+                          </label>
+                          <select
+                            value={cctvAmcBrand}
+                            onChange={(e) => setCctvAmcBrand(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="Hikvision / CP Plus">Hikvision / CP Plus</option>
+                            <option value="Dahua">Dahua</option>
+                            <option value="Honeywell / Bosch">Honeywell / Bosch</option>
+                            <option value="Mixed / Other">Mixed / Other</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  ) : isCctvUpgrade ? (
+                    /* CCTV Upgrade */
+                    <div className="space-y-4">
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Existing Setup <span className="text-rose-500">*</span>
+                          </label>
+                          <select
+                            value={cctvUpgradeCurrentSystem}
+                            onChange={(e) => setCctvUpgradeCurrentSystem(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="4-Channel Analog DVR System">4-Channel Analog DVR System</option>
+                            <option value="8-Channel Analog DVR System">8-Channel Analog DVR System</option>
+                            <option value="16-Channel DVR System">16-Channel DVR System</option>
+                            <option value="Older IP NVR System">Older IP NVR System</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Current Camera Count
+                          </label>
+                          <input
+                            type="number"
+                            min={1}
+                            value={cctvUpgradeCurrentQty}
+                            onChange={(e) => setCctvUpgradeCurrentQty(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Target Upgraded Camera Count
+                          </label>
+                          <input
+                            type="number"
+                            min={cctvUpgradeCurrentQty}
+                            value={cctvUpgradeTargetQty}
+                            onChange={(e) => setCctvUpgradeTargetQty(Math.max(cctvUpgradeCurrentQty, parseInt(e.target.value, 10) || cctvUpgradeCurrentQty))}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Upgrade Goals &amp; Deliverables <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          {[
+                            { key: "convertIp", label: "Convert Analog Cameras to 4K IP PoE" },
+                            { key: "addCameras", label: "Add Extra Surveillance Cameras" },
+                            { key: "upgradeHdd", label: "Upgrade Surveillance Storage Capacity (HDD)" },
+                            { key: "mobileRemote", label: "Setup Mobile App Remote Viewing" },
+                            { key: "replaceDvr", label: "Replace Faulty / Outdated DVR Unit" },
+                          ].map((obj) => (
+                            <label
+                              key={obj.key}
+                              className={`p-2.5 rounded-xl border flex items-center gap-2 cursor-pointer transition ${
+                                cctvUpgradeObjectives[obj.key]
+                                  ? "border-blue-500 bg-blue-50/20"
+                                  : "border-slate-200 bg-white"
+                              }`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={!!cctvUpgradeObjectives[obj.key]}
+                                onChange={(e) =>
+                                  setCctvUpgradeObjectives((prev) => ({
+                                    ...prev,
+                                    [obj.key]: e.target.checked,
+                                  }))
+                                }
+                                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className="text-xs font-bold text-slate-800">{obj.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : isCctvSurvey ? (
+                    /* Free Site Survey */
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-700 block">
+                          Property / Premises Type <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            "Home / Villa",
+                            "Apartment Complex",
+                            "Commercial Office",
+                            "Retail Shop / Showroom",
+                            "Warehouse / Factory",
+                            "Industrial Plant",
+                          ].map((t) => (
+                            <button
+                              type="button"
+                              key={t}
+                              onClick={() => setCctvSurveyPropertyType(t)}
+                              className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
+                                cctvSurveyPropertyType === t
+                                  ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                  : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                              }`}
+                            >
+                              {t}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Survey Purpose <span className="text-rose-500">*</span>
+                          </label>
+                          <select
+                            value={cctvSurveyPurpose}
+                            onChange={(e) => setCctvSurveyPurpose(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="New CCTV Security Planning & Camera Placement">New CCTV Security Planning & Camera Placement</option>
+                            <option value="Upgrade & Blind-Spot Security Audit">Upgrade & Blind-Spot Security Audit</option>
+                            <option value="Commercial Facility Annual Maintenance Assessment">Commercial Facility Annual Maintenance Assessment</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-bold text-slate-700 block">
+                            Estimated Camera Requirement (Optional)
+                          </label>
+                          <select
+                            value={cctvSurveyEstCameras}
+                            onChange={(e) => setCctvSurveyEstCameras(e.target.value)}
+                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                          >
+                            <option value="1 - 4 Cameras">1 - 4 Cameras (Small Site)</option>
+                            <option value="4 - 8 Cameras (Estimated)">4 - 8 Cameras (Medium Site)</option>
+                            <option value="9 - 16 Cameras">9 - 16 Cameras (Large Site)</option>
+                            <option value="16+ Enterprise Cameras">16+ Enterprise Cameras</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  ) : isCctvBuy ? (
+                    /* Buy CCTV Products Overview */
+                    <div className="p-4 rounded-2xl bg-blue-50/40 border border-blue-200/60 space-y-3">
+                      <div className="flex items-center gap-2 text-blue-900 font-bold text-xs">
+                        <PackageCheck className="w-4 h-4 text-blue-600" />
+                        <span>Genuine Manufacturer Warranties (CP Plus, Hikvision, Dahua)</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 leading-relaxed font-medium">
+                        Select hardware products below. We provide sealed box delivery across Bangalore with optional on-site fitting &amp; testing service.
+                      </p>
+                      <label className="flex items-center gap-2 pt-1 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={cctvBuyIncludeInstallation}
+                          onChange={(e) => setCctvBuyIncludeInstallation(e.target.checked)}
+                          className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="text-xs font-bold text-slate-800">
+                          Include Professional On-Site Fitting &amp; Alignment Service (Optional)
+                        </span>
+                      </label>
+                    </div>
+                  ) : (
+                    /* Install New CCTV */
+                    <div className="space-y-2.5">
+                      <label className="text-xs font-bold text-slate-700 block">
+                        Property Type <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          "Home",
+                          "Apartment",
+                          "Office",
+                          "Shop",
+                          "Warehouse",
+                          "Factory",
+                          "Other",
+                        ].map((t) => (
+                          <button
+                            type="button"
+                            key={t}
+                            onClick={() => setCctvPropertyType(t)}
+                            className={`px-3.5 py-1.5 text-xs font-bold rounded-xl border transition ${
+                              cctvPropertyType === t
+                                ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                            }`}
+                          >
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </section>
 
-            {/* ────────── SECTION 2: PRODUCTS & QUANTITIES ────────── */}
+            {/* ────────── SECTION 2: HARDWARE & TECHNICAL SCOPE ────────── */}
             <section ref={productsRef} className="space-y-4">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
                 <div className="w-2 h-4 bg-blue-600 rounded-full" />
                 <h3 className="text-sm font-black uppercase tracking-wider text-slate-800">
-                  {isNetworking
+                  {isCctvRepair
+                    ? "REPAIR & SPARE PARTS SCOPE"
+                    : isCctvAmc
+                    ? "ANNUAL MAINTENANCE COVERAGE"
+                    : isCctvSurvey
+                    ? "SURVEY FOCUS & REQUIREMENTS"
+                    : isNetworking
                     ? "NETWORKING HARDWARE & CABLING"
                     : isWebDesigning
                     ? "WEBSITE FEATURES & SCOPE"
@@ -1368,273 +2568,12 @@ export function ServiceBookingConfigModal({
                 </h3>
               </div>
 
-              {/* ────────── NETWORKING REQUIREMENTS ────────── */}
-              {isNetworking && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-2">
-                      Network Hardware & Equipment Types *
-                    </label>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {NETWORKING_EQUIPMENT_OPTIONS.map((item) => {
-                        const isChecked = !!networkEquipmentSelected[item.key];
-                        const qty = networkEquipmentQuantities[item.key] || item.defaultQty || 1;
-                        return (
-                          <div
-                            key={item.key}
-                            className={`p-3 rounded-2xl border transition-all ${
-                              isChecked
-                                ? "border-blue-500 bg-blue-50/20 shadow-xs"
-                                : "border-slate-200 bg-white hover:border-slate-300"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-slate-800">
-                                <input
-                                  type="checkbox"
-                                  checked={isChecked}
-                                  onChange={(e) => {
-                                    setNetworkEquipmentSelected((prev) => ({
-                                      ...prev,
-                                      [item.key]: e.target.checked,
-                                    }));
-                                    if (e.target.checked && !networkEquipmentQuantities[item.key]) {
-                                      setNetworkEquipmentQuantities((prev) => ({
-                                        ...prev,
-                                        [item.key]: item.defaultQty || 1,
-                                      }));
-                                    }
-                                  }}
-                                  className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                                />
-                                <span>{item.label}</span>
-                              </label>
-
-                              {isChecked && (
-                                <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white h-8 shadow-xs">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      setNetworkEquipmentQuantities((prev) => ({
-                                        ...prev,
-                                        [item.key]: Math.max((prev[item.key] || 1) - 1, 1),
-                                      }))
-                                    }
-                                    className="h-full px-2.5 text-xs font-bold text-slate-500 hover:bg-slate-100"
-                                  >
-                                    -
-                                  </button>
-                                  <span className="px-2 text-xs font-black text-slate-800">
-                                    {qty}
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      setNetworkEquipmentQuantities((prev) => ({
-                                        ...prev,
-                                        [item.key]: (prev[item.key] || 1) + 1,
-                                      }))
-                                    }
-                                    className="h-full px-2.5 text-xs font-bold text-slate-500 hover:bg-slate-100"
-                                  >
-                                    +
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Structured Cabling Section */}
-                  <div className="space-y-3 bg-slate-50/70 rounded-2xl p-4 border border-slate-200/70">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800">
-                      <input
-                        type="checkbox"
-                        checked={networkStructuredCabling}
-                        onChange={(e) => setNetworkStructuredCabling(e.target.checked)}
-                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <span>Structured Cat6 / Fiber Ethernet Cabling Required</span>
-                    </label>
-
-                    {networkStructuredCabling && (
-                      <div className="grid gap-3 sm:grid-cols-3 pt-1">
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                            Cable Specification
-                          </label>
-                          <select
-                            value={networkCableType}
-                            onChange={(e) => setNetworkCableType(e.target.value)}
-                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
-                          >
-                            <option value="Cat6 Solid Copper">Cat6 Solid Copper (1 Gbps standard)</option>
-                            <option value="Cat6A Shielded (10G)">Cat6A Shielded (10 Gbps Enterprise)</option>
-                            <option value="Cat6 CCA Standard">Cat6 CCA Standard (Budget)</option>
-                            <option value="Fiber Optic (Multi-Mode)">Fiber Optic (Multi-Mode Backbone)</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                            LAN Points / Drops Count
-                          </label>
-                          <input
-                            type="number"
-                            min={1}
-                            value={networkLanPoints}
-                            onChange={(e) => setNetworkLanPoints(Math.max(1, Number(e.target.value)))}
-                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                            Estimated Cable Run (meters)
-                          </label>
-                          <input
-                            type="number"
-                            min={10}
-                            step={10}
-                            value={networkCableLength}
-                            onChange={(e) => setNetworkCableLength(Math.max(10, Number(e.target.value)))}
-                            className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Wi-Fi & Optimization Requirements */}
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">
-                        Wi-Fi Coverage & Roaming Scope
-                      </label>
-                      <select
-                        value={networkWifiRequirement}
-                        onChange={(e) => setNetworkWifiRequirement(e.target.value)}
-                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
-                      >
-                        <option value="Dual-Band Wi-Fi 6 (Seamless Roaming)">Dual-Band Wi-Fi 6 (Seamless Roaming)</option>
-                        <option value="Multi-SSID with Guest Network Isolation">Multi-SSID with Guest Network Isolation</option>
-                        <option value="High-Density Office Wi-Fi (50+ devices)">High-Density Office Wi-Fi (50+ devices)</option>
-                        <option value="Long Range / Outdoor Wi-Fi Access Point">Long Range / Outdoor Wi-Fi Access Point</option>
-                        <option value="Existing Wi-Fi Speed & Latency Optimization">Existing Wi-Fi Speed & Latency Optimization</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="text-xs font-bold text-slate-700 block mb-1">
-                        Troubleshooting / Service Detail
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Wi-Fi dead zones, NAS setup, frequent disconnects"
-                        value={networkTroubleshootingScope}
-                        onChange={(e) => setNetworkTroubleshootingScope(e.target.value)}
-                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700 placeholder:text-slate-400"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ────────── WEB DESIGNING REQUIREMENTS ────────── */}
-              {isWebDesigning && (
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-2">
-                      Required Website Features & Integrations *
-                    </label>
-                    <div className="grid gap-2.5 sm:grid-cols-2">
-                      {WEB_FEATURE_OPTIONS.map((feat) => {
-                        const isChecked = !!webFeatures[feat.key];
-                        return (
-                          <div
-                            key={feat.key}
-                            className={`p-3 rounded-2xl border transition-all ${
-                              isChecked
-                                ? "border-blue-500 bg-blue-50/20 shadow-xs"
-                                : "border-slate-200 bg-white hover:border-slate-300"
-                            }`}
-                          >
-                            <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-slate-800">
-                              <input
-                                type="checkbox"
-                                checked={isChecked}
-                                onChange={(e) =>
-                                  setWebFeatures((prev) => ({
-                                    ...prev,
-                                    [feat.key]: e.target.checked,
-                                  }))
-                                }
-                                className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                              />
-                              <span>{feat.label}</span>
-                            </label>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Domain & Cloud Hosting Options */}
-                  <div className="grid gap-3 sm:grid-cols-2 bg-slate-50/70 rounded-2xl p-4 border border-slate-200/70">
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                        Domain & Hosting Status
-                      </label>
-                      <select
-                        value={webHostingStatus}
-                        onChange={(e) => setWebHostingStatus(e.target.value)}
-                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
-                      >
-                        <option value="Need Domain & High-Speed Cloud Hosting">Need Domain & High-Speed Cloud Hosting</option>
-                        <option value="Already Have Domain & Hosting">Already Have Domain & Hosting</option>
-                        <option value="Need Domain Transfer / Cloud Migration">Need Domain Transfer / Cloud Migration</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                        Existing Website URL (if any / redesign)
-                      </label>
-                      <input
-                        type="url"
-                        placeholder="https://example.com"
-                        value={webExistingUrl}
-                        onChange={(e) => setWebExistingUrl(e.target.value)}
-                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700 placeholder:text-slate-400"
-                      />
-                    </div>
-                  </div>
-
-                  {/* E-Commerce Scope (if ecommerce is selected or relevant) */}
-                  {(webProjectType.toLowerCase().includes("commerce") || (service.slug || "").includes("ecommerce")) && (
-                    <div className="space-y-1.5 bg-blue-50/40 rounded-2xl p-4 border border-blue-200/60">
-                      <label className="text-xs font-bold text-blue-900 block">
-                        E-Commerce Store Details (Catalog Size & Integrations)
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Approx 50 products, Razorpay payment gateway, shipping integration"
-                        value={webEcommerceRequirements}
-                        onChange={(e) => setWebEcommerceRequirements(e.target.value)}
-                        className="h-9 w-full rounded-xl border border-blue-200 px-3 bg-white text-xs font-semibold text-slate-800 placeholder:text-slate-400"
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* ────────── CCTV HARDWARE SELECTION (CCTV ONLY) ────────── */}
+              {/* Install New CCTV Technical Specifications */}
               {isInstallNewCctv && (
                 <div className="space-y-4">
                   <div>
                     <label className="text-xs font-bold text-slate-700 block mb-2">
-                      Camera Types & Quantities *
+                      Camera Types &amp; Quantities <span className="text-rose-500">*</span>
                     </label>
                     <div className="grid gap-3 sm:grid-cols-2">
                       {[
@@ -1734,7 +2673,7 @@ export function ServiceBookingConfigModal({
                         }
                         className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                       />
-                      <span>Professional On-Site Installation & Cabling Required</span>
+                      <span>Professional On-Site Installation &amp; Cabling Required</span>
                     </label>
 
                     {cctvInstallationRequired && (
@@ -1819,11 +2758,11 @@ export function ServiceBookingConfigModal({
                 </div>
               )}
 
-              {/* Buy CCTV Products Store List */}
+              {/* Buy CCTV Products Store List (NO CUSTOMER PRICES) */}
               {isBuyCctvProducts && (
                 <div className="space-y-3">
                   <label className="text-xs font-bold text-slate-700 block">
-                    Select Products from Catalog *
+                    Select Products from Catalog <span className="text-rose-500">*</span>
                   </label>
                   <div className="grid gap-2.5 sm:grid-cols-2 max-h-[220px] overflow-y-auto pr-1">
                     {availableProducts.map((p) => {
@@ -1908,39 +2847,140 @@ export function ServiceBookingConfigModal({
                 </div>
               )}
 
-              {/* Real-Time Product Autocomplete & Hardware Inventory Integration */}
+              {/* Structured Cabling Section for Networking */}
+              {isNetworking && (isNetCabling || isNetOfficeOrCabling) && (
+                <div className="space-y-3 bg-slate-50/70 rounded-2xl p-4 border border-slate-200/70">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800">
+                    <input
+                      type="checkbox"
+                      checked={networkStructuredCabling}
+                      onChange={(e) => setNetworkStructuredCabling(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span>Structured Cat6 / Fiber Ethernet Cabling Required</span>
+                  </label>
+
+                  {networkStructuredCabling && (
+                    <div className="grid gap-3 sm:grid-cols-3 pt-1">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                          Cable Specification
+                        </label>
+                        <select
+                          value={networkCableType}
+                          onChange={(e) => setNetworkCableType(e.target.value)}
+                          className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                        >
+                          <option value="Cat6 Solid Copper">Cat6 Solid Copper (1 Gbps standard)</option>
+                          <option value="Cat6A Shielded (10G)">Cat6A Shielded (10 Gbps Enterprise)</option>
+                          <option value="Cat6 CCA Standard">Cat6 CCA Standard (Budget)</option>
+                          <option value="Fiber Optic (Multi-Mode)">Fiber Optic (Multi-Mode Backbone)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                          LAN Drops Count
+                        </label>
+                        <input
+                          type="number"
+                          min={1}
+                          value={networkLanPoints}
+                          onChange={(e) => setNetworkLanPoints(Math.max(1, Number(e.target.value)))}
+                          className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                          Estimated Cable Run (meters)
+                        </label>
+                        <input
+                          type="number"
+                          min={10}
+                          step={10}
+                          value={networkCableLength}
+                          onChange={(e) => setNetworkCableLength(Math.max(10, Number(e.target.value)))}
+                          className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Web Designing Features Checklist */}
+              {isWebDesigning && (
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-2">
+                    Required Website Features &amp; Integrations <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {WEB_FEATURE_OPTIONS.map((feat) => {
+                      const isChecked = !!webFeatures[feat.key];
+                      return (
+                        <div
+                          key={feat.key}
+                          className={`p-3 rounded-2xl border transition-all ${
+                            isChecked
+                              ? "border-blue-500 bg-blue-50/20 shadow-xs"
+                              : "border-slate-200 bg-white hover:border-slate-300"
+                          }`}
+                        >
+                          <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-slate-800">
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) =>
+                                setWebFeatures((prev) => ({
+                                  ...prev,
+                                  [feat.key]: e.target.checked,
+                                }))
+                              }
+                              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span>{feat.label}</span>
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Real-Time Hardware & Custom Scope Autocomplete (NO PRICES ON CUSTOMER SIDE) */}
               <div className="p-4 sm:p-5 rounded-2xl border border-blue-200 bg-blue-50/20 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-                      <span>Search & Select Hardware from Inventory</span>
+                      <span>Additional Hardware / Equipment Requirements (Optional)</span>
                     </label>
                     <p className="text-[11px] text-slate-500 mt-0.5">
-                      Type product name or brand (e.g. &quot;CP&quot;, &quot;2MP&quot;, &quot;Router&quot;) to auto-populate authoritative base price &amp; GST
+                      Search or enter extra accessories, specific models, or scope items you need quoted.
                     </p>
                   </div>
                   <span className="text-[10px] text-slate-400 font-bold bg-white px-2.5 py-1 rounded-full border border-slate-200">
-                    {quotationItems.length} item(s) selected
+                    {quotationItems.length} item(s) added
                   </span>
                 </div>
 
-                {/* Real-time backend search autocomplete */}
+                {/* Autocomplete with showPrice={false} */}
                 <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
                   <div className="flex-1">
                     <ProductAutocomplete
                       category={serviceCategoryLabel}
-                      showPrice={isBuyCctvProducts}
+                      showPrice={false}
                       placeholder={
                         isNetworking
                           ? "Search networking hardware (e.g. Cisco, Gigabit Switch, Cat6, AP)..."
-                          : "Search CCTV cameras & accessories (e.g. 'CP', 'Hikvision', '4MP')..."
+                          : isWebDesigning
+                          ? "Search web components (e.g. Payment Gateway, SSL, Cloud Backup)..."
+                          : "Search CCTV cameras & accessories (e.g. 'CP Plus', 'Hikvision', '4MP')..."
                       }
                       onSelectProduct={handleSelectInventoryProduct}
                     />
                   </div>
 
-                  {/* Quantity selector for addition */}
+                  {/* Quantity selector */}
                   <div className="flex items-center border border-slate-200 rounded-xl bg-white h-11 px-2 shadow-xs shrink-0">
                     <span className="text-[10px] font-bold uppercase text-slate-400 px-1">
                       Qty
@@ -1968,7 +3008,7 @@ export function ServiceBookingConfigModal({
                 {/* Quick suggestions pills */}
                 <div className="space-y-1.5 pt-1">
                   <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    Quick additions &amp; service scopes
+                    Quick suggestions
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {currentSuggestions.slice(0, 6).map((tag) => (
@@ -1988,7 +3028,7 @@ export function ServiceBookingConfigModal({
                 <div className="flex gap-2 pt-1 border-t border-blue-100/60">
                   <input
                     type="text"
-                    placeholder="Or enter custom equipment / scope requirement..."
+                    placeholder="Or enter custom equipment / deliverable..."
                     value={newItemName}
                     onChange={(e) => setNewItemName(e.target.value)}
                     onKeyDown={(e) => {
@@ -2008,137 +3048,87 @@ export function ServiceBookingConfigModal({
                   </Button>
                 </div>
 
-                {/* Selected Quotation Items List */}
+                {/* Selected Quotation Items List (NO PRICES SHOWN) */}
                 {quotationItems.length > 0 && (
-                  <div className="space-y-2.5 mt-3 pt-3 border-t border-blue-200/80">
+                  <div className="space-y-2 mt-3 pt-3 border-t border-blue-200/80">
                     <div className="text-[11px] font-black uppercase tracking-wider text-slate-500">
-                      Selected Items &amp; Pricing Breakdown
+                      Selected Items for Official Quotation
                     </div>
-                    {quotationItems.map((item) => {
-                      const hasPrice = typeof item.basePrice === "number" && item.basePrice > 0;
-                      const base = item.basePrice || 0;
-                      const rate = item.gstRate ?? 18;
-                      const q = item.quantity || 1;
-                      const lineTaxable = Math.round(base * q * 100) / 100;
-                      const lineGst = Math.round(((lineTaxable * rate) / 100) * 100) / 100;
-                      const lineTot = Math.round((lineTaxable + lineGst) * 100) / 100;
-
-                      return (
-                        <div
-                          key={item.id}
-                          className="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded-xl border border-slate-200 bg-white shadow-xs gap-2"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {item.brand && (
-                                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-blue-600 text-white tracking-wider">
-                                  {item.brand}
-                                </span>
-                              )}
-                              <span className="font-bold text-xs text-slate-900 truncate">
-                                {item.productName}
+                    {quotationItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-white shadow-xs gap-2"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {item.brand && (
+                              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-blue-600 text-white tracking-wider">
+                                {item.brand}
                               </span>
-                              {item.variant && (
-                                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                                  {item.variant}
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Price display for Buy Products, or Service Quotation note */}
-                            {hasPrice && isBuyCctvProducts ? (
-                              <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-500 flex-wrap">
-                                <span>Base: ₹{base.toLocaleString("en-IN")} × {q} = ₹{lineTaxable.toLocaleString("en-IN")}</span>
-                                <span className="font-bold text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200/50">
-                                  +{rate}% GST (₹{lineGst.toLocaleString("en-IN")})
-                                </span>
-                                <span className="font-extrabold text-slate-900">
-                                  = ₹{lineTot.toLocaleString("en-IN")}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5 font-medium">
-                                <span className="bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded text-[10px] font-bold">Qty {q}</span>
-                                <span>• Hardware selected for site quotation</span>
+                            )}
+                            <span className="font-bold text-xs text-slate-900 truncate">
+                              {item.productName}
+                            </span>
+                            {item.variant && (
+                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                                {item.variant}
                               </span>
                             )}
                           </div>
+                          <span className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5 font-medium">
+                            <span className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-bold">Qty {item.quantity}</span>
+                            <span>• Included in quotation request</span>
+                          </span>
+                        </div>
 
-                          <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                            <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white h-7">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleUpdateItemQty(item.id, item.quantity - 1)
-                                }
-                                className="h-full px-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
-                              >
-                                -
-                              </button>
-                              <span className="px-2 text-xs font-black text-slate-800">
-                                {item.quantity}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  handleUpdateItemQty(item.id, item.quantity + 1)
-                                }
-                                className="h-full px-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
-                              >
-                                +
-                              </button>
-                            </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white h-7">
                             <button
                               type="button"
-                              onClick={() => handleRemoveItem(item.id)}
-                              className="text-slate-400 hover:text-rose-600 transition p-1"
-                              title="Remove item"
+                              onClick={() =>
+                                handleUpdateItemQty(item.id, item.quantity - 1)
+                              }
+                              className="h-full px-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              -
+                            </button>
+                            <span className="px-2 text-xs font-black text-slate-800">
+                              {item.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleUpdateItemQty(item.id, item.quantity + 1)
+                              }
+                              className="h-full px-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
+                            >
+                              +
                             </button>
                           </div>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="text-slate-400 hover:text-rose-600 transition p-1"
+                            title="Remove item"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
-                      );
-                    })}
+                      </div>
+                    ))}
 
-                    {/* Dynamic Live Price & GST Summary Card for Buy Products */}
-                    {priceCalculations.hasPricedItems && isBuyCctvProducts ? (
-                      <div className="p-3.5 rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50/60 shadow-xs mt-2 space-y-2">
-                        <div className="flex items-center justify-between text-xs font-semibold text-slate-700">
-                          <span>Items Taxable Base Subtotal:</span>
-                          <span className="font-bold text-slate-900">
-                            ₹{priceCalculations.taxableSubtotal.toLocaleString("en-IN")}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-xs font-semibold text-amber-800">
-                          <span>Calculated GST Amount:</span>
-                          <span className="font-bold text-amber-900">
-                            + ₹{priceCalculations.totalGst.toLocaleString("en-IN")}
-                          </span>
-                        </div>
-                        <div className="border-t border-blue-200/80 pt-2 flex items-center justify-between">
-                          <span className="text-xs font-extrabold text-slate-900 uppercase tracking-wide">
-                            Estimated Total (Including GST):
-                          </span>
-                          <span className="text-sm font-black text-blue-700">
-                            ₹{priceCalculations.totalAmount.toLocaleString("en-IN")}
-                          </span>
+                    <div className="p-3 rounded-xl border border-blue-200/80 bg-blue-50/50 flex items-center justify-between text-xs mt-2">
+                      <div className="flex items-center gap-2 text-slate-700">
+                        <span className="text-sm">📋</span>
+                        <div>
+                          <span className="font-bold text-slate-900 block">{quotationItems.length} Custom Item(s) Selected</span>
+                          <span className="text-[11px] text-slate-500">TechBes engineering will review requirements and prepare official quotation.</span>
                         </div>
                       </div>
-                    ) : (
-                      <div className="p-3 rounded-xl border border-blue-200/80 bg-blue-50/50 flex items-center justify-between text-xs mt-2">
-                        <div className="flex items-center gap-2 text-slate-700">
-                          <span className="text-sm">📋</span>
-                          <div>
-                            <span className="font-bold text-slate-900 block">{quotationItems.length} Hardware Item(s) Selected</span>
-                            <span className="text-[11px] text-slate-500">TechBes engineering will review requirements and prepare official quotation.</span>
-                          </div>
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
-                          Free Quotation
-                        </span>
-                      </div>
-                    )}
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
+                        Free Quotation
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
