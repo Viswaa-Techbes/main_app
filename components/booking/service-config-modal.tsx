@@ -978,7 +978,7 @@ export function ServiceBookingConfigModal({
         propertyType: isNetworking
           ? networkPremisesType
           : isWebDesigning
-          ? webProjectType
+          ? undefined
           : cctvPropertyType || undefined,
         additionalRequirements: notes.trim() || undefined,
         voiceNote: voiceNoteData
