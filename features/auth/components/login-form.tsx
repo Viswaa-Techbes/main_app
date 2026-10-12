@@ -407,11 +407,16 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
           )}
 
           {/* Sign up link */}
-          <p className="text-center text-xs font-semibold text-slate-400">
-            Don't have an account?{" "}
-            <Link href="/login?mode=signup" className="text-blue-600 hover:underline font-bold ml-1">Create Account</Link>
-          </p>
-
+          <div className="space-y-1 text-center text-xs font-semibold text-slate-400">
+            <p>
+              Don't have an account?{" "}
+              <Link href="/login?mode=signup" className="text-blue-600 hover:underline font-bold ml-1">Create Account</Link>
+            </p>
+            <p className="pt-1 border-t border-slate-100">
+              Apartment resident with an invite?{" "}
+              <Link href="/resident/activate" className="text-emerald-600 hover:underline font-bold ml-1">Activate Resident Account</Link>
+            </p>
+          </div>
         </div>
       </div>
 
