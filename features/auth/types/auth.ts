@@ -1,4 +1,4 @@
-export type UserRole = "admin" | "manager" | "technician" | "client" | "user";
+export type UserRole = "admin" | "manager" | "technician" | "client" | "user" | "association" | "resident";
 
 export type AuthUser = {
   id?: string;
@@ -9,6 +9,9 @@ export type AuthUser = {
   mobileNumber?: string;
   role: UserRole;
   token?: string;
+  block?: string;
+  flatNumber?: string;
+  apartmentId?: string;
 };
 
 export type SessionResponse = {
