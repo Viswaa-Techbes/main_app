@@ -35,13 +35,14 @@ export default function Home() {
           </div>
 
           {/* Subsequent Sections: Full Width */}
-          <FeaturedServices />
+          {/* Priority 2: Hide complete "Most Booked IT Services" section without deleting component or data */}
+          {/* <FeaturedServices /> */}
           
           <CategoryGrid />
           
           <WhyChoose />
           
-          <AmcPlans />
+          {/* AMC Plans moved to Quick Access area in HomeHero */}
           
           <CustomerReviews />
           

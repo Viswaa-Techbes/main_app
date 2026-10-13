@@ -63,7 +63,7 @@ export function AmcPlans() {
                     : "bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200"
                 }`}
               >
-                <Link href={`/get-a-quote?category=AMC&plan=${encodeURIComponent(plan.name)}`}>
+                <Link href={`/amc?plan=${encodeURIComponent(plan.name)}`}>
                   Choose {plan.name}
                 </Link>
               </Button>

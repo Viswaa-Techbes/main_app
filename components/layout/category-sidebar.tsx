@@ -14,7 +14,8 @@ import {
   Key, 
   ShieldCheck,
   ChevronRight,
-  HelpCircle
+  HelpCircle,
+  Megaphone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -22,6 +23,7 @@ const sidebarCategories = [
   { id: "cctv", title: "CCTV", subtitle: "Installation, Repair & AMC", icon: Camera },
   { id: "networking", title: "Networking", subtitle: "Wired & Wireless Solutions", icon: Network },
   { id: "website-development", title: "Web Designing", subtitle: "Custom Websites & Digital Solutions", icon: Globe },
+  { id: "digital-marketing", title: "Digital Marketing", subtitle: "SEO, Ads & Podcasting", icon: Megaphone },
 ];
 
 export function CategorySidebar() {

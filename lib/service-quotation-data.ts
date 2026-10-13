@@ -21,7 +21,7 @@ export interface QuotationCategory {
   title: string;
   shortDesc: string;
   description: string;
-  iconName: "Camera" | "Network" | "Globe";
+  iconName: "Camera" | "Network" | "Globe" | "Megaphone";
   gradient: string;
   services: ServiceItem[];
 }
@@ -259,12 +259,6 @@ export const QUOTATION_CATEGORIES: QuotationCategory[] = [
         description: "Annual maintenance contract for ongoing technical support, backups, and audits.",
       },
       {
-        id: "digital-marketing",
-        name: "Digital Marketing & Growth",
-        slug: "digital-marketing",
-        description: "Google Analytics 4, Tag Manager, pixel tracking, and conversion optimization.",
-      },
-      {
         id: "web-consultation",
         name: "Web Consultation",
         slug: "web-consultation",
@@ -290,6 +284,32 @@ export const QUOTATION_CATEGORIES: QuotationCategory[] = [
       },
     ],
   },
+  {
+    id: "digital-marketing",
+    name: "Digital Marketing",
+    slug: "digital-marketing",
+    title: "Digital Marketing & Podcasting",
+    shortDesc: "Growth Marketing, Ads & Podcasting Studio",
+    description: "Targeted digital marketing, high-ROI Google & Meta campaigns, SEO, and professional podcast production.",
+    iconName: "Megaphone",
+    gradient: "from-purple-500 via-pink-500 to-rose-600",
+    services: [
+      {
+        id: "digital-marketing",
+        name: "Digital Marketing",
+        slug: "digital-marketing",
+        description: "Comprehensive SEO, performance marketing (Google & Meta Ads), brand positioning, and analytics.",
+        badge: "Popular",
+      },
+      {
+        id: "podcasting",
+        name: "Podcasting",
+        slug: "podcasting",
+        description: "Studio recording, multi-camera 4K podcast filming, audio mastering, YouTube/Spotify distribution, and viral shorts clipping.",
+        badge: "Trending",
+      },
+    ],
+  },
 ];
 
 /**
@@ -305,7 +325,8 @@ export function findCategoryBySlug(slugOrName: string): QuotationCategory | unde
       c.name.toLowerCase() === s ||
       (s.includes("cctv") && c.id === "cctv") ||
       (s.includes("net") && c.id === "networking") ||
-      ((s.includes("web") || s.includes("design")) && c.id === "website-development")
+      ((s.includes("web") || s.includes("design")) && c.id === "website-development") ||
+      ((s.includes("market") || s.includes("podcast")) && c.id === "digital-marketing")
   );
 }
 

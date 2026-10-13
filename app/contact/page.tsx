@@ -10,7 +10,7 @@ import { getSeoMetadata } from "@/lib/seo-helpers";
 export const metadata = getSeoMetadata({
   title: "Contact TechBes | Nagarbhavi Corporate IT Office",
   description:
-    "Get in touch with TechBes corporate office in Papareddy Palya, Nagarbhavi, Bangalore. Call +91 95911 44949 or email lohith@techbes.co.in.",
+    "Get in touch with TechBes corporate office in Papareddy Palya, Nagarbhavi, Bangalore. Call +91 95911 44949 or email info@techbes.co.in.",
   path: "/contact",
 });
 
@@ -19,16 +19,16 @@ export default function ContactPage() {
     {
       icon: <Phone className="h-5 w-5 text-blue-600" />,
       title: "Call Us",
-      detail: "+91 91644 87296",
-      sub: "Available Mon-Sat, 9AM-7PM",
-      link: "tel:+919164487296"
+      detail: "+91 95911 44949",
+      sub: "Monday to Friday, 10:00 AM – 6:00 PM",
+      link: "tel:+919591144949"
     },
     {
       icon: <Mail className="h-5 w-5 text-blue-600" />,
       title: "Email Us",
-      detail: "lohith@techbes.co.in",
+      detail: "info@techbes.co.in",
       sub: "Expected response within 4 hours",
-      link: "mailto:lohith@techbes.co.in"
+      link: "mailto:info@techbes.co.in"
     },
     {
       icon: <MapPin className="h-5 w-5 text-blue-600" />,
@@ -46,7 +46,7 @@ export default function ContactPage() {
     },
     {
       q: "How can I book an urgent IT installation?",
-      a: "You can book directly through our online marketplace catalog or call lohith@techbes.co.in for customized corporate AMC audits."
+      a: "You can book directly through our online marketplace catalog or call +91 95911 44949 / email info@techbes.co.in for customized corporate AMC audits."
     }
   ];
 
@@ -142,7 +142,7 @@ export default function ContactPage() {
 
                 <div className="flex items-center gap-2.5">
                   <Clock className="h-5 w-5 text-blue-600 shrink-0" />
-                  <span>Mon - Sat: 9:00 AM - 7:00 PM</span>
+                  <span>Monday to Friday, 10:00 AM – 6:00 PM</span>
                 </div>
               </div>
 

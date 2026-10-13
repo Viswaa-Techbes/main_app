@@ -231,23 +231,43 @@ export function ServiceBookingConfigModal({
     isWebEcommerce,
     isWebRedesignOrSeo,
     isWebNewOrBusiness,
+    isDigitalMarketing,
+    isPodcast,
+    isDigitalMarketingService,
   } = useMemo(() => {
     const slug = (service.slug || "").toLowerCase();
     const cat = String(service.categoryId || "").toLowerCase();
     const name = (service.name || "").toLowerCase();
 
+    const isDigitalMarketingCat =
+      cat === "digital-marketing" ||
+      cat.includes("market") ||
+      slug === "digital-marketing" ||
+      slug === "podcasting" ||
+      name.includes("digital marketing") ||
+      name.includes("podcasting") ||
+      name.includes("podcast");
+
+    const isPodcastSub =
+      isDigitalMarketingCat &&
+      (slug === "podcasting" || name.includes("podcast") || slug.includes("podcast"));
+
+    const isDigitalMarketingSub = isDigitalMarketingCat && !isPodcastSub;
+
     const netServices = QUOTATION_CATEGORIES.find((c) => c.id === "networking")?.services || [];
     const webServices = QUOTATION_CATEGORIES.find((c) => c.id === "website-development")?.services || [];
 
     const isNet =
-      cat === "networking" ||
-      cat.includes("network") ||
-      slug.includes("network") ||
-      name.includes("network") ||
-      netServices.some((s) => s.slug === slug || s.name.toLowerCase() === name);
+      !isDigitalMarketingCat &&
+      (cat === "networking" ||
+        cat.includes("network") ||
+        slug.includes("network") ||
+        name.includes("network") ||
+        netServices.some((s) => s.slug === slug || s.name.toLowerCase() === name));
 
     const isWeb =
       !isNet &&
+      !isDigitalMarketingCat &&
       (cat === "website-development" ||
         cat === "web-designing" ||
         cat.includes("web") ||
@@ -255,7 +275,7 @@ export function ServiceBookingConfigModal({
         name.includes("web") ||
         webServices.some((s) => s.slug === slug || s.name.toLowerCase() === name));
 
-    const isCctvCat = !isNet && !isWeb;
+    const isCctvCat = !isNet && !isWeb && !isDigitalMarketingCat;
 
     // Specific CCTV subcategories
     const isCctvRepairSub = isCctvCat && (slug === "repair-existing-cctv" || slug.includes("repair") || name.includes("repair"));
@@ -279,9 +299,9 @@ export function ServiceBookingConfigModal({
     const isWebEcomSub = isWeb && (slug === "ecommerce-website" || slug === "payment-gateway" || slug.includes("ecommerce") || slug.includes("e-commerce") || name.includes("ecommerce") || name.includes("e-commerce"));
     const isWebRedesignSub = isWeb && !isWebEcomSub && (
       slug === "web-redesign" || slug === "web-maintenance" || slug === "speed-optimization" ||
-      slug === "seo-services" || slug === "digital-marketing" || slug === "web-security" ||
+      slug === "seo-services" || slug === "web-security" ||
       slug.includes("redesign") || slug.includes("maintenance") || slug.includes("speed") ||
-      slug.includes("seo") || slug.includes("marketing") || name.includes("redesign") ||
+      slug.includes("seo") || name.includes("redesign") ||
       name.includes("maintenance") || name.includes("seo") || name.includes("speed")
     );
     const isWebNewSub = isWeb && !isWebEcomSub && !isWebRedesignSub;
@@ -289,6 +309,9 @@ export function ServiceBookingConfigModal({
     return {
       isNetworking: isNet,
       isWebDesigning: isWeb,
+      isDigitalMarketing: isDigitalMarketingCat,
+      isPodcast: isPodcastSub,
+      isDigitalMarketingService: isDigitalMarketingSub,
       isCctv: isCctvCat,
       isCctvInstall: isCctvInstallSub,
       isCctvRepair: isCctvRepairSub,
@@ -311,10 +334,11 @@ export function ServiceBookingConfigModal({
   }, [service]);
 
   const serviceCategoryLabel = useMemo(() => {
+    if (isDigitalMarketing) return "Digital Marketing";
     if (isNetworking) return "Networking";
     if (isWebDesigning) return "Web Designing";
     return "CCTV";
-  }, [isNetworking, isWebDesigning]);
+  }, [isDigitalMarketing, isNetworking, isWebDesigning]);
 
   const isBuyCctvProducts = isCctvBuy;
   const isInstallNewCctv = isCctvInstall;
@@ -440,6 +464,33 @@ export function ServiceBookingConfigModal({
   );
   const [webExistingUrl, setWebExistingUrl] = useState<string>("");
   const [webEcommerceRequirements, setWebEcommerceRequirements] = useState<string>("");
+
+  // ──────── Digital Marketing & Podcasting Specific States ────────
+  const [marketingChannels, setMarketingChannels] = useState<Record<string, boolean>>({
+    seo: true,
+    googleAds: true,
+    metaAds: true,
+    socialMedia: false,
+    contentWriting: false,
+    analytics: true,
+  });
+  const [marketingBudget, setMarketingBudget] = useState<string>("₹25,000 – ₹50,000 / month");
+  const [marketingWebsiteUrl, setMarketingWebsiteUrl] = useState<string>("");
+  const [marketingTargetAudience, setMarketingTargetAudience] = useState<string>("B2B & Corporate Leads");
+  const [marketingPrimaryGoal, setMarketingPrimaryGoal] = useState<string>("Generate Qualified Inquiries & Sales");
+
+  // Podcasting
+  const [podcastServices, setPodcastServices] = useState<Record<string, boolean>>({
+    audioRecording: true,
+    videoRecording4k: true,
+    editingMastering: true,
+    distribution: true,
+    socialClips: true,
+  });
+  const [podcastEpisodeCount, setPodcastEpisodeCount] = useState<string>("4 Episodes (Monthly Pack)");
+  const [podcastHostGuestFormat, setPodcastHostGuestFormat] = useState<string>("Host + 1 In-Studio Guest");
+  const [podcastRecordingLocation, setPodcastRecordingLocation] = useState<string>("TechBes Soundproof Studio (Bangalore)");
+  const [podcastTopic, setPodcastTopic] = useState<string>("");
 
   // Subcategory Presets on mount or service change
   useEffect(() => {
@@ -1078,6 +1129,61 @@ export function ServiceBookingConfigModal({
           quantity: 1,
         });
       }
+    } else if (isPodcast) {
+      list.push({
+        productName: `Podcasting Production: ${podcastEpisodeCount} (${podcastHostGuestFormat})`,
+        quantity: 1,
+      });
+      const chosenPodcastServices = [];
+      if (podcastServices.audioRecording) chosenPodcastServices.push("Multi-Mic Studio Audio");
+      if (podcastServices.videoRecording4k) chosenPodcastServices.push("4K Multi-Cam Video Filming");
+      if (podcastServices.editingMastering) chosenPodcastServices.push("Post-Production Editing & Color");
+      if (podcastServices.distribution) chosenPodcastServices.push("Spotify & YouTube Distribution");
+      if (podcastServices.socialClips) chosenPodcastServices.push("Reels / Shorts Vertical Clips");
+      if (chosenPodcastServices.length > 0) {
+        list.push({
+          productName: `Services Included: ${chosenPodcastServices.join("; ")}`,
+          quantity: 1,
+        });
+      }
+      list.push({
+        productName: `Studio / Location: ${podcastRecordingLocation}`,
+        quantity: 1,
+      });
+      if (podcastTopic.trim()) {
+        list.push({
+          productName: `Podcast Topic / Name: ${podcastTopic.trim()}`,
+          quantity: 1,
+        });
+      }
+    } else if (isDigitalMarketing) {
+      list.push({
+        productName: `Digital Marketing Strategy & Campaigns — Budget: ${marketingBudget}`,
+        quantity: 1,
+      });
+      const chosenMarketingChannels = [];
+      if (marketingChannels.seo) chosenMarketingChannels.push("SEO Search Ranking");
+      if (marketingChannels.googleAds) chosenMarketingChannels.push("Google Search & Display Ads");
+      if (marketingChannels.metaAds) chosenMarketingChannels.push("Meta (Facebook & Instagram) Ads");
+      if (marketingChannels.socialMedia) chosenMarketingChannels.push("Social Media Growth");
+      if (marketingChannels.contentWriting) chosenMarketingChannels.push("Ad Copywriting & Creatives");
+      if (marketingChannels.analytics) chosenMarketingChannels.push("GA4 & Conversion Tracking");
+      if (chosenMarketingChannels.length > 0) {
+        list.push({
+          productName: `Target Channels: ${chosenMarketingChannels.join("; ")}`,
+          quantity: 1,
+        });
+      }
+      list.push({
+        productName: `Audience & Goal: ${marketingTargetAudience} ➔ ${marketingPrimaryGoal}`,
+        quantity: 1,
+      });
+      if (marketingWebsiteUrl.trim()) {
+        list.push({
+          productName: `Target Website URL: ${marketingWebsiteUrl.trim()}`,
+          quantity: 1,
+        });
+      }
     } else {
       // General package fallback
       if (selectedPackageId) {
@@ -1206,6 +1312,18 @@ export function ServiceBookingConfigModal({
     webPageCount,
     webContentReadiness,
     webFeatures,
+    isPodcast,
+    podcastEpisodeCount,
+    podcastHostGuestFormat,
+    podcastServices,
+    podcastRecordingLocation,
+    podcastTopic,
+    isDigitalMarketing,
+    marketingBudget,
+    marketingChannels,
+    marketingTargetAudience,
+    marketingPrimaryGoal,
+    marketingWebsiteUrl,
     selectedPackageId,
     service.packages,
     service.name,
@@ -1241,7 +1359,7 @@ export function ServiceBookingConfigModal({
     if (!date) {
       toast({
         title: "Preferred Date Required",
-        description: isWebDesigning
+        description: (isWebDesigning || isDigitalMarketing)
           ? "Please choose your preferred discussion date."
           : "Please choose your preferred site visit date.",
         variant: "destructive",
@@ -1251,7 +1369,7 @@ export function ServiceBookingConfigModal({
     }
 
     // 3. Validate Service Location (Mandatory for CCTV & Networking physical visits)
-    if (!isWebDesigning && !address.trim() && !formattedAddress.trim()) {
+    if (!isWebDesigning && !isDigitalMarketing && !address.trim() && !formattedAddress.trim()) {
       toast({
         title: "Service Location Required",
         description:
@@ -1305,11 +1423,15 @@ export function ServiceBookingConfigModal({
         email: customerEmail.trim() || undefined,
         whatsapp: customerPhone.trim(),
         serviceCategory: serviceCategoryLabel,
-        subcategory: service.name,
+        subcategory: isPodcast
+          ? "Podcasting"
+          : isDigitalMarketing
+          ? "Digital Marketing"
+          : service.name,
         items: finalItemsToSubmit,
         propertyType: isNetworking
           ? networkPremisesType
-          : isWebDesigning
+          : isWebDesigning || isDigitalMarketing
           ? undefined
           : isCctvRepair
           ? `${cctvRepairCameraQty} ${cctvRepairCameraType}`
@@ -1329,12 +1451,12 @@ export function ServiceBookingConfigModal({
               mimeType: voiceNoteData.mimeType,
             }
           : undefined,
-        locality: isWebDesigning
-          ? (city || area || "Remote Digital")
+        locality: isWebDesigning || isDigitalMarketing
+          ? (city || area || "Bangalore / Remote")
           : (area || district || city || (address ? address.split(",")[0] : "Bangalore")),
         pincode: pincode || undefined,
-        address: isWebDesigning
-          ? (formattedAddress || address || "Remote Consultation / Digital Delivery")
+        address: isWebDesigning || isDigitalMarketing
+          ? (formattedAddress || address || (isPodcast ? "TechBes Soundproof Studio / Bangalore" : "Online / Remote Digital Marketing Delivery"))
           : (formattedAddress || address),
         latitude: latitude || 12.9716,
         longitude: longitude || 77.5946,
@@ -2942,6 +3064,221 @@ export function ServiceBookingConfigModal({
                         </div>
                       );
                     })}
+                  </div>
+                </div>
+              )}
+
+              {/* Digital Marketing Strategy & Channels */}
+              {isDigitalMarketingService && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-700 block">
+                      Target Marketing Channels &amp; Services <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {[
+                        { key: "seo", label: "Search Engine Optimization (SEO & Local Maps)" },
+                        { key: "googleAds", label: "Google Ads (Search, Display & YouTube PPC)" },
+                        { key: "metaAds", label: "Meta Ads (Instagram & Facebook Lead Generation)" },
+                        { key: "socialMedia", label: "Social Media Page Management & Creatives" },
+                        { key: "contentWriting", label: "High-Converting Ad Copy & Content Writing" },
+                        { key: "analytics", label: "Google Analytics 4 & Conversion Tracking" },
+                      ].map((item) => (
+                        <div
+                          key={item.key}
+                          className={`p-3 rounded-2xl border transition-all ${
+                            marketingChannels[item.key]
+                              ? "border-blue-500 bg-blue-50/20 shadow-xs"
+                              : "border-slate-200 bg-white hover:border-slate-300"
+                          }`}
+                        >
+                          <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-slate-800">
+                            <input
+                              type="checkbox"
+                              checked={!!marketingChannels[item.key]}
+                              onChange={(e) =>
+                                setMarketingChannels((prev) => ({
+                                  ...prev,
+                                  [item.key]: e.target.checked,
+                                }))
+                              }
+                              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span>{item.label}</span>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700 block">
+                        Estimated Monthly Ad Spend / Budget
+                      </label>
+                      <select
+                        value={marketingBudget}
+                        onChange={(e) => setMarketingBudget(e.target.value)}
+                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                      >
+                        <option value="Under ₹25,000 / month">Under ₹25,000 / month</option>
+                        <option value="₹25,000 – ₹50,000 / month">₹25,000 – ₹50,000 / month</option>
+                        <option value="₹50,000 – ₹1,00,000 / month">₹50,000 – ₹1,00,000 / month</option>
+                        <option value="₹1,00,000+ Enterprise Scale">₹1,00,000+ Enterprise Scale</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700 block">
+                        Primary Business Goal
+                      </label>
+                      <select
+                        value={marketingPrimaryGoal}
+                        onChange={(e) => setMarketingPrimaryGoal(e.target.value)}
+                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                      >
+                        <option value="Generate Qualified Inquiries & Sales">Generate Qualified Inquiries &amp; Sales</option>
+                        <option value="Brand Awareness & Local Reach">Brand Awareness &amp; Local Reach</option>
+                        <option value="E-Commerce Store Orders">E-Commerce Store Orders</option>
+                        <option value="App Installs / Event Registrations">App Installs / Event Registrations</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700 block">
+                        Target Audience / Industry
+                      </label>
+                      <input
+                        type="text"
+                        value={marketingTargetAudience}
+                        onChange={(e) => setMarketingTargetAudience(e.target.value)}
+                        placeholder="e.g. B2B Companies, Homeowners in Bangalore"
+                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700 block">
+                        Existing Website / Social Media Link
+                      </label>
+                      <input
+                        type="url"
+                        value={marketingWebsiteUrl}
+                        onChange={(e) => setMarketingWebsiteUrl(e.target.value)}
+                        placeholder="https://yourwebsite.com"
+                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Podcasting Production & Studio */}
+              {isPodcast && (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-700 block">
+                      Podcasting Services Required <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {[
+                        { key: "audioRecording", label: "Broadcast-Grade Audio Studio (Multi-Mic Setup)" },
+                        { key: "videoRecording4k", label: "Multi-Camera 4K Cinematic Video Filming" },
+                        { key: "editingMastering", label: "Audio & Video Post-Production & Color Grading" },
+                        { key: "distribution", label: "YouTube & Spotify Uploads & Thumbnail Design" },
+                        { key: "socialClips", label: "Viral Shorts / Reels Vertical Clipping (Subtitled)" },
+                      ].map((item) => (
+                        <div
+                          key={item.key}
+                          className={`p-3 rounded-2xl border transition-all ${
+                            podcastServices[item.key]
+                              ? "border-blue-500 bg-blue-50/20 shadow-xs"
+                              : "border-slate-200 bg-white hover:border-slate-300"
+                          }`}
+                        >
+                          <label className="flex items-center gap-2.5 cursor-pointer text-xs font-bold text-slate-800">
+                            <input
+                              type="checkbox"
+                              checked={!!podcastServices[item.key]}
+                              onChange={(e) =>
+                                setPodcastServices((prev) => ({
+                                  ...prev,
+                                  [item.key]: e.target.checked,
+                                }))
+                              }
+                              className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span>{item.label}</span>
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700 block">
+                        Planned Episode Count
+                      </label>
+                      <select
+                        value={podcastEpisodeCount}
+                        onChange={(e) => setPodcastEpisodeCount(e.target.value)}
+                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                      >
+                        <option value="1 Pilot Episode">1 Pilot Episode</option>
+                        <option value="4 Episodes (Monthly Pack)">4 Episodes (Monthly Pack)</option>
+                        <option value="8 Episodes (Bi-Monthly)">8 Episodes (Bi-Monthly)</option>
+                        <option value="12+ Episodes (Full Season)">12+ Episodes (Full Season)</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700 block">
+                        Host &amp; Guest Setup
+                      </label>
+                      <select
+                        value={podcastHostGuestFormat}
+                        onChange={(e) => setPodcastHostGuestFormat(e.target.value)}
+                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                      >
+                        <option value="Solo Host (Solo monologue)">Solo Host (Solo monologue)</option>
+                        <option value="Host + 1 In-Studio Guest">Host + 1 In-Studio Guest</option>
+                        <option value="Host + 2-3 Panel Guests">Host + 2-3 Panel Guests</option>
+                        <option value="Host + Remote Online Guest">Host + Remote Online Guest</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700 block">
+                        Studio / Recording Preference
+                      </label>
+                      <select
+                        value={podcastRecordingLocation}
+                        onChange={(e) => setPodcastRecordingLocation(e.target.value)}
+                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                      >
+                        <option value="TechBes Soundproof Studio (Bangalore)">TechBes Soundproof Studio (Bangalore)</option>
+                        <option value="Client Corporate Office Setup (Mobile Rig)">Client Corporate Office Setup (Mobile Rig)</option>
+                        <option value="Remote Digital Studio Setup">Remote Digital Studio Setup</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-700 block">
+                        Podcast Show Name / Topic
+                      </label>
+                      <input
+                        type="text"
+                        value={podcastTopic}
+                        onChange={(e) => setPodcastTopic(e.target.value)}
+                        placeholder="e.g. The Tech Talk Podcast, Business Growth"
+                        className="h-9 w-full rounded-xl border border-slate-200 px-3 bg-white text-xs font-semibold text-slate-700"
+                      />
+                    </div>
                   </div>
                 </div>
               )}

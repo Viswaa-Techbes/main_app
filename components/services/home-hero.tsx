@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Search, Sparkles, ShieldCheck, Users, Camera, Network, Laptop, Monitor, Globe, Crown } from "lucide-react";
+import { Search, Sparkles, ShieldCheck, Users, Camera, Network, Laptop, Monitor, Globe, Crown, Megaphone, ArrowRight } from "lucide-react";
 import { useState } from "react";
 
 const CATEGORY_TILES = [
-  { id: "cctv", label: "CCTV", icon: Camera, subtitle: "Smart surveillance & office security" },
-  { id: "networking", label: "Networking", icon: Network, subtitle: "WiFi setup & structured cabling" },
-  { id: "laptop", label: "Laptop", icon: Laptop, subtitle: "Screen, battery & OS repair" },
-  { id: "desktop", label: "Desktop", icon: Monitor, subtitle: "PC assembly, repairs & upgrades" },
-  { id: "website-development", label: "Website Development", icon: Globe, subtitle: "Custom business websites & SEO" },
+  { id: "cctv", label: "CCTV", icon: Camera, subtitle: "Smart surveillance & office security", href: "/services?category=cctv" },
+  { id: "networking", label: "Networking", icon: Network, subtitle: "WiFi setup & structured cabling", href: "/services?category=networking" },
+  { id: "amc", label: "AMC Plans", icon: ShieldCheck, subtitle: "Starting from ₹9,999 / year", href: "/amc", isHighlight: true, badge: "From ₹9,999" },
+  { id: "website-development", label: "Web Designing", icon: Globe, subtitle: "Custom business websites & apps", href: "/services?category=website-development" },
+  { id: "digital-marketing", label: "Digital Marketing", icon: Megaphone, subtitle: "SEO, Campaigns & Podcasting", href: "/services?category=digital-marketing" },
 ];
 
 import { Button } from "@/components/ui/button";
@@ -101,26 +101,59 @@ export function HomeHero() {
               </div>
             </div>
 
-            {/* Badges section at bottom of left column */}
-            <div className="mt-8 border-t border-slate-100 pt-6 grid grid-cols-2 gap-4">
-              <div className="flex items-center gap-2">
-                <div className="rounded-lg bg-blue-50 p-1.5 text-blue-600">
-                  <Users className="h-4 w-4" />
+            {/* Badges section at bottom of left column with prominent AMC highlight */}
+            <div className="mt-8 border-t border-slate-100 pt-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="rounded-lg bg-blue-50 p-1.5 text-blue-600">
+                    <Users className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">1000+</p>
+                    <p className="text-[10px] text-slate-400 font-semibold uppercase">Happy Customers</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-800">1000+</p>
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase">Happy Customers</p>
+                <div className="flex items-center gap-2">
+                  <div className="rounded-lg bg-blue-50 p-1.5 text-blue-600">
+                    <ShieldCheck className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">Certified</p>
+                    <p className="text-[10px] text-slate-400 font-semibold uppercase">Technicians</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="rounded-lg bg-blue-50 p-1.5 text-blue-600">
-                  <ShieldCheck className="h-4 w-4" />
+
+              {/* Priority 2: Prominent AMC Plans Highlight (Visible on Desktop & Mobile) */}
+              <Link
+                href="/amc"
+                className="group relative block p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.01] border border-blue-800/40"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider">
+                        Annual Maintenance
+                      </span>
+                      <span className="text-[10px] font-semibold text-slate-300">
+                        Laptop • Desktop • Website • Network • CCTV
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-black text-white tracking-tight flex items-center gap-1.5">
+                      AMC Plans Starting from <span className="text-amber-300 font-extrabold">₹9,999</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-300 font-medium">
+                      Guaranteed SLA response, preventive maintenance &amp; free site audit.
+                    </p>
+                  </div>
+                  <div className="shrink-0 pt-2 sm:pt-0">
+                    <div className="h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm group-hover:translate-x-0.5 transition-transform">
+                      <span>View AMC Plans</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-800">Certified</p>
-                  <p className="text-[10px] text-slate-400 font-semibold uppercase">Technicians</p>
-                </div>
-              </div>
+              </Link>
             </div>
           </div>
 
@@ -146,22 +179,26 @@ export function HomeHero() {
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
             {CATEGORY_TILES.map((cat) => {
               const Icon = cat.icon;
-              const isLaunchingSoon = cat.id !== "cctv";
               return (
                 <Link
                   key={cat.id}
-                  href={`/services?category=${cat.id}`}
-                  className="group relative flex flex-col items-center text-center p-4 rounded-[18px] border border-slate-200 bg-white shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:-translate-y-[6px] hover:border-blue-600 hover:shadow-[0_14px_30px_rgba(37,99,235,0.18)] transition-all duration-300 ease-out"
+                  href={cat.href}
+                  className={`group relative flex flex-col items-center text-center p-4 rounded-[18px] border transition-all duration-300 ease-out ${
+                    cat.isHighlight
+                      ? "border-blue-300 bg-gradient-to-b from-blue-50/70 to-white shadow-[0_4px_16px_rgba(37,99,235,0.12)] hover:border-blue-600 hover:-translate-y-[6px]"
+                      : "border-slate-200 bg-white shadow-[0_4px_12px_rgba(15,23,42,0.06)] hover:-translate-y-[6px] hover:border-blue-600 hover:shadow-[0_14px_30px_rgba(37,99,235,0.18)]"
+                  }`}
                 >
-                  {isLaunchingSoon && (
-                    <span className="absolute top-2 right-2 bg-slate-100 text-slate-500 text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider z-20">
-                      Soon
+                  {cat.badge && (
+                    <span className="absolute top-2 right-2 bg-amber-100 text-amber-800 border border-amber-300/60 text-[8px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider z-20">
+                      {cat.badge}
                     </span>
                   )}
                   <div className="absolute inset-0 rounded-[18px] opacity-0 group-hover:opacity-100 bg-[radial-gradient(ellipse_at_center,rgba(37,99,235,0.08),transparent_60%)] pointer-events-none transition-opacity duration-300" />
                   
-                  <div className="relative z-10 rounded-full bg-blue-50 text-blue-600 p-3.5 transition-transform duration-300 group-hover:scale-[1.08] shadow-sm">
-                    <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 bg-blue-400/20 blur-md transition-opacity duration-300" />
+                  <div className={`relative z-10 rounded-full p-3.5 transition-transform duration-300 group-hover:scale-[1.08] shadow-sm ${
+                    cat.isHighlight ? "bg-blue-600 text-white" : "bg-blue-50 text-blue-600"
+                  }`}>
                     <Icon className="relative z-10 h-6 w-6" />
                   </div>
                   <h3 className="relative z-10 mt-3 text-[13px] font-[700] text-slate-900 transition-colors truncate w-full">{cat.label}</h3>

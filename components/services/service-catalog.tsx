@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Search, SlidersHorizontal, Star, Clock, ArrowRight, Camera, Network, Laptop, Monitor, Server, Zap, Home, Globe, Key, Shield, Settings, CheckCircle2, Rocket } from "lucide-react";
+import { Search, SlidersHorizontal, Star, Clock, ArrowRight, Camera, Network, Laptop, Monitor, Server, Zap, Home, Globe, Key, Shield, Settings, CheckCircle2, Rocket, Megaphone, Mic, Radio, Video, Sparkles } from "lucide-react";
 import { ReactNode, useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -16,8 +16,6 @@ import { ServiceBookingConfigModal } from "@/components/booking/service-config-m
 import { useAuth } from "@/features/auth/context/auth-context";
 import { QUOTATION_CATEGORIES } from "@/lib/service-quotation-data";
 
-
-
 type SortOption = "popular" | "price-low" | "top-rated";
 
 export function ServiceCatalog() {
@@ -25,8 +23,12 @@ export function ServiceCatalog() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
 
+  const urlCategory = searchParams.get("category");
+  const initialCategory = (urlCategory && urlCategory !== "all") ? urlCategory : "cctv";
+
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "all");
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [digitalMarketingTab, setDigitalMarketingTab] = useState<"marketing" | "podcasting">("marketing");
   const [minRating, setMinRating] = useState(0);
   const [maxPrice, setMaxPrice] = useState(30000);
   const [durationFilter, setDurationFilter] = useState("all");
@@ -42,20 +44,36 @@ export function ServiceCatalog() {
   const [dbSubcategories, setDbSubcategories] = useState<CatalogSubCategory[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const ALLOWED_CATEGORY_SLUGS = ["cctv", "networking", "website-development", "web-designing"];
+  const ALLOWED_CATEGORY_SLUGS = ["cctv", "networking", "website-development", "web-designing", "digital-marketing"];
 
-  const categoriesToUse = (dbCategories.length > 0 ? dbCategories : [
+  const fallbackCategories = [
     { _id: "cctv", name: "CCTV", slug: "cctv", description: "", icon: "Camera", image: "", color: "", gradient: "", isActive: true, sortOrder: 1 },
     { _id: "networking", name: "Networking", slug: "networking", description: "", icon: "Network", image: "", color: "", gradient: "", isActive: true, sortOrder: 2 },
     { _id: "website-development", name: "Web Designing", slug: "website-development", description: "", icon: "Globe", image: "", color: "", gradient: "", isActive: true, sortOrder: 3 },
-  ])
-    .filter((c) => ALLOWED_CATEGORY_SLUGS.includes(c.slug.toLowerCase()))
-    .map((c) => {
+    { _id: "digital-marketing", name: "Digital Marketing", slug: "digital-marketing", description: "", icon: "Megaphone", image: "", color: "", gradient: "", isActive: true, sortOrder: 4 },
+  ];
+
+  const categoriesToUse = (() => {
+    const list = dbCategories.length > 0 ? [...dbCategories] : [...fallbackCategories];
+    const filtered = list.filter((c) => ALLOWED_CATEGORY_SLUGS.includes(c.slug.toLowerCase()));
+    if (!filtered.some((c) => c.slug.toLowerCase() === "digital-marketing")) {
+      filtered.push(fallbackCategories[3]);
+    }
+    return filtered.map((c) => {
       if (c.slug.toLowerCase() === "website-development" || c.name.toLowerCase().includes("website")) {
         return { ...c, name: "Web Designing" };
       }
       return c;
     });
+  })();
+
+  // Keep selectedCategory synced if URL category changes
+  useEffect(() => {
+    const cat = searchParams.get("category");
+    if (cat && cat !== "all" && ALLOWED_CATEGORY_SLUGS.includes(cat.toLowerCase())) {
+      setSelectedCategory(cat);
+    }
+  }, [searchParams]);
 
   // Load categories list on mount
   useEffect(() => {
@@ -78,7 +96,9 @@ export function ServiceCatalog() {
     async function loadSubs() {
       setLoading(true);
       try {
-        if (selectedCategory === "all") {
+        if (selectedCategory === "digital-marketing") {
+          setDbSubcategories([]);
+        } else if (selectedCategory === "all") {
           const subs = await fetchAllSubcategories();
           const allowedSubs = subs.filter((sub) => {
             const catSlug = typeof sub.categoryId === "object" && sub.categoryId !== null
@@ -157,6 +177,10 @@ export function ServiceCatalog() {
           ? "https://images.unsplash.com/photo-1557597774-9d273605dfa9?w=800&fit=crop"
           : cat.slug === "networking"
           ? "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=800&fit=crop"
+          : cat.slug === "digital-marketing"
+          ? (svc.slug === "podcasting"
+              ? "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&fit=crop"
+              : "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&fit=crop")
           : "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&fit=crop",
       gallery: [],
       features: [svc.description],
@@ -278,7 +302,8 @@ export function ServiceCatalog() {
         ? true
         : (service.categoryId === selectedCategory ||
            normalizeCategoryId(service.categoryId) === normalizeCategoryId(selectedCategory) ||
-           (selectedCategory === "website-development" && (service.categoryId === "web-designing" || service.category.toLowerCase().includes("web"))));
+           (selectedCategory === "website-development" && (service.categoryId === "web-designing" || service.category.toLowerCase().includes("web"))) ||
+           (selectedCategory === "digital-marketing" && (service.categoryId === "digital-marketing" || service.category.toLowerCase().includes("market") || service.category.toLowerCase().includes("podcast"))));
     const matchesRating = service.rating >= minRating;
     const matchesPrice = service.priceValue <= maxPrice;
     const matchesDuration =
@@ -289,6 +314,14 @@ export function ServiceCatalog() {
 
     return matchesSearch && matchesCategory && matchesRating && matchesPrice && matchesDuration;
   });
+
+  if (selectedCategory === "digital-marketing") {
+    filteredServices = filteredServices.filter((s) =>
+      digitalMarketingTab === "marketing"
+        ? (s.slug === "digital-marketing" || s.title.toLowerCase().includes("marketing"))
+        : (s.slug === "podcasting" || s.title.toLowerCase().includes("podcast"))
+    );
+  }
 
   if (sortBy === "popular") filteredServices = [...filteredServices].sort((a, b) => b.reviewCount - a.reviewCount);
   if (sortBy === "price-low") filteredServices = [...filteredServices].sort((a, b) => a.priceValue - b.priceValue);
@@ -331,11 +364,11 @@ export function ServiceCatalog() {
         <aside className={`${showFilters ? "block" : "hidden"} w-full lg:block lg:w-72 shrink-0`}>
           <div className="sticky top-28 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm space-y-6">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h2 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Filters</h2>
+              <h2 className="text-sm font-extrabold text-slate-800 uppercase tracking-wider">Categories</h2>
               <button
                 className="text-xs font-bold text-blue-600 hover:text-blue-800 transition"
                 onClick={() => {
-                  setSelectedCategory("all");
+                  setSelectedCategory("cctv");
                   setMinRating(0);
                   setMaxPrice(30000);
                   setDurationFilter("all");
@@ -347,16 +380,17 @@ export function ServiceCatalog() {
 
             <FilterGroup label="Category">
               <div className="flex flex-col gap-1">
-                {["all", ...categoriesToUse.map((category) => category.slug)].map((categoryId) => {
-                  const label =
-                    categoryId === "all"
-                      ? "All Services"
-                      : categoriesToUse.find((category) => category.slug === categoryId)?.name ?? categoryId;
+                {categoriesToUse.map((category) => {
+                  const categoryId = category.slug;
+                  const label = category.name;
                   const isSelected = selectedCategory === categoryId;
                   return (
                     <button
                       key={categoryId}
-                      onClick={() => setSelectedCategory(categoryId)}
+                      onClick={() => {
+                        setSelectedCategory(categoryId);
+                        window.history.replaceState(null, "", `/services?category=${encodeURIComponent(categoryId)}`);
+                      }}
                       className={`w-full rounded-xl px-3 py-2 text-left text-xs font-semibold transition ${
                         isSelected
                           ? "bg-blue-600 text-white shadow-sm"
@@ -443,13 +477,119 @@ export function ServiceCatalog() {
               </p>
               <Button 
                 className="mt-8 rounded-xl font-bold"
-                onClick={() => setSelectedCategory("all")}
+                onClick={() => setSelectedCategory("cctv")}
               >
                 Browse Other Services
               </Button>
             </div>
           ) : (
             <>
+          {/* Dual Tabs for Digital Marketing Category */}
+          {selectedCategory === "digital-marketing" && (
+            <div className="mb-6 space-y-4">
+              <div className="flex border-b border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setDigitalMarketingTab("marketing")}
+                  className={`flex items-center gap-2 py-3 px-5 text-xs font-extrabold border-b-2 transition-all ${
+                    digitalMarketingTab === "marketing"
+                      ? "border-blue-600 text-blue-600 bg-blue-50/50 rounded-t-xl"
+                      : "border-transparent text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  <Megaphone className="h-4 w-4" />
+                  <span>Digital Marketing</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDigitalMarketingTab("podcasting")}
+                  className={`flex items-center gap-2 py-3 px-5 text-xs font-extrabold border-b-2 transition-all ${
+                    digitalMarketingTab === "podcasting"
+                      ? "border-blue-600 text-blue-600 bg-blue-50/50 rounded-t-xl"
+                      : "border-transparent text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  <Mic className="h-4 w-4" />
+                  <span>Podcasting</span>
+                </button>
+              </div>
+
+              {digitalMarketingTab === "marketing" ? (
+                <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/70 via-indigo-50/30 to-white p-6 shadow-sm">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+                    <div className="space-y-2 max-w-2xl">
+                      <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-[10px] font-bold text-blue-700 uppercase tracking-wider">
+                        <Sparkles className="h-3 w-3" />
+                        Performance &amp; Growth
+                      </div>
+                      <h2 className="text-xl font-extrabold text-slate-900 tracking-tight sm:text-2xl">
+                        Data-Driven Digital Marketing Campaigns
+                      </h2>
+                      <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                        Scale your inbound leads, Google ranking, and qualified sales with high-conversion PPC Search, Meta Ads, and on-page SEO strategies tailored for your business.
+                      </p>
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {["Google Ads & PPC", "Meta (IG/FB) Ads", "SEO & Local Maps", "GA4 Conversion Tracking", "ROI-Driven Copy"].map((tag) => (
+                          <span key={tag} className="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 rounded-lg px-2.5 py-1 shadow-xs">
+                            ✓ {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="shrink-0">
+                      <Button
+                        onClick={() => {
+                          const mktService = servicesToUse.find((s) => s.slug === "digital-marketing") || servicesToUse[0];
+                          if (mktService) handleServiceClick(mktService);
+                        }}
+                        className="h-11 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md transition-all hover:scale-102 flex items-center gap-2"
+                      >
+                        <Megaphone className="h-4 w-4" />
+                        Submit Requirements
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-purple-100 bg-gradient-to-br from-purple-50/70 via-pink-50/30 to-white p-6 shadow-sm">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+                    <div className="space-y-2 max-w-2xl">
+                      <div className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 px-3 py-1 text-[10px] font-bold text-purple-700 uppercase tracking-wider">
+                        <Video className="h-3 w-3" />
+                        Acoustic Recording Studio
+                      </div>
+                      <h2 className="text-xl font-extrabold text-slate-900 tracking-tight sm:text-2xl">
+                        Professional Podcasting Studio &amp; Production
+                      </h2>
+                      <p className="text-xs text-slate-600 font-medium leading-relaxed">
+                        Full-service podcast production in Bangalore. Multi-camera 4K filming, broadcast-quality audio with Shure mics, color-graded editing, and viral shorts clipping.
+                      </p>
+                      <div className="flex flex-wrap gap-2 pt-2">
+                        {["Acoustic Studio Bangalore", "4K Multi-Camera Setup", "Audio Mastering", "Spotify & YouTube Uploads", "Shorts/Reels Clipping"].map((tag) => (
+                          <span key={tag} className="text-[10px] font-bold text-slate-700 bg-white border border-slate-200 rounded-lg px-2.5 py-1 shadow-xs">
+                            ✓ {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="shrink-0">
+                      <Button
+                        onClick={() => {
+                          const podService = servicesToUse.find((s) => s.slug === "podcasting") || servicesToUse[0];
+                          if (podService) handleServiceClick(podService);
+                        }}
+                        className="h-11 px-6 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md transition-all hover:scale-102 flex items-center gap-2"
+                      >
+                        <Mic className="h-4 w-4" />
+                        Submit Requirements
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="mb-4 flex items-center justify-between rounded-2xl border border-slate-100 bg-white px-5 py-3 shadow-sm">
             <p className="text-xs text-slate-500 font-semibold">
               Showing <span className="text-slate-800 font-bold">{filteredServices.length}</span> services
@@ -472,7 +612,7 @@ export function ServiceCatalog() {
             <div className="flex h-64 items-center justify-center">
               <Spinner className="h-8 w-8 text-blue-600" />
             </div>
-          ) : dbSubcategories.length === 0 ? (
+          ) : dbSubcategories.length === 0 && selectedCategory !== "digital-marketing" ? (
             <div className="rounded-3xl border border-dashed border-slate-200 bg-white px-8 py-16 text-center">
               <h3 className="text-base font-bold text-slate-800">No services available under this category</h3>
               <p className="mt-2 text-xs text-slate-400">Please check back later or choose another category.</p>

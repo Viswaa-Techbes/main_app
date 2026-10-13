@@ -14,8 +14,8 @@ function SuccessContent() {
   const service = searchParams.get("service") || searchParams.get("requirementType") || "Custom Service";
   const locality = searchParams.get("locality") || "Bangalore";
 
-  const supportPhone = "+919164487286";
-  const whatsappUrl = `https://wa.me/919164487286?text=Hi%20TechBes,%20I%20just%20submitted%20Quotation%20Request%20${encodeURIComponent(requestId)}%20for%20${encodeURIComponent(service)}.%20Please%20share%20the%20details.`;
+  const supportPhone = "+919591144949";
+  const whatsappUrl = `https://wa.me/919591144949?text=Hi%20TechBes,%20I%20just%20submitted%20Quotation%20Request%20${encodeURIComponent(requestId)}%20for%20${encodeURIComponent(service)}.%20Please%20share%20the%20details.`;
 
   return (
     <main className="mx-auto grid min-h-[75vh] max-w-xl place-items-center px-4 py-12 text-center">
