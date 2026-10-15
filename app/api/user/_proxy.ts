@@ -8,17 +8,29 @@ type BackendProxyOptions = {
   body?: unknown;
 };
 
-export async function proxyUserRequest(path: string, options: BackendProxyOptions = {}) {
+export async function proxyUserRequest(
+  path: string,
+  options: BackendProxyOptions = {},
+  request?: Request
+) {
   const session = await getServerSession();
+  let token = session?.backendToken;
 
-  if (!session?.backendToken) {
-    return NextResponse.json({ message: "User session not found. Please log in." }, { status: 401 });
+  if (!token && request) {
+    const authHeader = request.headers.get("authorization");
+    if (authHeader && authHeader.toLowerCase().startsWith("bearer ")) {
+      token = authHeader.substring(7).trim();
+    }
+  }
+
+  if (!token) {
+    return NextResponse.json({ success: false, message: "User session not found. Please log in." }, { status: 401 });
   }
 
   const response = await fetch(getBackendApiUrl(path), {
     method: options.method || "GET",
     headers: {
-      Authorization: `Bearer ${session.backendToken}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
     body: options.body === undefined ? undefined : JSON.stringify(options.body),

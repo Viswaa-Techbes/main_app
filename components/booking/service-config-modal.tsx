@@ -649,12 +649,12 @@ export function ServiceBookingConfigModal({
         })
         .catch(() => {});
 
-      fetch("/api/user/address", {
+      fetch("/api/v2/user/addresses", {
         headers: { Authorization: `Bearer ${token}` },
       })
-        .then((r) => (r.ok ? r.json() : {}))
+        .then((r) => (r.ok ? r.json() : fetch("/api/user/addresses", { headers: { Authorization: `Bearer ${token}` } }).then(res => res.json())))
         .then((json: any) => {
-          const list = Array.isArray(json.data)
+          const list = Array.isArray(json?.data)
             ? json.data
             : Array.isArray(json)
             ? json
@@ -663,7 +663,9 @@ export function ServiceBookingConfigModal({
           const def = list.find((a: any) => a.isDefault) || list[0];
           if (def) {
             setSelectedAddressId(def._id);
-            setAddress(def.address || "");
+            setAddress(def.address || def.fullAddress || "");
+            setArea(def.area || "");
+            setLandmark(def.landmark || "");
             setCity(def.city || "");
             setStateName(def.state || "");
             setPincode(def.pincode || "");
@@ -3612,16 +3614,16 @@ export function ServiceBookingConfigModal({
                         key={addr._id}
                         onClick={() => {
                           setSelectedAddressId(addr._id);
-                          setAddress(addr.address || "");
+                          setAddress(addr.address || addr.fullAddress || "");
                           setFormattedAddress(
                             addr.formattedAddress || addr.address || ""
                           );
+                          setArea(addr.area || "");
                           setCity(addr.city || "");
                           setStateName(addr.state || "");
                           setPincode(addr.pincode || "");
                           setLatitude(addr.latitude || null);
                           setLongitude(addr.longitude || null);
-                          setHouseNumber(addr.houseNumber || "");
                           setLandmark(addr.landmark || "");
                         }}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
@@ -3630,7 +3632,7 @@ export function ServiceBookingConfigModal({
                             : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
                         }`}
                       >
-                        📍 {addr.title || addr.type || "Address"} (
+                        📍 {addr.label || addr.addressType || addr.title || "Address"} (
                         {addr.area || addr.city || "Bangalore"})
                       </button>
                     ))}

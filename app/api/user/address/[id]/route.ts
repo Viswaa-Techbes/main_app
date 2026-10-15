@@ -7,10 +7,10 @@ type RouteContext = {
 export async function PUT(request: Request, context: RouteContext) {
   const { id } = await context.params;
   const body = await request.json().catch(() => ({}));
-  return proxyUserRequest(`/api/v2/user/address/${id}`, { method: "PUT", body });
+  return proxyUserRequest(`/api/v2/user/address/${id}`, { method: "PUT", body }, request);
 }
 
-export async function DELETE(_request: Request, context: RouteContext) {
+export async function DELETE(request: Request, context: RouteContext) {
   const { id } = await context.params;
-  return proxyUserRequest(`/api/v2/user/address/${id}`, { method: "DELETE" });
+  return proxyUserRequest(`/api/v2/user/address/${id}`, { method: "DELETE" }, request);
 }

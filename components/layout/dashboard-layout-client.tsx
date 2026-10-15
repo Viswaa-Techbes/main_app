@@ -28,12 +28,8 @@ const NAV_ITEMS = [
   { href: "/dashboard/quotes", label: "My Quotations", icon: Receipt },
   { href: "/dashboard/bookings", label: "My Bookings", icon: ListOrdered },
   { href: "/dashboard/amc", label: "My AMC", icon: ShieldCheck },
-  { href: "/dashboard/wallet", label: "Wallet & Points", icon: Wallet },
   { href: "/dashboard/support", label: "Support Tickets", icon: MessageSquare },
-  { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
   { href: "/dashboard/addresses", label: "Saved Addresses", icon: MapPin },
-  { href: "/dashboard/invoices", label: "Invoices", icon: FileText },
-  { href: "/dashboard/reviews", label: "My Reviews", icon: Star },
   { href: "/dashboard/profile", label: "Profile Settings", icon: User },
 ];
 

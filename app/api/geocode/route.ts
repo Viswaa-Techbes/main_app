@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
       const response = await fetch(url, {
         headers: {
-          "User-Agent": "TechnicianApp/1.0",
+          "User-Agent": "TechBes-CustomerApp/1.0 (support@techbes.co.in)",
         },
       });
 
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       )}&countrycodes=in&limit=5&addressdetails=1`;
       const response = await fetch(url, {
         headers: {
-          "User-Agent": "TechnicianApp/1.0",
+          "User-Agent": "TechBes-CustomerApp/1.0 (support@techbes.co.in)",
         },
       });
 

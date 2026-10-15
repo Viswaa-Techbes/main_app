@@ -136,10 +136,12 @@ export function CctvCheckoutView() {
     }
 
     // Load Saved Addresses
-    fetch("/api/user/addresses")
-      .then((r) => r.ok ? r.json().catch(() => ({})) : {})
+    fetch("/api/v2/user/addresses", {
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    })
+      .then((r) => r.ok ? r.json().catch(() => ({})) : fetch("/api/user/addresses", { headers: token ? { Authorization: `Bearer ${token}` } : {} }).then(res => res.json()))
       .then((json: any) => {
-        if (json.success && Array.isArray(json.data)) {
+        if (json?.success && Array.isArray(json.data)) {
           setSavedAddresses(json.data);
           // Auto-select default address if present
           const def = json.data.find((a: any) => a.isDefault);
