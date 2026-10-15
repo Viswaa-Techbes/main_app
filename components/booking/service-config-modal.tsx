@@ -3512,11 +3512,11 @@ export function ServiceBookingConfigModal({
                       <span>Additional Hardware / Equipment Requirements (Optional)</span>
                     </label>
                     <p className="text-[11px] text-slate-500 mt-0.5">
-                      Search or enter extra accessories, specific models, or scope items you need quoted.
+                      Extra equipment, accessories, DVR/NVR, switches, cables, and custom requirements.
                     </p>
                   </div>
                   <span className="text-[10px] text-slate-400 font-bold bg-white px-2.5 py-1 rounded-full border border-slate-200">
-                    {quotationItems.length} item(s) added
+                    {quotationItems.length} extra item(s)
                   </span>
                 </div>
 
@@ -3531,7 +3531,7 @@ export function ServiceBookingConfigModal({
                           ? "Search networking hardware (e.g. Cisco, Gigabit Switch, Cat6, AP)..."
                           : isWebDesigning
                           ? "Search web components (e.g. Payment Gateway, SSL, Cloud Backup)..."
-                          : "Search CCTV cameras & accessories (e.g. 'CP Plus', 'Hikvision', '4MP')..."
+                          : "Search extra hardware & accessories (e.g. 'PoE Switch', 'Power Supply', 'Cat6', 'Rack')..."
                       }
                       onSelectProduct={handleSelectInventoryProduct}
                     />
@@ -3605,89 +3605,195 @@ export function ServiceBookingConfigModal({
                   </Button>
                 </div>
 
-                {/* Selected Quotation Items List (NO PRICES SHOWN) */}
-                {quotationItems.length > 0 && (
-                  <div className="space-y-2 mt-3 pt-3 border-t border-blue-200/80">
-                    <div className="text-[11px] font-black uppercase tracking-wider text-slate-500">
-                      Selected Items for Official Quotation
+                {/* ────────── CONSOLIDATED LIST OF SELECTED QUOTATION ITEMS ────────── */}
+                <div className="space-y-3 mt-4 pt-4 border-t border-blue-200/80">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1.5 h-3.5 bg-blue-600 rounded-full" />
+                      <span className="text-xs font-black uppercase tracking-wider text-slate-800">
+                        Consolidated Selected Quotation Items
+                      </span>
                     </div>
-                    {quotationItems.map((item) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-white shadow-xs gap-2"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            {item.brand && (
-                              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-blue-600 text-white tracking-wider">
-                                {item.brand}
-                              </span>
-                            )}
-                            <span className="font-bold text-xs text-slate-900 truncate">
-                              {item.productName}
-                            </span>
-                            {item.variant && (
-                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                                {item.variant}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5 font-medium">
-                            <span className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-bold">Qty {item.quantity}</span>
-                            <span>• Included in quotation request</span>
-                          </span>
-                        </div>
+                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">
+                      {isInstallNewCctv
+                        ? `${Object.values(cctvSelectedCameraTypes).filter(Boolean).length + quotationItems.length} Unique Item(s)`
+                        : `${quotationItems.length} Item(s)`}
+                    </span>
+                  </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
-                          <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white h-7">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleUpdateItemQty(item.id, item.quantity - 1)
-                              }
-                              className="h-full px-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
-                            >
-                              -
-                            </button>
-                            <span className="px-2 text-xs font-black text-slate-800">
-                              {item.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleUpdateItemQty(item.id, item.quantity + 1)
-                              }
-                              className="h-full px-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
-                            >
-                              +
-                            </button>
+                  {/* Empty state when no camera and no hardware items */}
+                  {((isInstallNewCctv &&
+                    Object.values(cctvSelectedCameraTypes).filter(Boolean).length === 0 &&
+                    quotationItems.length === 0) ||
+                    (!isInstallNewCctv && quotationItems.length === 0)) && (
+                    <div className="text-center py-6 px-4 rounded-2xl border border-dashed border-slate-200 bg-white/70 text-slate-400 text-xs">
+                      <PackageCheck className="w-6 h-6 mx-auto mb-1.5 opacity-40 text-slate-400" />
+                      <span>
+                        No quotation items selected yet. Choose standard cameras above or add extra accessories.
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Standard Cameras (For CCTV Installation) */}
+                  {isInstallNewCctv &&
+                    Object.entries(cctvSelectedCameraTypes)
+                      .filter(([_, checked]) => checked)
+                      .map(([cType]) => {
+                        const qty = cctvCameraQuantities[cType] || 1;
+                        return (
+                          <div
+                            key={`consolidated-cam-${cType}`}
+                            className="flex items-center justify-between p-3 rounded-xl border border-blue-200 bg-blue-50/40 shadow-xs gap-2"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-blue-600 text-white tracking-wider flex items-center gap-1">
+                                  <Camera className="w-2.5 h-2.5" /> Camera
+                                </span>
+                                <span className="font-bold text-xs text-slate-900 truncate">
+                                  {cType}
+                                </span>
+                              </div>
+                              <span className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5 font-medium">
+                                <span className="bg-white border border-slate-200 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-bold">
+                                  Qty {qty}
+                                </span>
+                                <span>• Selected standard camera</span>
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                              <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white h-7 shadow-xs">
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateCameraQty(cType, qty - 1)}
+                                  className="h-full px-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
+                                  title="Decrease quantity"
+                                >
+                                  -
+                                </button>
+                                <span className="px-2 text-xs font-black text-slate-800">
+                                  {qty}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleUpdateCameraQty(cType, qty + 1)}
+                                  className="h-full px-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
+                                  title="Increase quantity"
+                                >
+                                  +
+                                </button>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleCameraType(cType, false)}
+                                className="text-slate-400 hover:text-rose-600 transition p-1"
+                                title="Remove camera from quotation"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
+                        );
+                      })}
+
+                  {/* Additional Hardware & Custom Quotation Items */}
+                  {quotationItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-white shadow-xs gap-2"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {item.brand ? (
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-slate-800 text-white tracking-wider">
+                              {item.brand}
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-slate-100 text-slate-700 tracking-wider">
+                              Hardware / Extra
+                            </span>
+                          )}
+                          <span className="font-bold text-xs text-slate-900 truncate">
+                            {item.productName}
+                          </span>
+                          {item.variant && (
+                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                              {item.variant}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-1.5 font-medium">
+                          <span className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded text-[10px] font-bold">
+                            Qty {item.quantity}
+                          </span>
+                          <span>• Additional equipment / accessory</span>
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-white h-7 shadow-xs">
                           <button
                             type="button"
-                            onClick={() => handleRemoveItem(item.id)}
-                            className="text-slate-400 hover:text-rose-600 transition p-1"
-                            title="Remove item"
+                            onClick={() =>
+                              handleUpdateItemQty(item.id, item.quantity - 1)
+                            }
+                            className="h-full px-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
+                            title="Decrease quantity"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            -
+                          </button>
+                          <span className="px-2 text-xs font-black text-slate-800">
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleUpdateItemQty(item.id, item.quantity + 1)
+                            }
+                            className="h-full px-2 text-xs font-bold text-slate-500 hover:bg-slate-100"
+                            title="Increase quantity"
+                          >
+                            +
                           </button>
                         </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveItem(item.id)}
+                          className="text-slate-400 hover:text-rose-600 transition p-1"
+                          title="Remove item"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                    ))}
+                    </div>
+                  ))}
 
-                    <div className="p-3 rounded-xl border border-blue-200/80 bg-blue-50/50 flex items-center justify-between text-xs mt-2">
+                  {/* Consolidated Summary Footer */}
+                  {((isInstallNewCctv &&
+                    (Object.values(cctvSelectedCameraTypes).filter(Boolean).length > 0 ||
+                      quotationItems.length > 0)) ||
+                    (!isInstallNewCctv && quotationItems.length > 0)) && (
+                    <div className="p-3.5 rounded-xl border border-blue-200/80 bg-blue-50/50 flex flex-col sm:flex-row sm:items-center justify-between text-xs gap-2">
                       <div className="flex items-center gap-2 text-slate-700">
-                        <span className="text-sm">📋</span>
+                        <span className="text-base">📋</span>
                         <div>
-                          <span className="font-bold text-slate-900 block">{quotationItems.length} Custom Item(s) Selected</span>
-                          <span className="text-[11px] text-slate-500">TechBes engineering will review requirements and prepare official quotation.</span>
+                          <span className="font-bold text-slate-900 block">
+                            Consolidated Quotation Scope ({isInstallNewCctv
+                              ? `${Object.values(cctvSelectedCameraTypes).filter(Boolean).length + quotationItems.length} unique item(s), ${cctvTotalCameras} camera units`
+                              : `${quotationItems.length} item(s)`})
+                          </span>
+                          <span className="text-[11px] text-slate-500">
+                            Official quotation will include itemized pricing, cabling, and warranties.
+                          </span>
                         </div>
                       </div>
-                      <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800">
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 self-start sm:self-auto shrink-0">
                         Free Quotation
                       </span>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </section>
 
