@@ -77,21 +77,50 @@ interface QuotationItem {
   isTaxInclusive?: boolean;
 }
 
+export const STANDARD_CAMERA_TYPES = [
+  "Dome Camera",
+  "Bullet Camera",
+  "PTZ Camera",
+  "WiFi Indoor Camera",
+  "WiFi Outdoor Camera",
+  "Analog Camera",
+  "4G Camera",
+] as const;
+
+export function findMatchingCameraType(itemName: string): string | undefined {
+  if (!itemName) return undefined;
+  const norm = itemName.toLowerCase().trim();
+  for (const cam of STANDARD_CAMERA_TYPES) {
+    const camLower = cam.toLowerCase();
+    if (norm === camLower) return cam;
+    if (norm.includes(camLower) || camLower.includes(norm)) return cam;
+    if (cam === "Dome Camera" && (norm.includes("dome") || norm.includes("4k ip dome"))) return cam;
+    if (cam === "Bullet Camera" && (norm.includes("bullet") || norm.includes("weatherproof"))) return cam;
+    if (cam === "PTZ Camera" && (norm.includes("ptz") || norm.includes("360"))) return cam;
+    if (cam === "Analog Camera" && norm.includes("analog")) return cam;
+    if (cam === "WiFi Indoor Camera" && norm.includes("wifi indoor")) return cam;
+    if (cam === "WiFi Outdoor Camera" && norm.includes("wifi outdoor")) return cam;
+    if (cam === "4G Camera" && (norm.includes("4g") || norm.includes("sim camera"))) return cam;
+  }
+  return undefined;
+}
+
 // Quick suggestions per category
 const CATEGORY_ITEM_SUGGESTIONS: Record<string, string[]> = {
   CCTV: [
-    "5MP CCTV Camera",
-    "4K IP Dome Camera",
-    "Bullet Outdoor Weatherproof Camera",
-    "PTZ 360° Camera",
+    "4-Port / 8-Port PoE Switch",
     "4-Channel DVR / NVR",
     "8-Channel DVR / NVR",
     "16-Channel DVR / NVR",
     "1TB Surveillance HDD",
     "2TB Surveillance HDD",
+    "4TB Surveillance HDD",
     "Cat6 Cable (Bundle)",
-    "SMPS Power Supply",
+    "SMPS Power Supply (12V)",
     "4U / 6U Network Rack",
+    "BNC & DC Connectors Kit",
+    "HDMI Cable (5m / 10m)",
+    "CCTV Junction Box",
   ],
   Networking: [
     "Cat6 LAN Point Cabling",
@@ -716,12 +745,122 @@ export function ServiceBookingConfigModal({
     }
   }, [open, isInstallNewCctv, isBuyCctvProducts]);
 
-  // Add Item / Manage Items helpers
+  // Add Item / Manage Items helpers with duplicate prevention & cross-section merging
+  const handleToggleCameraType = (cType: string, checked: boolean) => {
+    setCctvSelectedCameraTypes((prev) => ({
+      ...prev,
+      [cType]: checked,
+    }));
+
+    if (checked) {
+      // If customer already added an item matching this camera in additional hardware, absorb & merge it
+      const cLower = cType.toLowerCase();
+      const matchingCustom = quotationItems.filter(
+        (it) =>
+          it.productName.toLowerCase().includes(cLower) ||
+          cLower.includes(it.productName.toLowerCase())
+      );
+
+      let extraQty = 0;
+      if (matchingCustom.length > 0) {
+        extraQty = matchingCustom.reduce((sum, it) => sum + (it.quantity || 1), 0);
+        setQuotationItems((prev) =>
+          prev.filter((it) => !matchingCustom.some((m) => m.id === it.id))
+        );
+        toast({
+          title: "Merged into Camera Selection",
+          description: `Merged ${extraQty} quantity from additional items into ${cType}.`,
+        });
+      }
+
+      const defaultQty = cType === "Bullet Camera" ? 2 : 4;
+      setCctvCameraQuantities((prev) => ({
+        ...prev,
+        [cType]: (prev[cType] || defaultQty) + extraQty,
+      }));
+    }
+  };
+
+  const handleUpdateCameraQty = (cType: string, newQty: number) => {
+    if (newQty <= 0) {
+      setCctvSelectedCameraTypes((prev) => ({ ...prev, [cType]: false }));
+      toast({
+        title: "Camera Removed",
+        description: `${cType} removed from quotation.`,
+      });
+      return;
+    }
+    setCctvCameraQuantities((prev) => ({
+      ...prev,
+      [cType]: newQty,
+    }));
+  };
+
   const handleSelectInventoryProduct = (prod: InventoryProduct) => {
     const base = prod.basePrice ?? prod.price ?? 0;
     const rate = typeof prod.gstRate === "number" ? prod.gstRate : 18;
     const isInc = Boolean(prod.isTaxInclusive);
+    const qtyToAdd = Math.max(1, newItemQty || 1);
+    const prodName = prod.name || "";
 
+    // 1. If in CCTV installation, check if this inventory product is a standard camera type
+    if (isInstallNewCctv) {
+      const matchedCam = findMatchingCameraType(prodName);
+      if (matchedCam) {
+        if (cctvSelectedCameraTypes[matchedCam]) {
+          setCctvCameraQuantities((prev) => {
+            const updatedQty = (prev[matchedCam] || 1) + qtyToAdd;
+            return { ...prev, [matchedCam]: updatedQty };
+          });
+          setNewItemQty(1);
+          toast({
+            title: "Quantity Merged with Camera Selection",
+            description: `Added ${qtyToAdd} to ${matchedCam} in Camera Types & Quantities (Total: ${(cctvCameraQuantities[matchedCam] || 1) + qtyToAdd}).`,
+          });
+          return;
+        } else {
+          setCctvSelectedCameraTypes((prev) => ({ ...prev, [matchedCam]: true }));
+          setCctvCameraQuantities((prev) => ({ ...prev, [matchedCam]: qtyToAdd }));
+          setNewItemQty(1);
+          toast({
+            title: "Camera Selected",
+            description: `${matchedCam} (Qty: ${qtyToAdd}) selected in Camera Types & Quantities.`,
+          });
+          return;
+        }
+      }
+    }
+
+    // 2. Prevent duplicate additions within additional hardware / quotationItems
+    const existingIndex = quotationItems.findIndex(
+      (it) =>
+        (it.productId && (it.productId === prod._id || it.productId === prod.id)) ||
+        it.productName.toLowerCase().trim() === prodName.toLowerCase().trim()
+    );
+
+    if (existingIndex >= 0) {
+      setQuotationItems((prev) => {
+        const next = [...prev];
+        const existing = next[existingIndex];
+        const updatedQty = (existing.quantity || 1) + qtyToAdd;
+        next[existingIndex] = {
+          ...existing,
+          quantity: updatedQty,
+          basePrice: base > 0 ? base : existing.basePrice,
+          gstRate: rate,
+          isTaxInclusive: isInc,
+        };
+        return next;
+      });
+      setNewItemQty(1);
+      toast({
+        title: "Quantity Merged",
+        description: `Updated quantity for ${prodName} (Total: ${(quotationItems[existingIndex].quantity || 1) + qtyToAdd}).`,
+      });
+      return;
+    }
+
+    // 3. New additional hardware item
     setQuotationItems((prev) => [
       ...prev,
       {
@@ -731,7 +870,7 @@ export function ServiceBookingConfigModal({
         brand: prod.brand || "",
         sku: prod.sku || "",
         variant: prod.variant || "",
-        quantity: Math.max(1, newItemQty || 1),
+        quantity: qtyToAdd,
         basePrice: base,
         gstRate: rate,
         isTaxInclusive: isInc,
@@ -740,13 +879,13 @@ export function ServiceBookingConfigModal({
     setNewItemQty(1);
     toast({
       title: "Product Added",
-      description: `${prod.name} added with ₹${base.toLocaleString("en-IN")} base price (${rate}% GST).`,
+      description: `${prod.name} (Qty: ${qtyToAdd}) added to quotation.`,
     });
   };
 
   const handleAddCustomItem = (nameToAdd?: string, qtyToAdd?: number) => {
     const name = (nameToAdd || newItemName).trim();
-    const qty = qtyToAdd || newItemQty;
+    const qty = Math.max(1, qtyToAdd || newItemQty || 1);
     if (!name) {
       toast({
         title: "Product / Service Required",
@@ -755,16 +894,76 @@ export function ServiceBookingConfigModal({
       });
       return;
     }
+
+    // 1. If in CCTV installation, check if custom text matches a standard camera
+    if (isInstallNewCctv) {
+      const matchedCam = findMatchingCameraType(name);
+      if (matchedCam) {
+        if (cctvSelectedCameraTypes[matchedCam]) {
+          setCctvCameraQuantities((prev) => {
+            const updatedQty = (prev[matchedCam] || 1) + qty;
+            return { ...prev, [matchedCam]: updatedQty };
+          });
+          setNewItemName("");
+          setNewItemQty(1);
+          toast({
+            title: "Quantity Merged with Camera Selection",
+            description: `Added ${qty} to ${matchedCam} in Camera Types & Quantities (Total: ${(cctvCameraQuantities[matchedCam] || 1) + qty}).`,
+          });
+          return;
+        } else {
+          setCctvSelectedCameraTypes((prev) => ({ ...prev, [matchedCam]: true }));
+          setCctvCameraQuantities((prev) => ({ ...prev, [matchedCam]: qty }));
+          setNewItemName("");
+          setNewItemQty(1);
+          toast({
+            title: "Camera Selected",
+            description: `${matchedCam} (Qty: ${qty}) selected in Camera Types & Quantities.`,
+          });
+          return;
+        }
+      }
+    }
+
+    // 2. Prevent duplicate additions within additional hardware / quotationItems
+    const existingIndex = quotationItems.findIndex(
+      (it) => it.productName.toLowerCase().trim() === name.toLowerCase().trim()
+    );
+
+    if (existingIndex >= 0) {
+      setQuotationItems((prev) => {
+        const next = [...prev];
+        const existing = next[existingIndex];
+        next[existingIndex] = {
+          ...existing,
+          quantity: (existing.quantity || 1) + qty,
+        };
+        return next;
+      });
+      setNewItemName("");
+      setNewItemQty(1);
+      toast({
+        title: "Quantity Merged",
+        description: `Updated quantity for "${name}" (Total: ${(quotationItems[existingIndex].quantity || 1) + qty}).`,
+      });
+      return;
+    }
+
+    // 3. New additional custom item
     setQuotationItems((prev) => [
       ...prev,
       {
         id: "item-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
         productName: name,
-        quantity: Math.max(1, qty),
+        quantity: qty,
       },
     ]);
     setNewItemName("");
     setNewItemQty(1);
+    toast({
+      title: "Item Added",
+      description: `"${name}" (Qty: ${qty}) added to quotation.`,
+    });
   };
 
   const handleUpdateItemQty = (id: string, qty: number) => {
@@ -1218,7 +1417,40 @@ export function ServiceBookingConfigModal({
       });
     }
 
-    return list;
+    // Deduplicate and merge items by unique key so each item appears exactly once with merged quantity
+    const mergedList: {
+      productId?: string;
+      productName: string;
+      quantity: number;
+      brand?: string;
+      sku?: string;
+      variant?: string;
+      unitPrice?: number;
+      gstRate?: number;
+    }[] = [];
+
+    const itemIndexMap = new Map<string, number>();
+
+    for (const item of list) {
+      const key = (item.productId || item.productName).trim().toLowerCase();
+      if (itemIndexMap.has(key)) {
+        const idx = itemIndexMap.get(key)!;
+        mergedList[idx].quantity += item.quantity;
+        if (!mergedList[idx].productId && item.productId) {
+          mergedList[idx].productId = item.productId;
+          mergedList[idx].brand = item.brand;
+          mergedList[idx].sku = item.sku;
+          mergedList[idx].variant = item.variant;
+          mergedList[idx].unitPrice = item.unitPrice;
+          mergedList[idx].gstRate = item.gstRate;
+        }
+      } else {
+        itemIndexMap.set(key, mergedList.length);
+        mergedList.push({ ...item });
+      }
+    }
+
+    return mergedList;
   }, [
     isCctvRepair,
     cctvRepairProblem,
@@ -1497,9 +1729,22 @@ export function ServiceBookingConfigModal({
     }
   };
 
-  const currentSuggestions =
-    CATEGORY_ITEM_SUGGESTIONS[serviceCategoryLabel] ||
-    CATEGORY_ITEM_SUGGESTIONS["CCTV"];
+  const currentSuggestions = useMemo(() => {
+    const baseList =
+      CATEGORY_ITEM_SUGGESTIONS[serviceCategoryLabel] ||
+      CATEGORY_ITEM_SUGGESTIONS["CCTV"];
+
+    if (!isInstallNewCctv) return baseList;
+
+    // Filter out any quick suggestions whose camera type is already selected above
+    return baseList.filter((suggestion) => {
+      const matchedCam = findMatchingCameraType(suggestion);
+      if (matchedCam && cctvSelectedCameraTypes[matchedCam]) {
+        return false;
+      }
+      return true;
+    });
+  }, [serviceCategoryLabel, isInstallNewCctv, cctvSelectedCameraTypes]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -2725,21 +2970,7 @@ export function ServiceBookingConfigModal({
                                 <input
                                   type="checkbox"
                                   checked={isChecked}
-                                  onChange={(e) => {
-                                    setCctvSelectedCameraTypes((prev) => ({
-                                      ...prev,
-                                      [cType]: e.target.checked,
-                                    }));
-                                    if (
-                                      e.target.checked &&
-                                      !cctvCameraQuantities[cType]
-                                    ) {
-                                      setCctvCameraQuantities((prev) => ({
-                                        ...prev,
-                                        [cType]: cType === "Bullet Camera" ? 2 : 4,
-                                      }));
-                                    }
-                                  }}
+                                  onChange={(e) => handleToggleCameraType(cType, e.target.checked)}
                                   className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                                 />
                                 <span>{cType}</span>
@@ -2749,15 +2980,7 @@ export function ServiceBookingConfigModal({
                                 <div className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white h-8 shadow-xs">
                                   <button
                                     type="button"
-                                    onClick={() =>
-                                      setCctvCameraQuantities((prev) => ({
-                                        ...prev,
-                                        [cType]: Math.max(
-                                          (prev[cType] || 1) - 1,
-                                          1
-                                        ),
-                                      }))
-                                    }
+                                    onClick={() => handleUpdateCameraQty(cType, Math.max(qty - 1, 1))}
                                     className="h-full px-2.5 text-xs font-bold text-slate-500 hover:bg-slate-100"
                                   >
                                     -
@@ -2767,12 +2990,7 @@ export function ServiceBookingConfigModal({
                                   </span>
                                   <button
                                     type="button"
-                                    onClick={() =>
-                                      setCctvCameraQuantities((prev) => ({
-                                        ...prev,
-                                        [cType]: (prev[cType] || 1) + 1,
-                                      }))
-                                    }
+                                    onClick={() => handleUpdateCameraQty(cType, qty + 1)}
                                     className="h-full px-2.5 text-xs font-bold text-slate-500 hover:bg-slate-100"
                                   >
                                     +
