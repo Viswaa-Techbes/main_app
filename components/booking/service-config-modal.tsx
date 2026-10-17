@@ -1566,6 +1566,9 @@ export function ServiceBookingConfigModal({
 
   // Submit Quotation Request to Backend with validation and smooth scrolling
   const handleSubmitQuotation = async () => {
+    // 0. Prevent duplicate submissions while already processing
+    if (submitting) return;
+
     // 1. Validate Items
     if (finalItemsToSubmit.length === 0) {
       toast({
@@ -1651,17 +1654,55 @@ export function ServiceBookingConfigModal({
         localStorage.getItem("token") ||
         "";
 
+      const resolvedSubcategory = isPodcast
+        ? "Podcasting"
+        : isDigitalMarketing
+        ? "Digital Marketing"
+        : isCctvInstall
+        ? "Install New CCTV"
+        : isCctvRepair
+        ? "Repair Existing CCTV"
+        : isCctvAmc
+        ? "Maintenance / AMC"
+        : isCctvUpgrade
+        ? "Upgrade Existing CCTV"
+        : isCctvBuy
+        ? "Buy CCTV Products"
+        : isCctvSurvey
+        ? "Free Site Survey"
+        : isNetTroubleshoot
+        ? "Network Troubleshooting"
+        : isNetWifi
+        ? "Wi-Fi & Internet Speed Optimization"
+        : isNetCabling
+        ? "Structured Cat6 / Fiber Cabling"
+        : isNetServer
+        ? "Server & NAS Storage Integration"
+        : isNetSecurity
+        ? "Network Security & Firewall"
+        : isNetAmc
+        ? "Network AMC"
+        : isNetSurvey
+        ? "Free Network Site Audit"
+        : isNetOfficeOrCabling
+        ? "Office Network Deployment"
+        : isWebEcommerce
+        ? "Ecommerce Website"
+        : isWebRedesignOrSeo
+        ? (service.name || "Website Redesign")
+        : isWebDesigning
+        ? (service.name || "Business Website")
+        : (service.name || "Install New CCTV");
+
       const payload = {
         fullName: customerName.trim(),
         mobile: customerPhone.trim(),
         email: customerEmail.trim() || undefined,
         whatsapp: customerPhone.trim(),
         serviceCategory: serviceCategoryLabel,
-        subcategory: isPodcast
-          ? "Podcasting"
-          : isDigitalMarketing
-          ? "Digital Marketing"
-          : service.name,
+        subcategory: resolvedSubcategory,
+        service: service.name || resolvedSubcategory,
+        serviceSlug: service.slug,
         items: finalItemsToSubmit,
         propertyType: isNetworking
           ? networkPremisesType
@@ -1676,6 +1717,13 @@ export function ServiceBookingConfigModal({
           : isCctvSurvey
           ? cctvSurveyPropertyType
           : cctvPropertyType || undefined,
+        cameraCount: isInstallNewCctv ? String(cctvTotalCameras || "") : undefined,
+        recorder: isInstallNewCctv
+          ? (cctvDvrChannels && cctvDvrChannels !== "None" ? `${cctvDvrChannels} ${hasAnalog ? "DVR" : "NVR"}` : undefined)
+          : undefined,
+        storage: isInstallNewCctv
+          ? (cctvHddCapacity ? `Surveillance HDD (${cctvHddCapacity})` : (cctvSdCardEnabled && cctvSdCardCapacity ? `SD Card (${cctvSdCardCapacity})` : undefined))
+          : undefined,
         additionalRequirements: notes.trim() || undefined,
         voiceNote: voiceNoteData
           ? {
@@ -1708,9 +1756,19 @@ export function ServiceBookingConfigModal({
         body: JSON.stringify(payload),
       });
 
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        throw new Error(
+          res.ok
+            ? "Unexpected response format from server. Please try again."
+            : `Server returned error (${res.status}: ${res.statusText || "Request failed"}). Please try again.`
+        );
+      }
+
       if (!res.ok || !data.success) {
-        throw new Error(data.message || "Failed to submit quotation request.");
+        throw new Error(data.message || `Failed to submit quotation request (${res.status}).`);
       }
 
       setSubmittedQuote(data.data);
@@ -1721,7 +1779,7 @@ export function ServiceBookingConfigModal({
     } catch (err: any) {
       toast({
         title: "Submission Error",
-        description: err.message || "Something went wrong. Please try again.",
+        description: err.message || "Failed to submit quotation. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -1790,7 +1848,7 @@ export function ServiceBookingConfigModal({
                 </span>
                 ! Your requirement containing{" "}
                 <span className="font-bold text-slate-800">
-                  {submittedQuote.itemsCount} item(s)
+                  {submittedQuote.itemsCount ?? finalItemsToSubmit.length} item(s)
                 </span>{" "}
                 has been submitted to TechBes engineering.
               </p>

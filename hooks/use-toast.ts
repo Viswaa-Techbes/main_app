@@ -147,8 +147,8 @@ function toast({ ...props }: Toast) {
       title: props.title,
       description: props.description
     });
-    props.title = "Something went wrong";
-    props.description = "Unable to load data. Please try again.";
+    props.title = props.title || "Something went wrong";
+    props.description = props.description || "An error occurred. Please try again.";
   }
 
   const update = (props: ToasterToast) =>
