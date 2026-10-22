@@ -91,21 +91,27 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
     return () => clearTimeout(t);
   }, [emailOtpTimer]);
 
-  // ── Email Login ──────────────────────────────────────────────────────────────
+  // ── Email / Mobile Login ───────────────────────────────────────────────────
   async function handleEmailLogin(e: FormEvent) {
     e.preventDefault();
     setError("");
-    if (!isValidEmail(sanitizeEmail(email))) return setError("Enter a valid email address.");
+    const identifier = email.trim();
+    const digits = identifier.replace(/\D/g, "");
+    const isMobile = digits.length >= 10 && digits.length <= 15 && !identifier.includes("@");
+
+    if (!isMobile && !isValidEmail(sanitizeEmail(identifier))) {
+      return setError("Enter a valid email address or 10-digit mobile number.");
+    }
     if (password.trim().length < 6) return setError("Password must be at least 6 characters.");
     setIsSubmitting(true);
     try {
-      await login({ email, password, rememberMe });
+      await login({ email: identifier, password, rememberMe });
       await refreshSession();
       router.replace(redirectTo);
       router.refresh();
     } catch (err) {
       logger.warn("Login failed", err);
-      setError(err instanceof AppError ? err.message : "Invalid email or password.");
+      setError(err instanceof AppError ? err.message : "Invalid email/mobile or password.");
     } finally {
       setIsSubmitting(false);
     }
@@ -253,7 +259,7 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
           {/* Tab Switcher */}
           <div className="flex rounded-xl border border-slate-200 bg-slate-50 p-1 gap-1">
             <TabButton active={tab === "email"} onClick={() => { setTab("email"); setError(""); setInfo(""); }}>
-              <Mail className="h-3.5 w-3.5" /> Email Login
+              <Mail className="h-3.5 w-3.5" /> Email / Mobile
             </TabButton>
             <TabButton active={tab === "email_otp"} onClick={() => { setTab("email_otp"); setError(""); setInfo(""); }}>
               <KeyRound className="h-3.5 w-3.5" /> Email OTP
@@ -277,10 +283,19 @@ export function LoginForm({ redirectTo = "/dashboard" }: { redirectTo?: string }
             </div>
           )}
 
-          {/* ── Email Login Form ── */}
+          {/* ── Email / Mobile Login Form ── */}
           {tab === "email" && (
             <form className="space-y-4" onSubmit={handleEmailLogin} noValidate>
-              <FormField icon={Mail} id="email" label="Email Address" type="email" value={email} onChange={setEmail} autoComplete="email" />
+              <FormField
+                icon={Mail}
+                id="email"
+                label="Email or Mobile Number"
+                type="text"
+                value={email}
+                onChange={setEmail}
+                autoComplete="username"
+                placeholder="you@example.com or 10-digit mobile"
+              />
               
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">

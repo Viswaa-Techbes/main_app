@@ -11,13 +11,24 @@ function persistToken(token?: string) {
 
 export const authService = {
   async login(payload: LoginPayload) {
+    const raw = payload.email.trim();
+    const digits = raw.replace(/\D/g, "");
+    const isMobile = digits.length >= 10 && digits.length <= 15 && !raw.includes("@");
+
+    const reqBody: any = {
+      password: sanitizeText(payload.password),
+      rememberMe: payload.rememberMe,
+    };
+
+    if (isMobile) {
+      reqBody.mobileNumber = digits.length === 12 && digits.startsWith("91") ? digits.slice(2) : digits;
+    } else {
+      reqBody.email = sanitizeEmail(raw);
+    }
+
     const response = await apiClient<LoginResponse>("/api/auth/login", {
       method: "POST",
-      body: JSON.stringify({
-        email: sanitizeEmail(payload.email),
-        password: sanitizeText(payload.password),
-        rememberMe: payload.rememberMe,
-      }),
+      body: JSON.stringify(reqBody),
     });
     persistToken(response.token);
     return response;

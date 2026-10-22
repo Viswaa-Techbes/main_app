@@ -20,23 +20,39 @@ import {
   X,
   ShieldCheck,
   Receipt,
+  Building2,
 } from "lucide-react";
 import { useAuth } from "@/features/auth/context/auth-context";
-
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/quotes", label: "My Quotations", icon: Receipt },
-  { href: "/dashboard/bookings", label: "My Bookings", icon: ListOrdered },
-  { href: "/dashboard/amc", label: "My AMC", icon: ShieldCheck },
-  { href: "/dashboard/support", label: "Support Tickets", icon: MessageSquare },
-  { href: "/dashboard/addresses", label: "Saved Addresses", icon: MapPin },
-  { href: "/dashboard/profile", label: "Profile Settings", icon: User },
-];
 
 export function DashboardLayoutClient({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const isResident = user?.role === "resident" || Boolean(user?.apartmentId);
+
+  const navItems = [
+    { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
+    ...(isResident
+      ? [
+          {
+            href: "/resident",
+            label: "Resident Portal",
+            icon: Building2,
+          },
+        ]
+      : []),
+    { href: "/dashboard/quotes", label: "My Quotations", icon: Receipt },
+    { href: "/dashboard/bookings", label: "My Bookings", icon: ListOrdered },
+    { href: "/dashboard/amc", label: "My AMC", icon: ShieldCheck },
+    {
+      href: "/dashboard/support",
+      label: isResident ? "Society Complaints" : "Support Tickets",
+      icon: MessageSquare,
+    },
+    { href: "/dashboard/addresses", label: "Saved Addresses", icon: MapPin },
+    { href: "/dashboard/profile", label: "Profile Settings", icon: User },
+  ];
 
   return (
     <ProtectedRoute>
@@ -70,11 +86,19 @@ export function DashboardLayoutClient({ children }: { children: ReactNode }) {
                     </div>
                     <h3 className="font-bold text-gray-900 text-lg">{user?.name || "Customer"}</h3>
                     <p className="text-gray-500 text-sm">{user?.mobileNumber}</p>
+                    {isResident && (
+                      <div className="mt-2">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                          <Building2 size={12} />
+                          Resident &bull; Flat #{user?.flatNumber || "Unit"}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Navigation Links */}
                   <nav className="p-4 space-y-1">
-                    {NAV_ITEMS.map((item) => {
+                    {navItems.map((item) => {
                       const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
                       const Icon = item.icon;
 

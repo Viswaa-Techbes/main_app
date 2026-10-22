@@ -12,6 +12,17 @@ export type AuthUser = {
   block?: string;
   flatNumber?: string;
   apartmentId?: string;
+  apartmentName?: string;
+  apartment?: {
+    id: string;
+    name: string;
+    address: string;
+    locality?: string;
+    city?: string;
+    pincode?: string;
+    contactPerson?: string;
+    contactPhone?: string;
+  };
 };
 
 export type SessionResponse = {

@@ -68,7 +68,41 @@ export default function SupportPage() {
   const [newPriority, setNewPriority] = useState("Medium");
   const [newMessage, setNewMessage] = useState("");
   const [photoUrl, setPhotoUrl] = useState("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  async function handleFileUpload(file: File) {
+    if (!file) return;
+    try {
+      setUploadingPhoto(true);
+      const token =
+        localStorage.getItem("techbes_auth_token") ||
+        localStorage.getItem("token") ||
+        localStorage.getItem("accessToken");
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch("/api/v2/upload", {
+        method: "POST",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to upload file");
+      }
+
+      setPhotoUrl(data.url || data.fileUrl);
+    } catch (err: any) {
+      alert(err.message || "Upload failed. You can paste an image URL instead.");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
 
   // Reopen state
   const [showReopenModal, setShowReopenModal] = useState(false);
@@ -287,19 +321,40 @@ export default function SupportPage() {
 
             <div>
               <label className="block text-sm font-bold text-gray-700 mb-2">
-                Attachment / Photo URL (Optional)
+                Attachment / Photo (Optional)
               </label>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <label className="flex-1 cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleFileUpload(f);
+                    }}
+                  />
+                  <div className="py-2.5 px-4 rounded-xl border border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100 transition text-center text-xs font-semibold text-gray-700 flex items-center justify-center gap-2">
+                    <Paperclip size={16} />
+                    {uploadingPhoto ? "Uploading Photo..." : photoUrl ? "Change Photo File" : "Choose Photo File"}
+                  </div>
+                </label>
                 <input
                   type="url"
                   value={photoUrl}
                   onChange={(e) => setPhotoUrl(e.target.value)}
-                  placeholder="https://example.com/photo-of-leakage.jpg"
-                  className="flex-1 bg-gray-50 border border-gray-200 rounded-xl py-3 px-4 outline-none focus:ring-2 focus:ring-blue-500 transition text-sm"
+                  placeholder="Or paste photo URL"
+                  className="flex-1 bg-gray-50 border border-gray-200 rounded-xl py-2.5 px-4 outline-none focus:ring-2 focus:ring-blue-500 transition text-sm"
                 />
               </div>
+              {photoUrl && (
+                <div className="mt-2 flex items-center gap-2 text-xs text-emerald-700 font-semibold bg-emerald-50 p-2 rounded-xl border border-emerald-100">
+                  <CheckCircle2 size={15} /> Photo attached: <span className="font-mono truncate">{photoUrl}</span>
+                  <button type="button" onClick={() => setPhotoUrl("")} className="ml-auto text-red-600 font-bold hover:underline">Remove</button>
+                </div>
+              )}
               <p className="text-xs text-gray-400 mt-1">
-                Provide a photo link showing the problem to help the maintenance team diagnose faster.
+                Upload a clear picture of the problem to help the maintenance team diagnose faster.
               </p>
             </div>
 

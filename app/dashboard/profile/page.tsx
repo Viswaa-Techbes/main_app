@@ -3,6 +3,7 @@
 import { useAuth } from "@/features/auth/context/auth-context";
 import { Card } from "@/components/ui/card";
 import { User, Mail, Phone, MapPin, Edit2, Shield } from "lucide-react";
+import Link from "next/link";
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
@@ -51,6 +52,47 @@ export default function ProfilePage() {
               </div>
             </div>
           </Card>
+
+          {/* Apartment Society & Flat Association */}
+          {(user?.role === "resident" || Boolean(user?.apartmentId) || Boolean(user?.flatNumber)) && (
+            <Card className="p-6 rounded-2xl shadow-sm border-blue-100 bg-gradient-to-br from-blue-50/50 to-indigo-50/20">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-bold text-gray-900 text-lg flex items-center gap-2">
+                  <span className="p-2 rounded-xl bg-blue-100 text-blue-700">🏢</span>
+                  Apartment & Flat Association
+                </h2>
+                <Link
+                  href="/resident"
+                  className="text-xs font-bold text-blue-600 hover:text-blue-800 bg-white px-3 py-1.5 rounded-xl border border-blue-200 shadow-xs"
+                >
+                  Open Resident Portal &rarr;
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="p-3 bg-white rounded-xl border border-blue-100">
+                  <span className="text-gray-500 font-medium block mb-1">Apartment / Society</span>
+                  <p className="font-bold text-gray-900 text-sm">
+                    {user?.apartmentName || (user?.apartment as any)?.name || "Registered Complex"}
+                  </p>
+                </div>
+                <div className="p-3 bg-white rounded-xl border border-blue-100">
+                  <span className="text-gray-500 font-medium block mb-1">Unit / Flat</span>
+                  <p className="font-bold text-gray-900 text-sm">
+                    {user?.block ? `Block ${user.block}, ` : ""}Flat #{user?.flatNumber || "Assigned"}
+                  </p>
+                </div>
+                {(user?.apartment as any)?.address && (
+                  <div className="p-3 bg-white rounded-xl border border-blue-100 sm:col-span-2">
+                    <span className="text-gray-500 font-medium block mb-1">Society Address</span>
+                    <p className="font-semibold text-gray-800">
+                      {(user.apartment as any).address}, {(user.apartment as any).city || "Bangalore"}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
 
           <Card className="p-6 rounded-2xl shadow-sm border-gray-100 bg-white">
             <h2 className="font-bold text-gray-900 text-lg mb-6 flex items-center gap-2">

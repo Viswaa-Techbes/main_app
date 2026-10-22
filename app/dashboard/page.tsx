@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   FileText,
   Clock,
+  Building2,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/features/auth/context/auth-context";
@@ -25,6 +26,8 @@ export default function DashboardOverview() {
   const [quoteCount, setQuoteCount] = useState<number>(0);
   const [addressCount, setAddressCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
+
+  const isResident = user?.role === "resident" || Boolean(user?.apartmentId);
 
   useEffect(() => {
     async function loadStats() {
@@ -93,6 +96,14 @@ export default function DashboardOverview() {
             >
               Request a Quotation
             </Link>
+            {isResident && (
+              <Link
+                href="/resident"
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-full font-bold text-xs sm:text-sm transition shadow-sm flex items-center gap-1.5"
+              >
+                <Building2 size={16} /> Open Resident Portal
+              </Link>
+            )}
           </div>
         </div>
 
@@ -100,6 +111,34 @@ export default function DashboardOverview() {
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
         <div className="absolute bottom-0 right-20 w-48 h-48 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
       </div>
+
+      {/* ── Apartment Resident Quick Card ── */}
+      {isResident && (
+        <Card className="p-6 rounded-2xl bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white border-0 shadow-lg relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-300 bg-emerald-500/20 px-2.5 py-0.5 rounded-full">
+                <Building2 size={13} />
+                <span>Apartment Resident Hub</span>
+              </div>
+              <h2 className="text-xl font-bold">
+                {user?.apartmentName || (user?.apartment as any)?.name || "Your Society"}
+              </h2>
+              <p className="text-xs text-emerald-100">
+                Unit: <strong>{user?.block ? `Block ${user.block}, ` : ""}Flat #{user?.flatNumber || "Assigned"}</strong> &bull; Fast-track plumbing, electrical, and lift complaints.
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/resident"
+                className="px-5 py-2.5 rounded-xl bg-white text-emerald-900 font-bold text-xs hover:bg-emerald-50 transition shadow-sm flex items-center gap-1.5"
+              >
+                Go to Complaints & Portal <ArrowRight size={15} />
+              </Link>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Quick Stats: Useful Customer Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
