@@ -28,7 +28,12 @@ export function ServiceCatalog() {
 
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
-  const [digitalMarketingTab, setDigitalMarketingTab] = useState<"marketing" | "podcasting">("marketing");
+  const urlTab = searchParams.get("tab") || searchParams.get("sub");
+  const [digitalMarketingTab, setDigitalMarketingTab] = useState<"marketing" | "podcasting">(
+    urlTab === "podcasting" || searchParams.get("booking")?.includes("podcast") || searchParams.get("service")?.includes("podcast")
+      ? "podcasting"
+      : "marketing"
+  );
   const [minRating, setMinRating] = useState(0);
   const [maxPrice, setMaxPrice] = useState(30000);
   const [durationFilter, setDurationFilter] = useState("all");
@@ -67,11 +72,17 @@ export function ServiceCatalog() {
     });
   })();
 
-  // Keep selectedCategory synced if URL category changes
+  // Keep selectedCategory and digitalMarketingTab synced if URL changes
   useEffect(() => {
     const cat = searchParams.get("category");
     if (cat && cat !== "all" && ALLOWED_CATEGORY_SLUGS.includes(cat.toLowerCase())) {
       setSelectedCategory(cat);
+    }
+    const tab = searchParams.get("tab") || searchParams.get("sub");
+    if (tab === "podcasting" || searchParams.get("booking")?.includes("podcast") || searchParams.get("service")?.includes("podcast")) {
+      setDigitalMarketingTab("podcasting");
+    } else if (tab === "marketing") {
+      setDigitalMarketingTab("marketing");
     }
   }, [searchParams]);
 
@@ -96,9 +107,7 @@ export function ServiceCatalog() {
     async function loadSubs() {
       setLoading(true);
       try {
-        if (selectedCategory === "digital-marketing") {
-          setDbSubcategories([]);
-        } else if (selectedCategory === "all") {
+        if (selectedCategory === "all") {
           const subs = await fetchAllSubcategories();
           const allowedSubs = subs.filter((sub) => {
             const catSlug = typeof sub.categoryId === "object" && sub.categoryId !== null
@@ -166,9 +175,9 @@ export function ServiceCatalog() {
       category: cat.name,
       tagline: svc.description,
       description: svc.description,
-      price: "From Rs. 499",
-      priceValue: 499,
-      rating: 4.8,
+      price: svc.slug.includes("podcast") ? (svc.slug === "podcasting" ? "From Rs. 2,999" : "From Rs. 1,499") : "From Rs. 499",
+      priceValue: svc.slug.includes("podcast") ? (svc.slug === "podcasting" ? 2999 : 1499) : 499,
+      rating: 4.9,
       reviewCount: 120 + svcIdx * 8,
       duration: "Flexible",
       durationMinutes: 120,
@@ -178,8 +187,16 @@ export function ServiceCatalog() {
           : cat.slug === "networking"
           ? "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=800&fit=crop"
           : cat.slug === "digital-marketing"
-          ? (svc.slug === "podcasting"
+          ? (svc.slug === "podcasting" || svc.slug === "podcast-studio-recording"
               ? "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800&fit=crop"
+              : svc.slug === "podcast-editing-mastering"
+              ? "https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&fit=crop"
+              : svc.slug === "podcast-shorts-reels"
+              ? "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&fit=crop"
+              : svc.slug === "podcast-distribution-seo"
+              ? "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&fit=crop"
+              : svc.slug === "remote-podcast-production"
+              ? "https://images.unsplash.com/photo-1589903308904-1010c2294adc?w=800&fit=crop"
               : "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&fit=crop")
           : "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&fit=crop",
       gallery: [],
@@ -194,6 +211,11 @@ export function ServiceCatalog() {
   );
 
   const servicesToUse = (() => {
+    if (selectedCategory === "digital-marketing") {
+      const existingSlugs = new Set(dynamicServices.map((s) => s.slug));
+      const missing = canonicalServices.filter((s) => s.categoryId === "digital-marketing" && !existingSlugs.has(s.slug));
+      return [...dynamicServices, ...missing];
+    }
     if (dynamicServices.length >= 37) return dynamicServices;
     const existingSlugs = new Set(dynamicServices.map((s) => s.slug));
     const missing = canonicalServices.filter((s) => !existingSlugs.has(s.slug));
@@ -316,12 +338,17 @@ export function ServiceCatalog() {
   });
 
   if (selectedCategory === "digital-marketing") {
-    filteredServices = filteredServices.filter((s) =>
-      digitalMarketingTab === "marketing"
-        ? (s.slug === "digital-marketing" || s.title.toLowerCase().includes("marketing"))
-        : (s.slug === "podcasting" || s.title.toLowerCase().includes("podcast"))
-    );
+    filteredServices = filteredServices.filter((s) => {
+      const isPodcast = s.slug.includes("podcast") || s.title.toLowerCase().includes("podcast");
+      return digitalMarketingTab === "marketing" ? !isPodcast : isPodcast;
+    });
   }
+
+  const dmAllServices = servicesToUse.filter((s) =>
+    s.categoryId === "digital-marketing" || s.category.toLowerCase().includes("market") || s.category.toLowerCase().includes("podcast")
+  );
+  const podcastCount = dmAllServices.filter((s) => s.slug.includes("podcast") || s.title.toLowerCase().includes("podcast")).length;
+  const marketingCount = dmAllServices.filter((s) => !s.slug.includes("podcast") && !s.title.toLowerCase().includes("podcast")).length;
 
   if (sortBy === "popular") filteredServices = [...filteredServices].sort((a, b) => b.reviewCount - a.reviewCount);
   if (sortBy === "price-low") filteredServices = [...filteredServices].sort((a, b) => a.priceValue - b.priceValue);
@@ -487,30 +514,54 @@ export function ServiceCatalog() {
           {/* Dual Tabs for Digital Marketing Category */}
           {selectedCategory === "digital-marketing" && (
             <div className="mb-6 space-y-4">
-              <div className="flex border-b border-slate-200">
+              <div className="flex border-b border-slate-200 gap-1">
                 <button
                   type="button"
-                  onClick={() => setDigitalMarketingTab("marketing")}
-                  className={`flex items-center gap-2 py-3 px-5 text-xs font-extrabold border-b-2 transition-all ${
+                  id="tab-digital-marketing"
+                  onClick={() => {
+                    setDigitalMarketingTab("marketing");
+                    const current = new URLSearchParams(searchParams.toString());
+                    current.set("category", "digital-marketing");
+                    current.set("tab", "marketing");
+                    window.history.replaceState(null, "", `/services?${current.toString()}`);
+                  }}
+                  className={`flex items-center gap-2 py-3 px-5 text-xs font-extrabold border-b-2 transition-all cursor-pointer ${
                     digitalMarketingTab === "marketing"
-                      ? "border-blue-600 text-blue-600 bg-blue-50/50 rounded-t-xl"
-                      : "border-transparent text-slate-500 hover:text-slate-800"
+                      ? "border-blue-600 text-blue-600 bg-blue-50/50 rounded-t-xl shadow-xs"
+                      : "border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50"
                   }`}
                 >
                   <Megaphone className="h-4 w-4" />
                   <span>Digital Marketing</span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    digitalMarketingTab === "marketing" ? "bg-blue-100 text-blue-700" : "bg-slate-100 text-slate-600"
+                  }`}>
+                    {marketingCount}
+                  </span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setDigitalMarketingTab("podcasting")}
-                  className={`flex items-center gap-2 py-3 px-5 text-xs font-extrabold border-b-2 transition-all ${
+                  id="tab-podcasting"
+                  onClick={() => {
+                    setDigitalMarketingTab("podcasting");
+                    const current = new URLSearchParams(searchParams.toString());
+                    current.set("category", "digital-marketing");
+                    current.set("tab", "podcasting");
+                    window.history.replaceState(null, "", `/services?${current.toString()}`);
+                  }}
+                  className={`flex items-center gap-2 py-3 px-5 text-xs font-extrabold border-b-2 transition-all cursor-pointer ${
                     digitalMarketingTab === "podcasting"
-                      ? "border-blue-600 text-blue-600 bg-blue-50/50 rounded-t-xl"
-                      : "border-transparent text-slate-500 hover:text-slate-800"
+                      ? "border-purple-600 text-purple-600 bg-purple-50/50 rounded-t-xl shadow-xs"
+                      : "border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50"
                   }`}
                 >
                   <Mic className="h-4 w-4" />
                   <span>Podcasting</span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                    digitalMarketingTab === "podcasting" ? "bg-purple-100 text-purple-700" : "bg-slate-100 text-slate-600"
+                  }`}>
+                    {podcastCount}
+                  </span>
                 </button>
               </div>
 
