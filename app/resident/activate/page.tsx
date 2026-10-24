@@ -113,7 +113,7 @@ function ResidentActivateContent() {
 
           <button
             onClick={() => {
-              window.location.href = "/dashboard/support";
+              window.location.href = "/resident";
             }}
             className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-emerald-200 transition flex items-center justify-center gap-2"
           >
