@@ -334,7 +334,7 @@ export default function ResidentPortalPage() {
   const closedCount = tickets.filter((t) => t.status === "Closed").length;
 
   // Unauthenticated view
-  if (status === "unauthenticated") {
+  if (status === "guest") {
     return (
       <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-4">
         <Card className="max-w-md w-full p-8 rounded-3xl bg-slate-800 border border-slate-700 text-center space-y-6">

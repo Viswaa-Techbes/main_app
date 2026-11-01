@@ -86,7 +86,7 @@ export default function ProfilePage() {
                   <div className="p-3 bg-white rounded-xl border border-blue-100 sm:col-span-2">
                     <span className="text-gray-500 font-medium block mb-1">Society Address</span>
                     <p className="font-semibold text-gray-800">
-                      {(user.apartment as any).address}, {(user.apartment as any).city || "Bangalore"}
+                      {(user?.apartment as any)?.address}, {(user?.apartment as any)?.city || "Bangalore"}
                     </p>
                   </div>
                 )}
