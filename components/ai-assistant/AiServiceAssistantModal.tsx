@@ -267,12 +267,12 @@ export function AiServiceAssistantModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl h-[88vh] flex flex-col p-0 overflow-hidden rounded-3xl bg-slate-50 border border-slate-200 shadow-2xl">
+        <DialogContent className="w-[95vw] max-w-5xl h-[90dvh] max-h-[90dvh] flex flex-col p-0 overflow-hidden rounded-2xl sm:rounded-3xl bg-slate-50 border border-slate-200 shadow-2xl">
           {/* Header */}
-          <DialogHeader className="px-6 py-4 bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 text-white shrink-0">
+          <DialogHeader className="px-4 sm:px-6 py-3.5 sm:py-4 bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 text-white shrink-0 sticky top-0 z-20">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-amber-300 shadow-inner">
+                <div className="w-10 h-10 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-amber-300 shadow-inner shrink-0">
                   <Sparkles className="w-5 h-5 animate-pulse" />
                 </div>
                 <div>
@@ -304,7 +304,7 @@ export function AiServiceAssistantModal({
           </DialogHeader>
 
           {/* Chat Message Scrollable Container */}
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
+          <div className="flex-1 overflow-y-auto px-3 sm:px-6 py-4 space-y-4">
             {messages.map((msg) => (
               <div key={msg.id} className="space-y-3">
                 {/* Role Row */}
@@ -380,7 +380,7 @@ export function AiServiceAssistantModal({
                       </span>
                     </div>
 
-                    <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {msg.recommendations.map((pkg) => {
                         const isExpanded = expandedPackageId === pkg.id;
                         return (
@@ -424,16 +424,16 @@ export function AiServiceAssistantModal({
                             {/* Card Specs Body */}
                             <div className="p-4 space-y-3 flex-1">
                               {/* Price block */}
-                              <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-baseline justify-between">
+                              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-baseline justify-between gap-2">
                                 <div>
                                   <span className="text-[9px] font-bold uppercase text-slate-400 block tracking-wider">
                                     {isKannada ? "ಅಂದಾಜು ವೆಚ್ಚ" : "Investment"}
                                   </span>
-                                  <span className="text-sm font-black text-slate-900">
+                                  <span className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
                                     {pkg.pricing?.priceDisplay || (isKannada ? "ಕೊಟೇಶನ್ ಅಗತ್ಯವಿದೆ" : "Quotation required")}
                                   </span>
                                 </div>
-                                <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md whitespace-nowrap shrink-0">
                                   {pkg.pricing?.hasAuthoritativePricing
                                     ? (isKannada ? "GST & ಲೇಬರ್ ಸೇರಿ" : "incl. GST & Labour")
                                     : (isKannada ? "ಕಸ್ಟಮ್ ಸ್ಕೋಪ್" : "Custom Scope")}
@@ -545,7 +545,7 @@ export function AiServiceAssistantModal({
           </div>
 
           {/* Voice & Text Input Footer with Language Switcher */}
-          <div className="p-4 bg-white border-t border-slate-200 shrink-0 shadow-lg">
+          <div className="p-3 sm:p-4 bg-white border-t border-slate-200 shrink-0 sticky bottom-0 z-20 shadow-lg">
             <VoiceSpeechInput
               onSendMessage={handleSendMessage}
               isLoading={isLoading}
