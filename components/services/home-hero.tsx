@@ -16,6 +16,7 @@ const CATEGORY_TILES = [
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { heroSuggestions } from "@/lib/marketplace-data";
+import { openAiAssistant } from "@/components/ai-assistant/useAiAssistant";
 
 export function HomeHero() {
   const [query, setQuery] = useState("");
@@ -57,19 +58,38 @@ export function HomeHero() {
             </p>
 
             {/* Actions & Search */}
-            <div className="mt-6 space-y-4">
+            <div className="mt-6 space-y-3">
               <div className="flex flex-col sm:flex-row gap-3">
-                <Button className="h-11 w-full sm:w-56 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 shadow-md hover:shadow-lg transition-all flex items-center justify-center" asChild>
+                <Button className="h-11 w-full sm:w-48 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-5 shadow-md hover:shadow-lg transition-all flex items-center justify-center" asChild>
                   <Link href="/services">
                     Explore Services
                   </Link>
                 </Button>
-                <Button variant="outline" className="h-11 w-full sm:w-56 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 px-6 flex items-center justify-center" asChild>
+                <Button variant="outline" className="h-11 w-full sm:w-48 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 px-5 flex items-center justify-center" asChild>
                   <Link href="/get-a-quote">
-                    Book a Free Consultation
+                    Book Consultation
                   </Link>
                 </Button>
+                <button
+                  type="button"
+                  onClick={() => openAiAssistant()}
+                  className="h-11 w-full sm:w-auto rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-black text-xs px-5 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 group"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-200 group-hover:rotate-12 transition-transform" />
+                  <span>Find Service with AI</span>
+                </button>
               </div>
+
+              {/* AI Quick Prompt Hint */}
+              <button
+                type="button"
+                onClick={() => openAiAssistant({ initialPrompt: "ನನಗೆ ಮನೆಯ CCTV ಬೇಕು" })}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50/80 hover:bg-blue-100 border border-blue-200/60 text-blue-700 text-[11px] font-semibold transition text-left"
+              >
+                <span className="text-xs">🎤</span>
+                <span>Ask in English, தமிழ் or ಕನ್ನಡ: <em>&quot;ನನಗೆ ಮನೆಯ CCTV ಬೇಕು&quot;</em></span>
+                <ArrowRight className="w-3 h-3 text-blue-500 ml-1" />
+              </button>
 
               {/* Search Container */}
               <div className="relative max-w-md pt-2">

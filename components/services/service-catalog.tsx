@@ -15,6 +15,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { ServiceBookingConfigModal } from "@/components/booking/service-config-modal";
 import { useAuth } from "@/features/auth/context/auth-context";
 import { QUOTATION_CATEGORIES } from "@/lib/service-quotation-data";
+import { openAiAssistant } from "@/components/ai-assistant/useAiAssistant";
 
 type SortOption = "popular" | "price-low" | "top-rated";
 
@@ -384,6 +385,31 @@ export function ServiceCatalog() {
             </Button>
           </div>
         </div>
+      </div>
+
+      {/* AI Recommendation Banner */}
+      <div className="mt-4 rounded-2xl bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 p-4 sm:p-5 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-blue-800/40">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-400/20 text-amber-300 border border-amber-400/30 flex items-center justify-center shrink-0">
+            <Sparkles className="w-5 h-5 animate-pulse" />
+          </div>
+          <div>
+            <h3 className="text-sm font-black text-white tracking-tight flex items-center gap-1.5">
+              Not sure what you need? Ask AI
+            </h3>
+            <p className="text-xs text-blue-200 font-medium">
+              Explain in English, தமிழ் or ಕನ್ನಡ — get 2–3 suitable packages with transparent pricing &amp; stock availability.
+            </p>
+          </div>
+        </div>
+        <Button
+          type="button"
+          onClick={() => openAiAssistant({ serviceCategory: selectedCategory })}
+          className="h-10 px-5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs shrink-0 shadow-sm transition hover:scale-105"
+        >
+          <Sparkles className="w-3.5 h-3.5 mr-1 text-slate-950" />
+          Get AI Recommendations
+        </Button>
       </div>
 
       <div className="mt-8 flex flex-col gap-6 lg:flex-row lg:items-start">

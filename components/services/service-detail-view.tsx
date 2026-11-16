@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, Check, CheckCircle, ChevronLeft, Clock3, FileText, MapPin, Star, TicketPercent, Toolbox, Users, ArrowRight, ShieldCheck } from "lucide-react";
+import { Calendar, Check, CheckCircle, ChevronLeft, Clock3, FileText, MapPin, Star, TicketPercent, Toolbox, Users, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import { FormEvent, useState, useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { openAiAssistant } from "@/components/ai-assistant/useAiAssistant";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
@@ -134,9 +135,18 @@ export function ServiceDetailView({ service }: { service: MarketplaceService }) 
                     <p className="text-[11px] text-slate-500 font-medium mt-0.5">Submit your requirements to receive official itemized pricing from TechBes admin.</p>
                   </div>
 
-                  <div className="mt-6 flex flex-wrap gap-2">
+                  <div className="mt-6 flex flex-wrap gap-2.5">
                     <Button className="h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 shadow-sm" onClick={openBooking}>
                       Request Quotation
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-10 rounded-xl border-amber-300 bg-amber-50/80 hover:bg-amber-100 text-amber-950 font-black text-xs px-5 shadow-xs flex items-center gap-1.5 transition"
+                      onClick={() => openAiAssistant({ serviceCategory: service.categoryId || service.category, initialPrompt: `I need recommendations for ${service.title}` })}
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+                      Get AI Recommendations
                     </Button>
                   </div>
                 </div>
