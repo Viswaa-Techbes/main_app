@@ -38,17 +38,17 @@ export function HomeHero() {
         Subscribe
       </a>
 
-      <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-16">
-        <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between">
+      <div className="mx-auto max-w-7xl px-6 py-10 lg:px-8 lg:py-14">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
           
           {/* Left Column: Headings, Search & Actions */}
-          <div className="w-full lg:w-[50%] shrink-0">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-700">
+          <div className="w-full lg:col-span-7 flex flex-col justify-center min-w-0 z-10">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-700 w-fit">
               <Sparkles className="h-3 w-3 text-blue-600 animate-pulse" />
               Verified IT Support
             </div>
 
-            <h1 className="mt-4 text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl lg:text-[42px]">
+            <h1 className="mt-4 text-3xl font-extrabold leading-tight text-slate-900 sm:text-4xl lg:text-[40px]">
               Smart IT Solutions <br />
               for <span className="text-blue-600 font-black">Every Need</span>
             </h1>
@@ -59,13 +59,13 @@ export function HomeHero() {
 
             {/* Actions & Search */}
             <div className="mt-6 space-y-3">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button className="h-11 w-full sm:w-48 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-5 shadow-md hover:shadow-lg transition-all flex items-center justify-center" asChild>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button className="h-11 w-full sm:w-auto px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md hover:shadow-lg transition-all flex items-center justify-center whitespace-nowrap" asChild>
                   <Link href="/services">
                     Explore Services
                   </Link>
                 </Button>
-                <Button variant="outline" className="h-11 w-full sm:w-48 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 px-5 flex items-center justify-center" asChild>
+                <Button variant="outline" className="h-11 w-full sm:w-auto px-5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center justify-center whitespace-nowrap" asChild>
                   <Link href="/get-a-quote">
                     Book Consultation
                   </Link>
@@ -73,7 +73,7 @@ export function HomeHero() {
                 <button
                   type="button"
                   onClick={() => openAiAssistant()}
-                  className="h-11 w-full sm:w-auto rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-black text-xs px-5 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 group"
+                  className="h-11 w-full sm:w-auto px-5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-black text-xs shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 group whitespace-nowrap"
                 >
                   <Sparkles className="w-4 h-4 text-amber-200 group-hover:rotate-12 transition-transform" />
                   <span>Find Service with AI</span>
@@ -88,7 +88,7 @@ export function HomeHero() {
               >
                 <span className="text-xs">🎤</span>
                 <span>Ask in English, தமிழ் or ಕನ್ನಡ: <em>&quot;ನನಗೆ ಮನೆಯ CCTV ಬೇಕು&quot;</em></span>
-                <ArrowRight className="w-3 h-3 text-blue-500 ml-1" />
+                <ArrowRight className="w-3 h-3 text-blue-500 ml-1 shrink-0" />
               </button>
 
               {/* Search Container */}
@@ -121,9 +121,9 @@ export function HomeHero() {
               </div>
             </div>
 
-            {/* Badges section at bottom of left column with prominent AMC highlight */}
-            <div className="mt-8 border-t border-slate-100 pt-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            {/* Badges section at bottom of left column */}
+            <div className="mt-8 border-t border-slate-100 pt-6">
+              <div className="grid grid-cols-2 gap-4 max-w-xs">
                 <div className="flex items-center gap-2">
                   <div className="rounded-lg bg-blue-50 p-1.5 text-blue-600">
                     <Users className="h-4 w-4" />
@@ -143,49 +143,19 @@ export function HomeHero() {
                   </div>
                 </div>
               </div>
-
-              {/* Priority 2: Prominent AMC Plans Highlight (Visible on Desktop & Mobile) */}
-              <Link
-                href="/amc"
-                className="group relative block p-4 rounded-2xl bg-gradient-to-r from-slate-900 via-blue-950 to-indigo-950 text-white shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.01] border border-blue-800/40"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider">
-                        Annual Maintenance
-                      </span>
-                      <span className="text-[10px] font-semibold text-slate-300">
-                        Laptop • Desktop • Website • Network • CCTV
-                      </span>
-                    </div>
-                    <h3 className="text-sm font-black text-white tracking-tight flex items-center gap-1.5">
-                      AMC Plans Starting from <span className="text-amber-300 font-extrabold">₹9,999</span>
-                    </h3>
-                    <p className="text-[11px] text-slate-300 font-medium">
-                      Guaranteed SLA response, preventive maintenance &amp; free site audit.
-                    </p>
-                  </div>
-                  <div className="shrink-0 pt-2 sm:pt-0">
-                    <div className="h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm group-hover:translate-x-0.5 transition-transform">
-                      <span>View AMC Plans</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </div>
-                  </div>
-                </div>
-              </Link>
             </div>
           </div>
 
           {/* Right Column: Premium Illustration Image */}
-          <div className="w-full lg:w-[46%] flex items-center justify-center">
+          <div className="w-full lg:col-span-5 flex items-center justify-center min-w-0">
             <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-sm max-w-md lg:max-w-none">
               <Image
                 src="/hero-illustration.png"
                 alt="IT Hardware Solutions"
                 fill
-                className="object-cover transition-transform duration-700 hover:scale-103"
+                className="object-contain p-2 sm:p-3 transition-transform duration-700 hover:scale-105"
                 priority
+                sizes="(max-width: 1024px) 100vw, 42vw"
               />
             </div>
           </div>
