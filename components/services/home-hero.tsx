@@ -146,17 +146,94 @@ export function HomeHero() {
             </div>
           </div>
 
-          {/* Right Column: Premium Illustration Image */}
-          <div className="w-full lg:col-span-5 flex items-center justify-center min-w-0">
-            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-slate-50 border border-slate-100 shadow-sm max-w-md lg:max-w-none">
+          {/* Right Column: Multi-Image Floating Showcase */}
+          <div className="w-full lg:col-span-5 relative flex items-center justify-center min-w-0 h-[460px] sm:h-[500px] lg:h-[540px] select-none py-4">
+            {/* Ambient tech backdrop & soft mesh glow */}
+            <div className="absolute inset-2 sm:inset-0 rounded-3xl bg-gradient-to-tr from-blue-50/70 via-slate-50/50 to-emerald-50/50 border border-slate-100 shadow-[inset_0_1px_3px_rgba(255,255,255,0.9),0_10px_35px_rgba(15,23,42,0.04)] pointer-events-none" />
+            
+            {/* Decorative orbit and ambient blur glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[320px] sm:w-[380px] h-[320px] sm:h-[380px] rounded-full border border-blue-200/40 border-dashed pointer-events-none animate-[spin_80s_linear_infinite]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 rounded-full bg-blue-400/10 blur-3xl pointer-events-none" />
+
+            {/* Satellite Card 1: Top-Left (CCTV Surveillance) */}
+            <div className="absolute -top-1 left-0 sm:top-3 sm:left-2 z-20 animate-float-slow">
+              <div className="flex items-center gap-2.5 rounded-2xl bg-white/95 px-3 py-2 sm:px-3.5 sm:py-2.5 shadow-[0_10px_25px_rgba(15,23,42,0.08)] border border-blue-100 backdrop-blur-md hover:scale-105 transition-transform duration-300">
+                <div className="rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 p-2 text-white shadow-sm">
+                  <Camera className="h-4 w-4" />
+                </div>
+                <div className="text-left">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[11px] font-extrabold text-slate-900">CCTV Surveillance</p>
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  </div>
+                  <p className="text-[9px] font-semibold text-slate-500">4K ColorVu & AI Dome</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Satellite Card 2: Top-Right (Enterprise Networking) */}
+            <div className="absolute top-3 -right-1 sm:top-5 sm:right-1 z-20 animate-float-medium">
+              <div className="flex items-center gap-2.5 rounded-2xl bg-white/95 px-3 py-2 sm:px-3.5 sm:py-2.5 shadow-[0_10px_25px_rgba(15,23,42,0.08)] border border-indigo-100 backdrop-blur-md hover:scale-105 transition-transform duration-300">
+                <div className="rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 p-2 text-white shadow-sm">
+                  <Network className="h-4 w-4" />
+                </div>
+                <div className="text-left">
+                  <p className="text-[11px] font-extrabold text-slate-900">WiFi 6 & Mesh Setup</p>
+                  <p className="text-[9px] font-semibold text-indigo-600">Gigabit Structured Rack</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Main Center Hardware Showcase Visual */}
+            <div className="relative z-10 w-[84%] sm:w-[78%] lg:w-[86%] aspect-[4/3] rounded-2xl overflow-hidden bg-white/95 border border-slate-200/90 shadow-[0_16px_40px_rgba(15,23,42,0.09)] backdrop-blur-sm transition-all duration-500 hover:shadow-[0_20px_50px_rgba(37,99,235,0.15)] group">
               <Image
                 src="/hero-illustration.png"
-                alt="IT Hardware Solutions"
+                alt="TechBes Smart IT & Hardware Solutions"
                 fill
-                className="object-contain p-2 sm:p-3 transition-transform duration-700 hover:scale-105"
+                className="object-contain p-3 sm:p-4 transition-transform duration-700 group-hover:scale-105"
                 priority
                 sizes="(max-width: 1024px) 100vw, 42vw"
               />
+              {/* Bottom glass status tag */}
+              <div className="absolute bottom-2 left-2 right-2 sm:bottom-3 sm:left-3 sm:right-3 rounded-xl bg-slate-900/85 backdrop-blur-md px-3 py-1.5 flex items-center justify-between text-white border border-white/10 shadow-sm">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="relative flex h-2 w-2 shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span className="text-[10px] sm:text-[11px] font-bold tracking-wide truncate">Enterprise Hardware & CCTV</span>
+                </div>
+                <span className="text-[9px] font-extrabold text-blue-300 uppercase tracking-wider shrink-0 bg-blue-900/60 px-1.5 py-0.5 rounded border border-blue-400/30">Verified</span>
+              </div>
+            </div>
+
+            {/* Satellite Card 3: Bottom-Left (Chip-Level IT & Laptop Repair) */}
+            <div className="absolute bottom-3 left-0 sm:bottom-5 sm:left-2 z-20 animate-float-reverse">
+              <div className="flex items-center gap-2.5 rounded-2xl bg-white/95 px-3 py-2 sm:px-3.5 sm:py-2.5 shadow-[0_10px_25px_rgba(15,23,42,0.08)] border border-emerald-100 backdrop-blur-md hover:scale-105 transition-transform duration-300">
+                <div className="rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 p-2 text-white shadow-sm">
+                  <Laptop className="h-4 w-4" />
+                </div>
+                <div className="text-left">
+                  <p className="text-[11px] font-extrabold text-slate-900">Chip-Level IT Repair</p>
+                  <p className="text-[9px] font-semibold text-emerald-600">Same-Day Diagnostic</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Satellite Card 4: Bottom-Right (24/7 Verified Dispatch) */}
+            <div className="absolute -bottom-1 right-0 sm:bottom-3 sm:right-1 z-20 animate-float-slow [animation-delay:2s]">
+              <div className="flex items-center gap-2.5 rounded-2xl bg-white/95 px-3 py-2 sm:px-3.5 sm:py-2.5 shadow-[0_10px_25px_rgba(15,23,42,0.08)] border border-amber-100 backdrop-blur-md hover:scale-105 transition-transform duration-300">
+                <div className="rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 p-2 text-white shadow-sm">
+                  <ShieldCheck className="h-4 w-4" />
+                </div>
+                <div className="text-left">
+                  <div className="flex items-center gap-1">
+                    <p className="text-[11px] font-extrabold text-slate-900">Bengaluru On-Site</p>
+                    <span className="text-[8px] font-black text-amber-700 bg-amber-100 px-1 rounded">24/7</span>
+                  </div>
+                  <p className="text-[9px] font-semibold text-slate-500">Certified Tech Dispatch</p>
+                </div>
+              </div>
             </div>
           </div>
 
