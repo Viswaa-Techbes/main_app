@@ -42,7 +42,7 @@ export function HomeHero() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
           
           {/* Left Column: Headings, Search & Actions */}
-          <div className="w-full lg:col-span-7 flex flex-col justify-center min-w-0 z-10">
+          <div className="w-full lg:col-span-6 flex flex-col justify-center min-w-0 z-10">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-700 w-fit">
               <Sparkles className="h-3 w-3 text-blue-600 animate-pulse" />
               Verified IT Support
@@ -146,93 +146,88 @@ export function HomeHero() {
             </div>
           </div>
 
-          {/* Right Column: Clean Multi-Image Bento Photo Grid */}
-          <div className="w-full lg:col-span-5 relative flex items-center justify-center min-w-0 select-none">
+          {/* Right Column: Studio Showcase (1 Main Card + 3 Bottom Cards) */}
+          <div className="w-full lg:col-span-6 relative flex flex-col justify-center min-w-0 select-none">
             {/* Ambient subtle glow backdrop */}
-            <div className="absolute -inset-1 sm:inset-0 rounded-3xl bg-gradient-to-tr from-blue-50/60 via-slate-50/40 to-emerald-50/40 border border-slate-100/80 shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_10px_35px_rgba(15,23,42,0.03)] pointer-events-none" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-blue-400/10 blur-3xl pointer-events-none" />
+            <div className="absolute -inset-1 sm:inset-0 rounded-3xl bg-gradient-to-tr from-blue-50/50 via-slate-50/30 to-emerald-50/30 border border-slate-100/80 shadow-[inset_0_1px_3px_rgba(255,255,255,0.8),0_10px_35px_rgba(15,23,42,0.03)] pointer-events-none" />
 
-            {/* Bento Grid: 2 Columns Staggered Photo Layout */}
-            <div className="relative z-10 w-full p-1.5 sm:p-2.5 grid grid-cols-2 gap-3 sm:gap-3.5">
-              {/* Column 1 */}
-              <div className="flex flex-col gap-3 sm:gap-3.5">
-                {/* Tile 1: Primary Enterprise Hardware & Security Showcase (Tall) */}
-                <Link
-                  href="/services"
-                  className="group relative h-[190px] sm:h-[230px] lg:h-[250px] overflow-hidden rounded-2xl border border-slate-200/90 bg-gradient-to-br from-slate-50 via-white to-blue-50/40 shadow-[0_4px_20px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_32px_rgba(37,99,235,0.14)] hover:border-blue-300 transition-all duration-500 block"
-                >
-                  <Image
-                    src="/hero-illustration.png"
-                    alt="TechBes Enterprise IT & Hardware Setup"
-                    fill
-                    className="object-contain p-2 sm:p-3 transition-transform duration-500 ease-out group-hover:scale-105"
-                    priority
-                    sizes="(max-width: 1024px) 50vw, 22vw"
-                  />
-                  {/* Integrated bottom caption */}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 via-slate-950/30 to-transparent p-2.5 sm:p-3 text-white">
-                    <p className="text-[11px] sm:text-xs font-bold leading-tight drop-shadow-sm">Enterprise Hardware</p>
-                    <p className="text-[9px] sm:text-[10px] text-slate-200 font-medium leading-tight drop-shadow-sm">All-in-One Solutions</p>
+            <div className="relative z-10 w-full p-1 sm:p-2">
+              {/* Top Main Showcase Card: Hardware & CCTV Solutions */}
+              <Link
+                href="/services"
+                className="group relative w-full h-[220px] sm:h-[240px] lg:h-[250px] overflow-hidden rounded-2xl border border-slate-200/80 bg-gradient-to-br from-slate-50 via-blue-50/40 to-white shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-300 flex items-center justify-center p-3 sm:p-4 block"
+              >
+                <Image
+                  src="/hero-illustration.png"
+                  alt="TechBes Smart IT Solutions & Enterprise Hardware"
+                  fill
+                  className="object-contain p-2 sm:p-3 transition-transform duration-500 ease-out group-hover:scale-102"
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+                {/* Clean, subtle status pill */}
+                <div className="absolute bottom-3 left-3 right-3 sm:left-4 sm:right-4 flex items-center justify-between rounded-xl bg-slate-900/80 backdrop-blur-md px-3 py-1.5 text-white border border-white/10 shadow-sm">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="relative flex h-2 w-2 shrink-0">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span className="text-[10px] sm:text-[11px] font-bold tracking-wide truncate">All-in-One IT & Security Solutions</span>
                   </div>
-                </Link>
+                  <span className="text-[9px] font-extrabold text-blue-300 uppercase tracking-wider shrink-0 bg-blue-900/60 px-1.5 py-0.5 rounded border border-blue-400/30">Verified</span>
+                </div>
+              </Link>
 
-                {/* Tile 2: Chip-Level IT & Laptop Repair */}
-                <Link
-                  href="/services"
-                  className="group relative h-[145px] sm:h-[180px] lg:h-[200px] overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-900 shadow-[0_4px_20px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_32px_rgba(16,185,129,0.14)] hover:border-emerald-300 transition-all duration-500 block"
-                >
-                  <Image
-                    src="/images/hero/laptop-repair.jpg"
-                    alt="Chip-Level IT & Laptop Repair"
-                    fill
-                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                    sizes="(max-width: 1024px) 50vw, 22vw"
-                  />
-                  {/* Integrated bottom caption */}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent p-2.5 sm:p-3 text-white">
-                    <p className="text-[11px] sm:text-xs font-bold leading-tight drop-shadow-sm">Chip-Level IT Repair</p>
-                    <p className="text-[9px] sm:text-[10px] text-slate-200 font-medium leading-tight drop-shadow-sm">Diagnostics & Service</p>
-                  </div>
-                </Link>
-              </div>
-
-              {/* Column 2 (Staggered: Shorter Tile on Top, Tall Tile on Bottom) */}
-              <div className="flex flex-col gap-3 sm:gap-3.5">
-                {/* Tile 3: CCTV Surveillance Camera Photo */}
+              {/* Bottom 3-Card Visual Strip */}
+              <div className="grid grid-cols-3 gap-2.5 sm:gap-3 mt-3 w-full">
+                {/* Card 1 — CCTV & Security */}
                 <Link
                   href="/services?category=cctv"
-                  className="group relative h-[145px] sm:h-[180px] lg:h-[200px] overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-900 shadow-[0_4px_20px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_32px_rgba(37,99,235,0.14)] hover:border-blue-300 transition-all duration-500 block"
+                  className="group relative h-[105px] lg:h-[115px] rounded-xl overflow-hidden border border-slate-200/80 bg-white shadow-sm hover:shadow-md hover:border-blue-400 transition-all duration-300 block"
                 >
                   <Image
                     src="/images/hero/cctv.jpg"
-                    alt="CCTV Surveillance Camera Installation"
+                    alt="CCTV Systems"
                     fill
                     className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                    sizes="(max-width: 1024px) 50vw, 22vw"
+                    sizes="(max-width: 1024px) 33vw, 16vw"
                   />
-                  {/* Integrated bottom caption */}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent p-2.5 sm:p-3 text-white">
-                    <p className="text-[11px] sm:text-xs font-bold leading-tight drop-shadow-sm">CCTV Surveillance</p>
-                    <p className="text-[9px] sm:text-[10px] text-slate-200 font-medium leading-tight drop-shadow-sm">HD / IP / AI Cameras</p>
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent p-2 text-white">
+                    <p className="text-[11px] font-bold leading-tight drop-shadow-sm truncate">CCTV Systems</p>
                   </div>
                 </Link>
 
-                {/* Tile 4: Networking & Structured Rack Photo (Tall) */}
+                {/* Card 2 — WiFi & Networking */}
                 <Link
                   href="/services?category=networking"
-                  className="group relative h-[190px] sm:h-[230px] lg:h-[250px] overflow-hidden rounded-2xl border border-slate-200/90 bg-slate-900 shadow-[0_4px_20px_rgba(15,23,42,0.06)] hover:shadow-[0_12px_32px_rgba(99,102,241,0.14)] hover:border-indigo-300 transition-all duration-500 block"
+                  className="group relative h-[105px] lg:h-[115px] rounded-xl overflow-hidden border border-slate-200/80 bg-white shadow-sm hover:shadow-md hover:border-blue-400 transition-all duration-300 block"
                 >
                   <Image
                     src="/images/hero/networking.jpg"
-                    alt="Enterprise Networking & Wi-Fi Rack"
+                    alt="Networking"
                     fill
                     className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                    sizes="(max-width: 1024px) 50vw, 22vw"
+                    sizes="(max-width: 1024px) 33vw, 16vw"
                   />
-                  {/* Integrated bottom caption */}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent p-2.5 sm:p-3 text-white">
-                    <p className="text-[11px] sm:text-xs font-bold leading-tight drop-shadow-sm">Networking & Wi-Fi</p>
-                    <p className="text-[9px] sm:text-[10px] text-slate-200 font-medium leading-tight drop-shadow-sm">Switches, Rack & Mesh</p>
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent p-2 text-white">
+                    <p className="text-[11px] font-bold leading-tight drop-shadow-sm truncate">Networking</p>
+                  </div>
+                </Link>
+
+                {/* Card 3 — Laptop & IT Support */}
+                <Link
+                  href="/services"
+                  className="group relative h-[105px] lg:h-[115px] rounded-xl overflow-hidden border border-slate-200/80 bg-white shadow-sm hover:shadow-md hover:border-blue-400 transition-all duration-300 block"
+                >
+                  <Image
+                    src="/images/hero/it-hardware.jpg"
+                    alt="IT Hardware"
+                    fill
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                    sizes="(max-width: 1024px) 33vw, 16vw"
+                  />
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent p-2 text-white">
+                    <p className="text-[11px] font-bold leading-tight drop-shadow-sm truncate">IT Hardware</p>
                   </div>
                 </Link>
               </div>
