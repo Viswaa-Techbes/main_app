@@ -284,7 +284,7 @@ function PackageCustomizerContent({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="w-[95vw] max-w-3xl max-h-[90dvh] overflow-y-auto rounded-2xl sm:rounded-3xl p-5 sm:p-8 bg-white border border-slate-100 shadow-2xl">
+      <DialogContent className="!max-w-4xl sm:!max-w-4xl w-[94vw] max-w-[900px] max-h-[90dvh] overflow-y-auto rounded-2xl sm:rounded-3xl p-5 sm:p-8 bg-white border border-slate-100 shadow-2xl">
         <DialogHeader className="border-b border-slate-100 pb-4 text-left">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-black uppercase tracking-wider">
