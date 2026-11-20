@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 export interface OpenAiAssistantOptions {
   serviceCategory?: string;
   initialPrompt?: string;
+  sessionContext?: Record<string, any>;
 }
 
 export const AI_ASSISTANT_EVENT = "techbes_open_ai_assistant";

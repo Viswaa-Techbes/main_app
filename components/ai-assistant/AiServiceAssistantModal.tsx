@@ -39,6 +39,9 @@ export interface ChatMessage {
     question: string;
     options: Array<{ label: string; value: string }>;
   }>;
+  stage?: "gathering_requirements" | "recommendations";
+  appliedFilters?: Array<{ key: string; label: string; value: any }>;
+  budgetNote?: string | null;
   timestamp: string;
 }
 
@@ -130,6 +133,7 @@ interface AiServiceAssistantModalProps {
   onOpenChange: (open: boolean) => void;
   initialServiceCategory?: string;
   initialPrompt?: string;
+  initialSessionContext?: Record<string, any>;
 }
 
 export function AiServiceAssistantModal({
@@ -137,9 +141,11 @@ export function AiServiceAssistantModal({
   onOpenChange,
   initialServiceCategory,
   initialPrompt,
+  initialSessionContext,
 }: AiServiceAssistantModalProps) {
   const [locale, setLocale] = useState<AssistantLocale>("en-IN");
   const [messages, setMessages] = useState<ChatMessage[]>([WELCOME_MESSAGES["en-IN"]]);
+  const [sessionContext, setSessionContext] = useState<Record<string, any>>(initialSessionContext || {});
   const [isLoading, setIsLoading] = useState(false);
   const [activePackageForCustomizer, setActivePackageForCustomizer] =
     useState<RecommendationPackage | null>(null);
@@ -159,6 +165,13 @@ export function AiServiceAssistantModal({
     }
   }, [open, messages]);
 
+  // Sync initialSessionContext if passed
+  useEffect(() => {
+    if (open && initialSessionContext && Object.keys(initialSessionContext).length > 0) {
+      setSessionContext((prev) => ({ ...prev, ...initialSessionContext }));
+    }
+  }, [open, initialSessionContext]);
+
   // Handle initialPrompt if passed
   useEffect(() => {
     if (open && initialPrompt && messages.length === 1) {
@@ -177,6 +190,7 @@ export function AiServiceAssistantModal({
   const handleReset = () => {
     setMessages([WELCOME_MESSAGES[locale]]);
     setExpandedPackageId("recommended-smart-color");
+    setSessionContext({});
   };
 
   const handleSendMessage = async (userText: string, specificLocale?: AssistantLocale) => {
@@ -215,6 +229,7 @@ export function AiServiceAssistantModal({
           messages: payloadMessages,
           serviceCategory: initialServiceCategory || null,
           customerLocale: activeLoc,
+          sessionContext,
         }),
       });
 
@@ -223,7 +238,19 @@ export function AiServiceAssistantModal({
         throw new Error(json.message || "Failed to get AI recommendation");
       }
 
-      const { reply, recommendations, clarificationQuestions } = json.data;
+      const {
+        reply,
+        recommendations,
+        clarificationQuestions,
+        stage,
+        sessionContext: updatedContext,
+        appliedFilters,
+        budgetNote,
+      } = json.data;
+
+      if (updatedContext && typeof updatedContext === "object") {
+        setSessionContext((prev) => ({ ...prev, ...updatedContext }));
+      }
 
       const assistantMessage: ChatMessage = {
         id: `asst-${Date.now()}`,
@@ -231,6 +258,9 @@ export function AiServiceAssistantModal({
         content: reply || "Here are recommendations tailored to your requirements:",
         recommendations: recommendations && recommendations.length > 0 ? recommendations : undefined,
         clarificationQuestions: clarificationQuestions,
+        stage: stage || (recommendations && recommendations.length > 0 ? "recommendations" : "gathering_requirements"),
+        appliedFilters: appliedFilters || [],
+        budgetNote: budgetNote || null,
         timestamp: new Date().toISOString(),
       };
 
@@ -345,9 +375,16 @@ export function AiServiceAssistantModal({
                       key={q.id}
                       className="ml-0 sm:ml-11 bg-white border border-slate-200/90 rounded-2xl p-3.5 space-y-2 shadow-xs"
                     >
-                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
-                        {q.question}
-                      </span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">
+                          {q.question}
+                        </span>
+                        {msg.stage === "gathering_requirements" && (
+                          <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200/60">
+                            {isKannada ? "ಹಂತ ೧: ವಿವರ ಸಂಗ್ರಹಣೆ" : "Step 1: Gathering Requirements"}
+                          </span>
+                        )}
+                      </div>
                       <div className="flex flex-wrap gap-1.5">
                         {q.options.map((opt, oIdx) => (
                           <button
@@ -363,9 +400,42 @@ export function AiServiceAssistantModal({
                     </div>
                   ))}
 
+                {/* Budget Note Banner (if present and no recommendations) */}
+                {msg.budgetNote && (!msg.recommendations || msg.recommendations.length === 0) && (
+                  <div className="ml-0 sm:ml-11 p-3.5 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs font-medium flex items-start gap-2 shadow-2xs">
+                    <span className="text-base leading-none">💡</span>
+                    <div className="flex-1 leading-relaxed">{msg.budgetNote}</div>
+                  </div>
+                )}
+
                 {/* Recommendation Packages Cards (if present) */}
                 {msg.recommendations && msg.recommendations.length > 0 && (
                   <div className="ml-0 sm:ml-11 space-y-3 pt-2">
+                    {/* Applied Filter Chips */}
+                    {msg.appliedFilters && msg.appliedFilters.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 pb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mr-1">
+                          {isKannada ? "ಅನ್ವಯಿಸಲಾದ ಫಿಲ್ಟರ್‌ಗಳು:" : "Active Filters:"}
+                        </span>
+                        {msg.appliedFilters.map((f, fIdx) => (
+                          <span
+                            key={fIdx}
+                            className="px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200/70 text-blue-700 text-[11px] font-bold shadow-2xs"
+                          >
+                            {f.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Budget Note Alert */}
+                    {msg.budgetNote && (
+                      <div className="p-3.5 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 text-xs font-medium flex items-start gap-2 shadow-2xs">
+                        <span className="text-base leading-none">💡</span>
+                        <div className="flex-1 leading-relaxed">{msg.budgetNote}</div>
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5">
                         <PackageCheck className="w-4 h-4 text-blue-600" />

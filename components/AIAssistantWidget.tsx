@@ -47,6 +47,7 @@ export function AIAssistantWidget() {
         onOpenChange={setIsOpen}
         initialServiceCategory={options.serviceCategory}
         initialPrompt={options.initialPrompt}
+        initialSessionContext={options.sessionContext}
       />
     </>
   );
