@@ -28,10 +28,6 @@ export default function BookingDetailPage() {
   const [reviewComment, setReviewComment] = useState<string>("");
   const [reviewTags, setReviewTags] = useState<string[]>(["Work Quality", "Punctuality"]);
   const [reviewSubmitting, setReviewSubmitting] = useState<boolean>(false);
-  const [reviewRating, setReviewRating] = useState<number>(5);
-  const [reviewComment, setReviewComment] = useState<string>("");
-  const [reviewTags, setReviewTags] = useState<string[]>(["Quality"]);
-  const [submittingReview, setSubmittingReview] = useState(false);
 
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
