@@ -262,8 +262,8 @@ export default function ServiceReportPage() {
                         </td>
                         <td className="px-6 py-4 text-center text-slate-700">{mat.quantity}</td>
                         <td className="px-6 py-4 text-slate-500">{mat.unit || "Unit"}</td>
-                        <td className="px-6 py-4 text-right text-slate-700">₹{(mat.unitPrice || mat.unitCost || 0).toLocaleString("en-IN")}</td>
-                        <td className="px-6 py-4 text-right font-bold text-slate-900">₹{(mat.total || mat.totalCost || 0).toLocaleString("en-IN")}</td>
+                        <td className="px-6 py-4 text-right text-slate-700">₹{Number(mat.unitPrice || mat.unitCost || 0).toLocaleString("en-IN")}</td>
+                        <td className="px-6 py-4 text-right font-bold text-slate-900">₹{Number(mat.total || mat.totalCost || 0).toLocaleString("en-IN")}</td>
                       </tr>
                     ))
                   )}
@@ -374,17 +374,17 @@ export default function ServiceReportPage() {
               
               <div className="flex justify-between">
                 <span>Labour Charges</span>
-                <span className="text-slate-800">₹{worksheet.labourCost.toLocaleString("en-IN")}</span>
+                <span className="text-slate-800">₹{Number(worksheet.labourCost || 0).toLocaleString("en-IN")}</span>
               </div>
               
               <div className="flex justify-between">
                 <span>Materials Subtotal</span>
-                <span className="text-slate-800">₹{worksheet.materialCost.toLocaleString("en-IN")}</span>
+                <span className="text-slate-800">₹{Number(worksheet.materialCost || 0).toLocaleString("en-IN")}</span>
               </div>
 
               <div className="border-t border-slate-150 pt-3.5 flex justify-between text-sm text-slate-800 font-extrabold">
                 <span>Total Amount Charged</span>
-                <span className="text-blue-600 font-black">₹{worksheet.totalCost.toLocaleString("en-IN")}</span>
+                <span className="text-blue-600 font-black">₹{Number(worksheet.totalCost || 0).toLocaleString("en-IN")}</span>
               </div>
             </div>
           </div>

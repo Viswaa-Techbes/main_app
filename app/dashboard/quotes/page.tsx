@@ -242,9 +242,7 @@ export default function CustomerQuotesPage() {
       } else {
         // Test / mock mode or simulated payment fallback
         const proceedMock = confirm(
-          `Demo/Test Mode Active:\nProceed with simulated ${paymentType.toUpperCase()} payment for Quotation ${quote.requestId} (₹${orderData.displayAmount?.toLocaleString(
-            "en-IN"
-          )})?`
+          `Demo/Test Mode Active:\nProceed with simulated ${paymentType.toUpperCase()} payment for Quotation ${quote.requestId} (₹${formatCurrency(orderData.displayAmount)})?`
         );
         if (proceedMock) {
           await verifyPaymentOnServer(quote._id, {
@@ -281,7 +279,7 @@ export default function CustomerQuotesPage() {
   }
 
   async function handleAcceptQuote(quote: any) {
-    if (!confirm(`Accept Quotation #${quote.requestId} (Total: ₹${(quote.finalAmount || 0).toLocaleString("en-IN")})?`)) return;
+    if (!confirm(`Accept Quotation #${quote.requestId} (Total: ₹${formatCurrency(quote.finalAmount)})?`)) return;
 
     try {
       const res = await fetchAuthApi(`/api/v2/quotes/${quote._id}/accept`, {
@@ -335,7 +333,11 @@ export default function CustomerQuotesPage() {
     }
   }
 
-  const isPriceVisible = (status: string) => {
+  const isPriceVisible = (status: string, finalAmount?: number) => {
+    // Only consider price visible if finalAmount is actually set and greater than 0
+    if (finalAmount !== undefined && Number(finalAmount || 0) <= 0) {
+      return false;
+    }
     return [
       "quotation_sent",
       "Quote Sent",
@@ -348,6 +350,14 @@ export default function CustomerQuotesPage() {
       "converted_to_order",
       "Accepted",
     ].includes(status);
+  };
+
+  const formatCurrency = (val: any) => {
+    return Number(val ?? 0).toLocaleString("en-IN");
+  };
+
+  const formatDate = (val: any) => {
+    return val ? new Date(val).toLocaleDateString("en-IN") : "—";
   };
 
   return (
@@ -504,9 +514,9 @@ export default function CustomerQuotesPage() {
                         </div>
                         <div className="flex justify-between text-[10px] text-slate-500 mt-1.5">
                           <span>1. Quotation Ready</span>
-                          <span>2. Advance (₹{advanceAmount.toLocaleString("en-IN")})</span>
+                          <span>2. Advance (₹{formatCurrency(advanceAmount)})</span>
                           <span>3. Installation</span>
-                          <span>4. Balance (₹{balanceAmount.toLocaleString("en-IN")})</span>
+                          <span>4. Balance (₹{formatCurrency(balanceAmount)})</span>
                         </div>
                       </div>
                     )}
@@ -532,7 +542,7 @@ export default function CustomerQuotesPage() {
                               </span>
                               {priceVisible && it.lineTotal !== undefined && (
                                 <span className="font-medium text-slate-900">
-                                  ₹{it.lineTotal.toLocaleString("en-IN")}
+                                  ₹{formatCurrency(it.lineTotal)}
                                 </span>
                               )}
                             </div>
@@ -550,16 +560,16 @@ export default function CustomerQuotesPage() {
                           quote.pricingBreakdown.miscCharge > 0) && (
                           <div className="mt-2 pt-2 border-t border-slate-200/70 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-slate-600">
                             {quote.pricingBreakdown.labourCharge > 0 && (
-                              <span>Labour/Installation: <strong>₹{quote.pricingBreakdown.labourCharge.toLocaleString("en-IN")}</strong></span>
+                              <span>Labour/Installation: <strong>₹{formatCurrency(quote.pricingBreakdown.labourCharge)}</strong></span>
                             )}
                             {quote.pricingBreakdown.serviceCharge > 0 && (
-                              <span>Service: <strong>₹{quote.pricingBreakdown.serviceCharge.toLocaleString("en-IN")}</strong></span>
+                              <span>Service: <strong>₹{formatCurrency(quote.pricingBreakdown.serviceCharge)}</strong></span>
                             )}
                             {quote.pricingBreakdown.accessoriesCharge > 0 && (
-                              <span>Accessories: <strong>₹{quote.pricingBreakdown.accessoriesCharge.toLocaleString("en-IN")}</strong></span>
+                              <span>Accessories: <strong>₹{formatCurrency(quote.pricingBreakdown.accessoriesCharge)}</strong></span>
                             )}
                             {quote.pricingBreakdown.miscCharge > 0 && (
-                              <span>Misc: <strong>₹{quote.pricingBreakdown.miscCharge.toLocaleString("en-IN")}</strong></span>
+                              <span>Misc: <strong>₹{formatCurrency(quote.pricingBreakdown.miscCharge)}</strong></span>
                             )}
                           </div>
                         )
@@ -588,16 +598,16 @@ export default function CustomerQuotesPage() {
                       <div className="space-y-2 mb-4 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
                         <div className="flex justify-between text-xs text-slate-500">
                           <span>Taxable Subtotal:</span>
-                          <span>₹{(quote.subtotal || 0).toLocaleString("en-IN")}</span>
+                          <span>₹{formatCurrency(quote.subtotal)}</span>
                         </div>
                         <div className="flex justify-between text-xs text-slate-500">
                           <span>GST ({quote.gstRate || 18}%):</span>
-                          <span>₹{(quote.gstAmount || 0).toLocaleString("en-IN")}</span>
+                          <span>₹{formatCurrency(quote.gstAmount)}</span>
                         </div>
                         <div className="flex justify-between items-baseline pt-1 border-t border-slate-200">
                           <span className="text-xs font-bold uppercase text-slate-700">Total Quotation:</span>
                           <span className="text-2xl font-black text-slate-900">
-                            ₹{finalAmount.toLocaleString("en-IN")}
+                            ₹{formatCurrency(finalAmount)}
                           </span>
                         </div>
 
@@ -609,21 +619,21 @@ export default function CustomerQuotesPage() {
                               Advance ({advancePct}%):
                             </span>
                             <span className={isAdvancePaid ? "text-emerald-700 font-bold line-through" : "font-bold text-slate-900"}>
-                              ₹{advanceAmount.toLocaleString("en-IN")}
+                              ₹{formatCurrency(advanceAmount)}
                             </span>
                           </div>
 
                           {isAdvancePaid && (
                             <div className="flex justify-between text-emerald-800 font-medium bg-emerald-50 px-2 py-1 rounded-md">
                               <span>Advance Paid:</span>
-                              <span>₹{advancePaid.toLocaleString("en-IN")} (Paid)</span>
+                              <span>₹{formatCurrency(advancePaid)} (Paid)</span>
                             </div>
                           )}
 
                           <div className="flex justify-between text-slate-700">
                             <span>Balance Due on Completion:</span>
                             <span className={isBalancePaid ? "text-emerald-700 font-bold" : "font-black text-blue-700"}>
-                              ₹{balanceAmount.toLocaleString("en-IN")}
+                              ₹{formatCurrency(balanceAmount)}
                             </span>
                           </div>
                         </div>
@@ -653,7 +663,7 @@ export default function CustomerQuotesPage() {
                           <CreditCard size={16} />
                           {payingQuoteId === quote._id && payingType === "advance"
                             ? "Processing..."
-                            : `Pay Advance (₹${advanceAmount.toLocaleString("en-IN")})`}
+                            : `Pay Advance (₹${formatCurrency(advanceAmount)})`}
                         </Button>
                       )}
 
@@ -667,7 +677,7 @@ export default function CustomerQuotesPage() {
                           <CreditCard size={16} />
                           {payingQuoteId === quote._id && payingType === "balance"
                             ? "Processing..."
-                            : `Pay Balance (₹${balanceAmount.toLocaleString("en-IN")})`}
+                            : `Pay Balance (₹${formatCurrency(balanceAmount)})`}
                         </Button>
                       )}
 
@@ -797,10 +807,10 @@ export default function CustomerQuotesPage() {
                         {isPriceVisible(selectedQuote.status) && (
                           <>
                             <td className="py-3 px-4 text-right text-gray-600">
-                              ₹{(it.unitPrice || 0).toLocaleString("en-IN")}
+                              ₹{formatCurrency(it.unitPrice)}
                             </td>
                             <td className="py-3 px-4 text-right font-bold text-gray-900">
-                              ₹{(it.lineTotal || 0).toLocaleString("en-IN")}
+                              ₹{formatCurrency(it.lineTotal)}
                             </td>
                           </>
                         )}
@@ -825,25 +835,25 @@ export default function CustomerQuotesPage() {
                     {selectedQuote.pricingBreakdown.labourCharge > 0 && (
                       <div className="flex justify-between">
                         <span className="text-slate-600">Installation Labour:</span>
-                        <span className="font-semibold text-slate-900">₹{selectedQuote.pricingBreakdown.labourCharge.toLocaleString("en-IN")}</span>
+                        <span className="font-semibold text-slate-900">₹{formatCurrency(selectedQuote.pricingBreakdown.labourCharge)}</span>
                       </div>
                     )}
                     {selectedQuote.pricingBreakdown.serviceCharge > 0 && (
                       <div className="flex justify-between">
                         <span className="text-slate-600">Service Charges:</span>
-                        <span className="font-semibold text-slate-900">₹{selectedQuote.pricingBreakdown.serviceCharge.toLocaleString("en-IN")}</span>
+                        <span className="font-semibold text-slate-900">₹{formatCurrency(selectedQuote.pricingBreakdown.serviceCharge)}</span>
                       </div>
                     )}
                     {selectedQuote.pricingBreakdown.accessoriesCharge > 0 && (
                       <div className="flex justify-between">
                         <span className="text-slate-600">Accessories &amp; Materials:</span>
-                        <span className="font-semibold text-slate-900">₹{selectedQuote.pricingBreakdown.accessoriesCharge.toLocaleString("en-IN")}</span>
+                        <span className="font-semibold text-slate-900">₹{formatCurrency(selectedQuote.pricingBreakdown.accessoriesCharge)}</span>
                       </div>
                     )}
                     {selectedQuote.pricingBreakdown.miscCharge > 0 && (
                       <div className="flex justify-between">
                         <span className="text-slate-600">Misc / Travel:</span>
-                        <span className="font-semibold text-slate-900">₹{selectedQuote.pricingBreakdown.miscCharge.toLocaleString("en-IN")}</span>
+                        <span className="font-semibold text-slate-900">₹{formatCurrency(selectedQuote.pricingBreakdown.miscCharge)}</span>
                       </div>
                     )}
                   </div>
@@ -878,13 +888,13 @@ export default function CustomerQuotesPage() {
                 <div className="flex justify-between text-sm text-slate-300">
                   <span>Subtotal Amount:</span>
                   <span className="font-semibold text-white">
-                    ₹{(selectedQuote.subtotal || 0).toLocaleString("en-IN")}
+                    ₹{formatCurrency(selectedQuote.subtotal)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm text-slate-300">
                   <span>Goods & Services Tax (GST {selectedQuote.gstRate || 18}%):</span>
                   <span className="font-semibold text-white">
-                    ₹{(selectedQuote.gstAmount || 0).toLocaleString("en-IN")}
+                    ₹{formatCurrency(selectedQuote.gstAmount)}
                   </span>
                 </div>
                 <div className="border-t border-slate-700 pt-3 flex justify-between items-baseline">
@@ -892,7 +902,7 @@ export default function CustomerQuotesPage() {
                     Grand Total:
                   </span>
                   <span className="text-3xl font-black text-white">
-                    ₹{(selectedQuote.finalAmount || 0).toLocaleString("en-IN")}
+                    ₹{formatCurrency(selectedQuote.finalAmount)}
                   </span>
                 </div>
 
@@ -901,7 +911,7 @@ export default function CustomerQuotesPage() {
                   <div>
                     Advance Required ({selectedQuote.advancePercentage || 50}%):{" "}
                     <strong className="text-white">
-                      ₹{(selectedQuote.advanceAmount || 0).toLocaleString("en-IN")}
+                      ₹{formatCurrency(selectedQuote.advanceAmount)}
                     </strong>
                     {selectedQuote.advancePaidAmount > 0 && (
                       <span className="ml-2 text-emerald-400 font-bold">(Paid)</span>
@@ -910,7 +920,7 @@ export default function CustomerQuotesPage() {
                   <div>
                     Remaining Balance:{" "}
                     <strong className="text-emerald-400">
-                      ₹{(selectedQuote.balanceAmount || 0).toLocaleString("en-IN")}
+                      ₹{formatCurrency(selectedQuote.balanceAmount)}
                     </strong>
                   </div>
                 </div>
@@ -967,7 +977,7 @@ export default function CustomerQuotesPage() {
                   }}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl px-6"
                 >
-                  <CreditCard size={16} className="mr-2" /> Pay Advance (₹{(selectedQuote.advanceAmount || 0).toLocaleString("en-IN")})
+                  <CreditCard size={16} className="mr-2" /> Pay Advance (₹{formatCurrency(selectedQuote.advanceAmount)})
                 </Button>
               )}
             </div>
@@ -1006,7 +1016,7 @@ export default function CustomerQuotesPage() {
                 </div>
                 <div>
                   <span className="text-slate-400 block text-[10px] uppercase font-bold">Payment Details</span>
-                  <span className="font-semibold text-slate-900">Paid: ₹{viewInvoiceData.amountPaid?.toLocaleString("en-IN")}</span>
+                  <span className="font-semibold text-slate-900">Paid: ₹{formatCurrency(viewInvoiceData.amountPaid)}</span>
                   <span className="block text-slate-500">Date: {formatDateTime(viewInvoiceData.date)}</span>
                 </div>
               </div>
@@ -1025,7 +1035,7 @@ export default function CustomerQuotesPage() {
                       <tr key={i}>
                         <td className="p-2.5">{it.productName}</td>
                         <td className="p-2.5 text-center">{it.quantity}</td>
-                        <td className="p-2.5 text-right font-medium">₹{(it.lineTotal || 0).toLocaleString("en-IN")}</td>
+                        <td className="p-2.5 text-right font-medium">₹{formatCurrency(it.lineTotal)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1035,15 +1045,15 @@ export default function CustomerQuotesPage() {
               <div className="bg-slate-900 text-white p-3.5 rounded-xl space-y-1.5 text-xs">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Total Quotation Value:</span>
-                  <span>₹{viewInvoiceData.finalAmount?.toLocaleString("en-IN")}</span>
+                  <span>₹{formatCurrency(viewInvoiceData.finalAmount)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-emerald-400 text-sm pt-1 border-t border-slate-800">
                   <span>Amount Paid ({viewInvoiceData.paymentType}):</span>
-                  <span>₹{viewInvoiceData.amountPaid?.toLocaleString("en-IN")}</span>
+                  <span>₹{formatCurrency(viewInvoiceData.amountPaid)}</span>
                 </div>
                 <div className="flex justify-between text-slate-400 text-[11px]">
                   <span>Outstanding Balance:</span>
-                  <span>₹{viewInvoiceData.balanceAmount?.toLocaleString("en-IN")}</span>
+                  <span>₹{formatCurrency(viewInvoiceData.balanceAmount)}</span>
                 </div>
               </div>
             </div>
@@ -1103,13 +1113,13 @@ export default function CustomerQuotesPage() {
               <div className="flex justify-between">
                 <span className="text-slate-500">Amount Paid:</span>
                 <span className="font-extrabold text-emerald-700">
-                  ₹{orderSuccess.amountPaid?.toLocaleString("en-IN")}
+                  ₹{formatCurrency(orderSuccess.amountPaid)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Outstanding Balance:</span>
                 <span className="font-bold text-slate-900">
-                  ₹{orderSuccess.balanceAmount?.toLocaleString("en-IN")}
+                  ₹{formatCurrency(orderSuccess.balanceAmount)}
                 </span>
               </div>
             </div>

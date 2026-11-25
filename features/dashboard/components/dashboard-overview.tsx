@@ -223,7 +223,7 @@ export function DashboardOverview() {
         {/* Payments Summary */}
         <Panel title="Payments">
           {data.payments.length ? data.payments.map((payment) => (
-            <Row key={payment._id} title={`Txn: ${payment.razorpayPaymentId || payment._id.slice(0, 10)}`} meta={new Date(payment.createdAt).toLocaleDateString("en-IN")} side={`Rs. ${(payment.amount / 100).toLocaleString("en-IN")}`}>
+            <Row key={payment._id} title={`Txn: ${payment.razorpayPaymentId || payment._id.slice(0, 10)}`} meta={payment.createdAt ? new Date(payment.createdAt).toLocaleDateString("en-IN") : "—"} side={`Rs. ${Number((payment.amount || 0) / 100).toLocaleString("en-IN")}`}>
               <div className="flex items-center justify-between w-full mt-2">
                 <Status status={payment.status} />
                 <Button variant="outline" className="h-7 text-[10px] font-bold rounded-lg border-slate-200" disabled>Receipt</Button>
