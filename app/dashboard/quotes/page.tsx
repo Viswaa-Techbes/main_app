@@ -684,9 +684,9 @@ export default function CustomerQuotesPage() {
                         <div className="flex gap-2">
                           <Button
                             onClick={() => handleAcceptQuote(quote)}
-                            className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 font-bold py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5"
+                            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5"
                           >
-                            <CheckCircle size={14} /> Accept Quote
+                            <CheckCircle size={14} /> Approve & Book Service
                           </Button>
                           <Button
                             onClick={() => handleRejectQuote(quote)}
@@ -696,6 +696,14 @@ export default function CustomerQuotesPage() {
                             <X size={14} /> Decline
                           </Button>
                         </div>
+                      )}
+
+                      {quote.status === "quotation_accepted" && quote.jobId && (
+                        <Link href={`/dashboard/bookings/${quote.jobId}`} className="block">
+                          <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5">
+                            View Active Work Order &rarr;
+                          </Button>
+                        </Link>
                       )}
 
                       {/* 5. Invoices & Full Details */}
@@ -946,7 +954,7 @@ export default function CustomerQuotesPage() {
                     }}
                     className="bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl"
                   >
-                    <CheckCircle size={16} className="mr-1.5" /> Accept Quote
+                    <CheckCircle size={16} className="mr-1.5" /> Approve & Book Service
                   </Button>
                 </>
               )}

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Calendar, MapPin, User, Clock, CheckCircle, Wallet, AlertTriangle, ShieldCheck, Download, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, User, Clock, CheckCircle, Wallet, AlertTriangle, ShieldCheck, Download, Loader2, Star, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { fetchAuthApi } from "@/lib/api";
@@ -24,8 +24,46 @@ export default function BookingDetailPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [payMethod, setPayMethod] = useState<"online" | "wallet" | "cod">("online");
+  const [reviewRating, setReviewRating] = useState<number>(5);
+  const [reviewComment, setReviewComment] = useState<string>("");
+  const [reviewTags, setReviewTags] = useState<string[]>(["Work Quality", "Punctuality"]);
+  const [reviewSubmitting, setReviewSubmitting] = useState<boolean>(false);
+  const [reviewRating, setReviewRating] = useState<number>(5);
+  const [reviewComment, setReviewComment] = useState<string>("");
+  const [reviewTags, setReviewTags] = useState<string[]>(["Quality"]);
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleSubmitReview = async () => {
+    const techId = booking?.assignedTechnician?._id || booking?.assignedTechnician;
+    if (!techId) {
+      toast({ title: "Technician not assigned", variant: "destructive" });
+      return;
+    }
+    try {
+      setSubmittingReview(true);
+      const tagPrefix = reviewTags.length > 0 ? `[${reviewTags.join(", ")}] ` : "";
+      const res = await fetchAuthApi("/api/v2/reviews", {
+        method: "POST",
+        body: JSON.stringify({
+          jobId: booking._id,
+          technicianId: techId,
+          rating: reviewRating,
+          serviceRating: reviewRating,
+          technicianRating: reviewRating,
+          comment: `${tagPrefix}${reviewComment.trim() || "Great service!"}`,
+        }),
+      });
+      if (!res.success) throw new Error(res.message || "Failed to submit review");
+      toast({ title: "Thank you for your feedback!", description: "Your rating has been submitted." });
+      await loadData();
+    } catch (err: any) {
+      toast({ title: "Failed to submit review", description: err.message, variant: "destructive" });
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
 
   // Load all detail data
   const loadData = async () => {
@@ -293,6 +331,161 @@ export default function BookingDetailPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left Column - Booking & Tech Details (2 cols span) */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Live Completion OTP Card */}
+          {booking.completionOtp && !["completed", "closed", "cancelled"].includes(booking.status) && (
+            <div className="rounded-3xl border-2 border-indigo-200 bg-gradient-to-r from-indigo-50 to-blue-50 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0">
+                  <KeyRound className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-black uppercase tracking-wider text-indigo-700">Customer Completion OTP</div>
+                  <p className="text-xs text-slate-600 font-medium mt-0.5">
+                    Share this code with your technician only after inspecting the completed installation & photos.
+                  </p>
+                </div>
+              </div>
+              <div className="bg-white border border-indigo-200 rounded-2xl px-5 py-2.5 text-center shadow-sm shrink-0">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">OTP Code</div>
+                <div className="text-2xl font-black tracking-[0.25em] text-indigo-700 font-mono">
+                  {booking.completionOtp}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Customer Rate & Review Technician Card */}
+          {booking.status === "completed" && (
+            <div className="rounded-3xl border border-amber-200 bg-amber-50/40 p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
+                  <h3 className="text-sm font-black text-slate-900">
+                    {booking.hasReview ? "Your Service Review" : "Rate & Review Technician"}
+                  </h3>
+                </div>
+                {booking.hasReview && (
+                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                    Submitted ✓
+                  </span>
+                )}
+              </div>
+
+              {booking.hasReview && booking.review ? (
+                <div className="bg-white rounded-2xl border border-amber-100 p-4 space-y-2">
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star
+                        key={s}
+                        className={`h-4 w-4 ${s <= (booking.review.rating || 5) ? "text-amber-400 fill-amber-400" : "text-slate-200"}`}
+                      />
+                    ))}
+                    <span className="ml-2 text-xs font-bold text-slate-700">{booking.review.rating || 5} / 5</span>
+                  </div>
+                  <p className="text-xs text-slate-600 italic">&ldquo;{booking.review.comment || "Great service!"}&rdquo;</p>
+                </div>
+              ) : (
+                <div className="space-y-3 bg-white rounded-2xl border border-amber-100 p-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-700">Rating:</span>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => setReviewRating(s)}
+                          aria-label={`Rate ${s} stars`}
+                          className="p-0.5 hover:scale-110 transition"
+                        >
+                          <Star
+                            className={`h-6 w-6 ${s <= reviewRating ? "text-amber-400 fill-amber-400" : "text-slate-200"}`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <span className="text-xs font-black text-amber-600 ml-1">{reviewRating}/5</span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {["Punctuality", "Work Quality", "Cleanliness", "Polite"].map((tag) => {
+                      const active = reviewTags.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() =>
+                            setReviewTags((prev) =>
+                              prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+                            )
+                          }
+                          className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition ${
+                            active
+                              ? "bg-amber-500 text-white border-amber-500"
+                              : "bg-slate-50 text-slate-600 border-slate-200"
+                          }`}
+                        >
+                          {tag}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <textarea
+                    rows={2}
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    placeholder="Share your feedback on the technician's installation and professionalism..."
+                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  />
+
+                  <Button
+                    disabled={reviewSubmitting}
+                    onClick={async () => {
+                      const techId = booking.assignedTechnician?._id || booking.assignedTechnician;
+                      if (!techId) {
+                        toast({ title: "No technician assigned", variant: "destructive" });
+                        return;
+                      }
+                      setReviewSubmitting(true);
+                      try {
+                        const finalComment = [
+                          reviewComment.trim(),
+                          reviewTags.length ? `[${reviewTags.join(", ")}]` : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ");
+                        const res = await fetchAuthApi("/api/v2/reviews", {
+                          method: "POST",
+                          body: JSON.stringify({
+                            jobId: booking._id || bookingId,
+                            technicianId: techId,
+                            rating: reviewRating,
+                            serviceRating: reviewRating,
+                            technicianRating: reviewRating,
+                            comment: finalComment || "Excellent service!",
+                          }),
+                        });
+                        if (res.success) {
+                          toast({ title: "Thank you for your review!" });
+                          await loadData();
+                        } else {
+                          throw new Error(res.message || "Failed to submit review");
+                        }
+                      } catch (err: any) {
+                        toast({ title: "Review Error", description: err.message, variant: "destructive" });
+                      } finally {
+                        setReviewSubmitting(false);
+                      }
+                    }}
+                    className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs h-9 rounded-xl"
+                  >
+                    {reviewSubmitting ? "Submitting..." : "Submit Rating & Review"}
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Booking Info Card */}
           <div className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm space-y-4">
             <h3 className="text-sm font-black text-slate-800">Booking Specifications</h3>
@@ -520,6 +713,99 @@ export default function BookingDetailPage() {
                   You approved additional charges of ₹{booking.additionalCharges}. The remaining balance has been updated below.
                 </p>
               </div>
+            </div>
+          )}
+
+          {/* Customer Completion OTP Card */}
+          {booking.completionOtp && booking.status !== "completed" && booking.status !== "cancelled" && (
+            <div className="rounded-3xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-white p-5 shadow-sm space-y-2">
+              <div className="flex items-center gap-2 text-indigo-700 font-black text-sm">
+                <KeyRound className="h-4 w-4" />
+                <span>Work Completion OTP</span>
+              </div>
+              <p className="text-xs text-slate-600 font-medium">
+                Share this OTP with your technician <b>only after</b> inspecting the completed work:
+              </p>
+              <div className="bg-white border border-indigo-200 rounded-2xl py-3 px-4 text-center font-mono text-2xl font-black tracking-[0.35em] text-indigo-700 shadow-inner">
+                {booking.completionOtp}
+              </div>
+            </div>
+          )}
+
+          {/* Customer Rate & Review Technician Card */}
+          {booking.status === "completed" && (
+            <div className="rounded-3xl border border-amber-200 bg-amber-50/30 p-5 shadow-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-black text-slate-800 flex items-center gap-1.5">
+                  <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
+                  <span>{booking.hasReview ? "Your Service Review" : "Rate & Review Technician"}</span>
+                </h3>
+                {booking.hasReview && (
+                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                    Submitted
+                  </span>
+                )}
+              </div>
+
+              {booking.hasReview && booking.review ? (
+                <div className="space-y-1.5 bg-white rounded-2xl p-3.5 border border-amber-100">
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} className={`h-4 w-4 ${s <= (booking.review.rating || 5) ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
+                    ))}
+                    <span className="ml-1.5 text-xs font-bold text-slate-700">{booking.review.rating}/5</span>
+                  </div>
+                  {booking.review.comment && <p className="text-xs text-slate-600 italic">&ldquo;{booking.review.comment}&rdquo;</p>}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-1.5">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setReviewRating(s)}
+                        className="p-1 transition-transform hover:scale-110"
+                      >
+                        <Star className={`h-6 w-6 ${s <= reviewRating ? "fill-amber-400 text-amber-400" : "text-slate-300"}`} />
+                      </button>
+                    ))}
+                    <span className="ml-2 text-xs font-bold text-slate-700">{reviewRating} / 5</span>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {["Punctuality", "Quality", "Cleanliness", "Polite"].map((tag) => {
+                      const active = reviewTags.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => setReviewTags((prev) => active ? prev.filter((t) => t !== tag) : [...prev, tag])}
+                          className={`text-[11px] font-bold px-2.5 py-1 rounded-full border transition ${active ? "bg-amber-500 text-white border-amber-500" : "bg-white text-slate-600 border-slate-200"}`}
+                        >
+                          {tag}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <textarea
+                    rows={2}
+                    value={reviewComment}
+                    onChange={(e) => setReviewComment(e.target.value)}
+                    placeholder="Share your feedback about the technician..."
+                    className="w-full rounded-xl border border-slate-200 bg-white p-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-400"
+                  />
+
+                  <Button
+                    disabled={submittingReview}
+                    onClick={handleSubmitReview}
+                    className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold h-9 rounded-xl text-xs"
+                  >
+                    {submittingReview ? "Submitting..." : "Submit Rating & Review"}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
