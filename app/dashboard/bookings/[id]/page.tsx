@@ -27,7 +27,7 @@ export default function BookingDetailPage() {
   const [reviewRating, setReviewRating] = useState<number>(5);
   const [reviewComment, setReviewComment] = useState<string>("");
   const [reviewTags, setReviewTags] = useState<string[]>(["Work Quality", "Punctuality"]);
-  const [reviewSubmitting, setReviewSubmitting] = useState<boolean>(false);
+  const [submittingReview, setSubmittingReview] = useState<boolean>(false);
 
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -458,47 +458,11 @@ export default function BookingDetailPage() {
                   />
 
                   <Button
-                    disabled={reviewSubmitting}
-                    onClick={async () => {
-                      const techId = booking.assignedTechnician?._id || booking.assignedTechnician;
-                      if (!techId) {
-                        toast({ title: "No technician assigned", variant: "destructive" });
-                        return;
-                      }
-                      setReviewSubmitting(true);
-                      try {
-                        const finalComment = [
-                          reviewComment.trim(),
-                          reviewTags.length ? `[${reviewTags.join(", ")}]` : "",
-                        ]
-                          .filter(Boolean)
-                          .join(" ");
-                        const res = await fetchAuthApi("/api/v2/reviews", {
-                          method: "POST",
-                          body: JSON.stringify({
-                            jobId: booking._id || bookingId,
-                            technicianId: techId,
-                            rating: reviewRating,
-                            serviceRating: reviewRating,
-                            technicianRating: reviewRating,
-                            comment: finalComment || "Excellent service!",
-                          }),
-                        });
-                        if (res.success) {
-                          toast({ title: "Thank you for your review!" });
-                          await loadData();
-                        } else {
-                          throw new Error(res.message || "Failed to submit review");
-                        }
-                      } catch (err: any) {
-                        toast({ title: "Review Error", description: err.message, variant: "destructive" });
-                      } finally {
-                        setReviewSubmitting(false);
-                      }
-                    }}
+                    disabled={submittingReview}
+                    onClick={handleSubmitReview}
                     className="bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs h-9 rounded-xl"
                   >
-                    {reviewSubmitting ? "Submitting..." : "Submit Rating & Review"}
+                    {submittingReview ? "Submitting..." : "Submit Rating & Review"}
                   </Button>
                 </div>
               )}
