@@ -279,15 +279,23 @@ export default function CustomerQuotesPage() {
   }
 
   async function handleAcceptQuote(quote: any) {
-    if (!confirm(`Accept Quotation #${quote.requestId} (Total: ₹${formatCurrency(quote.finalAmount)})?`)) return;
+    if (!confirm(`Accept Quotation #${quote.requestId} (Total: ₹${formatCurrency(quote.finalAmount)}) and book service?`)) return;
 
     try {
       const res = await fetchAuthApi(`/api/v2/quotes/${quote._id}/accept`, {
         method: "POST",
       });
       if (res.success) {
-        alert("Quotation approved successfully! You can now proceed to pay the 50% advance to confirm your booking.");
-        fetchQuotes(true);
+        const createdJobId = res.jobId || res.job?._id || res.data?.jobId;
+        if (selectedQuote && selectedQuote._id === quote._id) {
+          setSelectedQuote({
+            ...selectedQuote,
+            status: "quotation_accepted",
+            jobId: createdJobId || selectedQuote.jobId,
+          });
+        }
+        await fetchQuotes(true);
+        alert("Quotation accepted! Your Work Order has been booked. You can view your Start & Completion OTPs in the booking details.");
       } else {
         alert(res.message || "Failed to accept quotation");
       }
@@ -428,19 +436,13 @@ export default function CustomerQuotesPage() {
             const priceVisible = isPriceVisible(quote.status);
 
             const finalAmount = quote.finalAmount || 0;
-            const advancePct = quote.advancePercentage || 50;
-            const advanceAmount = quote.advanceAmount || Math.round(((finalAmount * advancePct) / 100) * 100) / 100;
-            const advancePaid = quote.advancePaidAmount || 0;
-            const isAdvancePaid = advancePaid >= advanceAmount && advanceAmount > 0;
-            const balanceAmount = quote.balanceAmount !== undefined ? quote.balanceAmount : Math.max(0, finalAmount - advancePaid);
-            const isBalancePaid = isAdvancePaid && (balanceAmount === 0 || quote.balancePaidAmount > 0);
+            const balanceAmount = quote.balanceAmount !== undefined ? quote.balanceAmount : finalAmount;
+            const isBalancePaid = Boolean(quote.balancePaidAmount > 0 || quote.quotePaymentStatus === "paid");
 
             // Job status check for balance payment
             const isJobCompleted = quote.jobStatus === "completed" || (quote.orderId && quote.orderId.status === "completed");
 
-            const canPayAdvance = priceVisible && !isAdvancePaid && (quote.status === "quotation_accepted" || quote.status?.toLowerCase().includes("sent") || quote.status === "payment_pending");
-            const canPayBalance = isAdvancePaid && !isBalancePaid && isJobCompleted;
-            const isBalanceAwaitingCompletion = isAdvancePaid && !isBalancePaid && !isJobCompleted;
+            const canPayBalance = !isBalancePaid && isJobCompleted && balanceAmount > 0;
 
             return (
               <Card
@@ -489,11 +491,9 @@ export default function CustomerQuotesPage() {
                             {isBalancePaid
                               ? "100% Settled"
                               : isJobCompleted
-                              ? "Job Complete • Balance Due"
-                              : isAdvancePaid
-                              ? "50% Advance Paid • Work In Progress"
-                              : quote.status === "quotation_accepted"
-                              ? "Quotation Accepted • Pay Advance"
+                              ? "Job Complete • Ready for Settlement"
+                              : quote.status === "quotation_accepted" || quote.jobId
+                              ? "Booked • View Booking & OTPs"
                               : "Quotation Ready"}
                           </span>
                         </div>
@@ -504,19 +504,17 @@ export default function CustomerQuotesPage() {
                                 ? "w-full bg-emerald-500"
                                 : isJobCompleted
                                 ? "w-4/5 bg-amber-500"
-                                : isAdvancePaid
-                                ? "w-1/2 bg-blue-600"
-                                : quote.status === "quotation_accepted"
-                                ? "w-1/4 bg-indigo-500"
-                                : "w-1/12 bg-slate-400"
+                                : quote.status === "quotation_accepted" || quote.jobId
+                                ? "w-1/2 bg-indigo-600"
+                                : "w-1/4 bg-blue-500"
                             }`}
                           />
                         </div>
                         <div className="flex justify-between text-[10px] text-slate-500 mt-1.5">
                           <span>1. Quotation Ready</span>
-                          <span>2. Advance (₹{formatCurrency(advanceAmount)})</span>
-                          <span>3. Installation</span>
-                          <span>4. Balance (₹{formatCurrency(balanceAmount)})</span>
+                          <span>2. Accepted &amp; Booked</span>
+                          <span>3. Installation &amp; OTPs</span>
+                          <span>4. Completed</span>
                         </div>
                       </div>
                     )}
@@ -611,68 +609,37 @@ export default function CustomerQuotesPage() {
                           </span>
                         </div>
 
-                        {/* Payment Breakdown Box */}
+                        {/* Payment Terms Box */}
                         <div className="mt-2 pt-2 border-t border-slate-200 space-y-1.5 text-xs">
                           <div className="flex justify-between text-slate-700">
-                            <span className="flex items-center gap-1">
-                              {isAdvancePaid && <CheckCircle2 size={13} className="text-emerald-600" />}
-                              Advance ({advancePct}%):
-                            </span>
-                            <span className={isAdvancePaid ? "text-emerald-700 font-bold line-through" : "font-bold text-slate-900"}>
-                              ₹{formatCurrency(advanceAmount)}
-                            </span>
-                          </div>
-
-                          {isAdvancePaid && (
-                            <div className="flex justify-between text-emerald-800 font-medium bg-emerald-50 px-2 py-1 rounded-md">
-                              <span>Advance Paid:</span>
-                              <span>₹{formatCurrency(advancePaid)} (Paid)</span>
-                            </div>
-                          )}
-
-                          <div className="flex justify-between text-slate-700">
-                            <span>Balance Due on Completion:</span>
-                            <span className={isBalancePaid ? "text-emerald-700 font-bold" : "font-black text-blue-700"}>
-                              ₹{formatCurrency(balanceAmount)}
+                            <span>Payment Terms:</span>
+                            <span className="font-bold text-emerald-700">
+                              {isBalancePaid ? "Paid" : "Pay on Completion"}
                             </span>
                           </div>
                         </div>
 
                         <p className="text-[11px] text-emerald-700 font-medium text-right flex items-center justify-end gap-1 mt-1">
-                          <ShieldCheck size={12} /> GST Included &bull; Authoritative Quote
+                          <ShieldCheck size={12} /> GST Included &bull; No Advance Required
                         </p>
                       </div>
                     ) : (
                       <div className="bg-amber-50/80 border border-amber-200 p-3.5 rounded-xl mb-4 text-center">
                         <p className="text-xs font-bold text-amber-800">Pricing Under Review</p>
                         <p className="text-[11px] text-amber-700 mt-0.5 leading-snug">
-                          Our engineer is finalizing pricing. Once sent, itemized rates and payment options will appear here.
+                          Our engineer is finalizing pricing. Once sent, itemized rates and booking options will appear here.
                         </p>
                       </div>
                     )}
 
                     {/* Action Buttons */}
                     <div className="space-y-2">
-                      {/* 1. Advance Payment button */}
-                      {canPayAdvance && (
-                        <Button
-                          onClick={() => handlePay(quote, "advance")}
-                          disabled={payingQuoteId === quote._id}
-                          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl shadow-md shadow-emerald-200 flex items-center justify-center gap-2"
-                        >
-                          <CreditCard size={16} />
-                          {payingQuoteId === quote._id && payingType === "advance"
-                            ? "Processing..."
-                            : `Pay Advance (₹${formatCurrency(advanceAmount)})`}
-                        </Button>
-                      )}
-
-                      {/* 2. Balance Payment button */}
+                      {/* 1. Balance Payment button (after job completed) */}
                       {canPayBalance && (
                         <Button
                           onClick={() => handlePay(quote, "balance")}
                           disabled={payingQuoteId === quote._id}
-                          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-2.5 rounded-xl shadow-md shadow-blue-200 flex items-center justify-center gap-2 animate-pulse"
+                          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-2.5 rounded-xl shadow-md shadow-blue-200 flex items-center justify-center gap-2"
                         >
                           <CreditCard size={16} />
                           {payingQuoteId === quote._id && payingType === "balance"
@@ -681,53 +648,35 @@ export default function CustomerQuotesPage() {
                         </Button>
                       )}
 
-                      {/* 3. Job in progress info when balance is pending */}
-                      {isBalanceAwaitingCompletion && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-2.5 text-center text-xs text-blue-800 font-medium flex items-center justify-center gap-1.5">
-                          <Clock size={14} className="text-blue-600 shrink-0" />
-                          <span>Installation in progress. Balance unlocked upon completion.</span>
-                        </div>
-                      )}
-
-                      {/* 4. Accept / Reject quotation */}
+                      {/* 2. Accept / Reject quotation */}
                       {quote.status?.toLowerCase().includes("sent") && (
-                        <div className="flex gap-2">
+                        <div className="space-y-2">
                           <Button
                             onClick={() => handleAcceptQuote(quote)}
-                            className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5"
+                            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-200"
                           >
-                            <CheckCircle size={14} /> Approve & Book Service
+                            <CheckCircle size={15} /> ✓ Accept &amp; Book Service
                           </Button>
                           <Button
                             onClick={() => handleRejectQuote(quote)}
                             variant="outline"
-                            className="flex-1 border-red-200 hover:bg-red-50 text-red-600 font-bold py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5"
+                            className="w-full border-red-200 hover:bg-red-50 text-red-600 font-bold py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5"
                           >
                             <X size={14} /> Decline
                           </Button>
                         </div>
                       )}
 
-                      {quote.status === "quotation_accepted" && quote.jobId && (
+                      {(quote.status === "quotation_accepted" || quote.status === "converted_to_order") && quote.jobId && (
                         <Link href={`/dashboard/bookings/${quote.jobId}`} className="block">
-                          <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1.5 rounded-xl text-xs flex items-center justify-center gap-1.5">
-                            View Active Work Order &rarr;
+                          <Button className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5">
+                            View Booking &amp; OTPs &rarr;
                           </Button>
                         </Link>
                       )}
 
-                      {/* 5. Invoices & Full Details */}
+                      {/* 3. Invoices & Full Details */}
                       <div className="flex gap-2">
-                        {isAdvancePaid && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleFetchInvoice(quote._id, "advance")}
-                            className="flex-1 border-gray-200 hover:bg-gray-50 text-gray-700 text-[11px] rounded-xl flex items-center justify-center gap-1"
-                          >
-                            <Download size={12} /> Advance Receipt
-                          </Button>
-                        )}
                         {isBalancePaid && (
                           <Button
                             variant="outline"
@@ -906,22 +855,11 @@ export default function CustomerQuotesPage() {
                   </span>
                 </div>
 
-                {/* Advance & Balance Breakdown in Modal */}
+                {/* Payment Terms in Modal */}
                 <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-xs text-slate-300">
                   <div>
-                    Advance Required ({selectedQuote.advancePercentage || 50}%):{" "}
-                    <strong className="text-white">
-                      ₹{formatCurrency(selectedQuote.advanceAmount)}
-                    </strong>
-                    {selectedQuote.advancePaidAmount > 0 && (
-                      <span className="ml-2 text-emerald-400 font-bold">(Paid)</span>
-                    )}
-                  </div>
-                  <div>
-                    Remaining Balance:{" "}
-                    <strong className="text-emerald-400">
-                      ₹{formatCurrency(selectedQuote.balanceAmount)}
-                    </strong>
+                    Payment Terms:{" "}
+                    <strong className="text-emerald-400">Pay on Completion (No Advance Required)</strong>
                   </div>
                 </div>
               </div>
@@ -931,7 +869,7 @@ export default function CustomerQuotesPage() {
                   <Clock size={16} /> Pricing Under Review
                 </p>
                 <p className="text-xs mt-1 text-amber-700">
-                  Our quotation team is finalizing competitive rates for the requested items. Once sent, complete price breakdown and payment options will appear right here.
+                  Our quotation team is finalizing competitive rates for the requested items. Once sent, complete price breakdown and booking options will appear right here.
                 </p>
               </div>
             )}
@@ -962,23 +900,18 @@ export default function CustomerQuotesPage() {
                       const q = selectedQuote;
                       handleAcceptQuote(q);
                     }}
-                    className="bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl"
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl px-6"
                   >
-                    <CheckCircle size={16} className="mr-1.5" /> Approve & Book Service
+                    <CheckCircle size={16} className="mr-1.5" /> ✓ Accept &amp; Book Service
                   </Button>
                 </>
               )}
-              {isPriceVisible(selectedQuote.status) && (selectedQuote.advancePaidAmount || 0) < selectedQuote.advanceAmount && (
-                <Button
-                  onClick={() => {
-                    const q = selectedQuote;
-                    setSelectedQuote(null);
-                    handlePay(q, "advance");
-                  }}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl px-6"
-                >
-                  <CreditCard size={16} className="mr-2" /> Pay Advance (₹{formatCurrency(selectedQuote.advanceAmount)})
-                </Button>
+              {(selectedQuote.status === "quotation_accepted" || selectedQuote.status === "converted_to_order") && selectedQuote.jobId && (
+                <Link href={`/dashboard/bookings/${selectedQuote.jobId}`}>
+                  <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl px-6">
+                    View Booking &amp; OTPs &rarr;
+                  </Button>
+                </Link>
               )}
             </div>
           </div>
