@@ -117,10 +117,10 @@ export default function BookingDetailPage() {
       })
       .catch((err) => console.error("Wallet balance load failed", err));
 
-    // Poll live location & updates every 10 seconds
+    // Poll live location & updates every 5 seconds for real-time OTP & status sync
     pollIntervalRef.current = setInterval(() => {
       loadData();
-    }, 10000);
+    }, 5000);
 
     return () => {
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
@@ -327,17 +327,40 @@ export default function BookingDetailPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left Column - Booking & Tech Details (2 cols span) */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Live Start Work OTP Card */}
+          {booking.startOtp && ["assigned", "accepted", "travelling", "arrived", "site_visited", "reached"].includes(booking.status) && (
+            <div className="rounded-3xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 rounded-2xl bg-amber-600 text-white flex items-center justify-center shrink-0">
+                  <KeyRound className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-black uppercase tracking-wider text-amber-800">Start Work OTP</div>
+                  <p className="text-xs text-slate-600 font-medium mt-0.5">
+                    Share this OTP with your technician to begin work once they arrive at your location.
+                  </p>
+                </div>
+              </div>
+              <div className="bg-white border border-amber-300 rounded-2xl px-5 py-2.5 text-center shadow-sm shrink-0">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Start OTP</div>
+                <div className="text-2xl font-black tracking-[0.25em] text-amber-700 font-mono">
+                  {booking.startOtp}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Live Completion OTP Card */}
-          {booking.completionOtp && !["completed", "closed", "cancelled"].includes(booking.status) && (
+          {booking.completionOtp && ["working", "in_progress", "started", "work_uploaded", "completion_requested"].includes(booking.status) && (
             <div className="rounded-3xl border-2 border-indigo-200 bg-gradient-to-r from-indigo-50 to-blue-50 p-5 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-start gap-3">
                 <div className="h-10 w-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shrink-0">
                   <KeyRound className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="text-xs font-black uppercase tracking-wider text-indigo-700">Customer Completion OTP</div>
+                  <div className="text-xs font-black uppercase tracking-wider text-indigo-700">Work Completion OTP</div>
                   <p className="text-xs text-slate-600 font-medium mt-0.5">
-                    Share this code with your technician only after inspecting the completed installation & photos.
+                    Share this OTP with your technician only after inspecting completed work.
                   </p>
                 </div>
               </div>
